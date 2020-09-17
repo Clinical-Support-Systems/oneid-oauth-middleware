@@ -1,0 +1,621 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AspNet.Security.OAuth.OneID</name>
+    </assembly>
+    <members>
+        <member name="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationBackChannelHandler">
+            <summary>
+            The backchannel handler that deals with the client assertion and SSL
+            </summary>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.OneIdAuthenticationBackChannelHandler.#ctor(AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="options">The options</param>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.OneIdAuthenticationBackChannelHandler.SendAsync(System.Net.Http.HttpRequestMessage,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.CertificateUtility">
+            <summary>
+            utility class to find certs and export them into byte arrays
+            </summary>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.CertificateUtility.FindCertificateByThumbprint(System.Security.Cryptography.X509Certificates.StoreName,System.Security.Cryptography.X509Certificates.StoreLocation,System.String,System.Boolean)">
+            <summary>
+            Finds the cert having thumbprint supplied from store location supplied
+            </summary>
+            <param name="storeName"></param>
+            <param name="storeLocation"></param>
+            <param name="thumbprint"></param>
+            <param name="validationRequired"></param>
+            <returns>X509Certificate2</returns>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.CertificateUtility.FindCertificateByThumbprint(System.String,System.Boolean)">
+             <summary>
+            Finds the cert having thumbprint supplied defaulting to the personal store of currrent user.
+             </summary>
+             <param name="thumbprint"></param>
+             <param name="validateCertificate"></param>
+             <returns>X509Certificate2</returns>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.CertificateUtility.ExportCertificateWithPrivateKey(System.Security.Cryptography.X509Certificates.X509Certificate2,System.String@)">
+             <summary>
+             Exports the cert supplied into a byte arrays and secures it with a randomly generated password.
+            </summary>
+             <param name="cert"></param>
+             <param name="password"></param>
+             <returns></returns>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants">
+            <summary>
+            Contains constants specific to the <see cref="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationHandler"/>.
+            </summary>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants">
+            <summary>
+            Constants related to oAuth/OIDC
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.AccessToken">
+            <summary>
+            The access token
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.Assertion">
+            <summary>
+            The client assertion
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.ClientId">
+            <summary>
+            The client id
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.Code">
+            <summary>
+            The PKCE code
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.CodeVerifier">
+            <summary>
+            The PKCE code verifier
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.GrantType">
+            <summary>
+            The oauth grant type
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.AuthorizationCode">
+            <summary>
+            The authorization code
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.IdentityToken">
+            <summary>
+            The identity token
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.Nonce">
+            <summary>
+            The nonce
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.CodeChallenge">
+            <summary>
+            The code challenge
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.CodeChallengeMethod">
+            <summary>
+            The code challenge method
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.Audience">
+            <summary>
+            The audience
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.Profile">
+            <summary>
+            The profile
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.RedirectUri">
+            <summary>
+            The redirect uri
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.RefreshToken">
+            <summary>
+            The refresh token
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.ResponseType">
+            <summary>
+            The response type
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.Scope">
+            <summary>
+            The scope
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.OAuth2Constants.State">
+            <summary>
+            The state
+            </summary>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.ProfileNames">
+            <summary>
+            Profile names
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.ProfileNames.DiagnosticSearchProfile">
+            <summary>
+            The diagnostic search profile name
+            </summary>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.ClaimNames">
+            <summary>
+            oAuth2/OIDC claim names
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.ClaimNames.JwtBearerAssertion">
+            <summary>
+            The JWT bearer assertion
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.ClaimNames.ApiAudience">
+            <summary>
+            The api audience
+            </summary>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.ScopeNames">
+            <summary>
+            Scope names
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.ScopeNames.DiagnosticReport">
+            <summary>
+            Name of the DiagnosticReport scope
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.FormatStrings.Authority">
+            <summary>
+            A format string used to construct <see cref="P:AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions.Authority"/>.
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.FormatStrings.AuthorizeEndpoint">
+            <summary>
+            A format string used to populate OAuth authorize endpoint.
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.FormatStrings.EndSessionEndpoint">
+            <summary>
+            A format string used to populate OAuth end session endpoint.
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.FormatStrings.ClaimsIssuer">
+            <summary>
+            A format string used to construct the claims issuer
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.FormatStrings.TokenEndpoint">
+            <summary>
+            A format string used to populate OAuth token endpoint.
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants.FormatStrings.Audience">
+            <summary>
+            The audience
+            </summary>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationDefaults">
+            <summary>
+            Default values used by the OneId authentication middleware.
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.OneIdAuthenticationDefaults.UserAgent">
+            <summary>
+            The user agent
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationDefaults.AuthenticationScheme">
+            <summary>
+            Default value for AuthenticationScheme Name
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationDefaults.DisplayName">
+            <summary>
+            Default value DisplayName
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationDefaults.Issuer">
+            <summary>
+            Default value for ClaimsIssuer
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationDefaults.CallbackPath">
+            <summary>
+            Default value for CallbackPath
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationDefaults.Environment">
+            <summary>
+            The default envionrment
+            </summary>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationEnvironment">
+            <summary>
+            Used to map usage to specific online environment, i.e. Development, QualityAssurance, PartnerSelfTest or Production.
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationEnvironment.Development">
+            <summary>
+            Development
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationEnvironment.QualityAssurance">
+            <summary>
+            QA
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationEnvironment.PartnerSelfTest">
+            <summary>
+            PST
+            </summary>
+        </member>
+        <member name="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationEnvironment.Production">
+            <summary>
+            Production
+            </summary>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationExtensions">
+            <summary>
+            Extension methods to add OneID authentication capabilities to an HTTP application pipeline.
+            </summary>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.OneIdAuthenticationExtensions.AddOneId(Microsoft.AspNetCore.Authentication.AuthenticationBuilder)">
+            <summary>
+            Adds <see cref="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationHandler"/> to the specified
+            <see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationBuilder"/>, which enables OneId authentication capabilities.
+            </summary>
+            <param name="builder">The authentication builder.</param>
+            <returns>A reference to this instance after the operation has completed.</returns>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.OneIdAuthenticationExtensions.AddOneId(Microsoft.AspNetCore.Authentication.AuthenticationBuilder,System.Action{AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions})">
+            <summary>
+            Adds <see cref="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationHandler"/> to the specified
+            <see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationBuilder"/>, which enables OneId authentication capabilities.
+            </summary>
+            <param name="builder">The authentication builder.</param>
+            <param name="configuration">The delegate used to configure the OpenID 2.0 options.</param>
+            <returns>A reference to this instance after the operation has completed.</returns>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.OneIdAuthenticationExtensions.AddOneId(Microsoft.AspNetCore.Authentication.AuthenticationBuilder,System.String,System.Action{AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions})">
+            <summary>
+            Adds <see cref="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationHandler"/> to the specified
+            <see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationBuilder"/>, which enables OneId authentication capabilities.
+            </summary>
+            <param name="builder">The authentication builder.</param>
+            <param name="scheme">The authentication scheme associated with this instance.</param>
+            <param name="configuration">The delegate used to configure the OneId options.</param>
+            <returns>The <see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationBuilder"/>.</returns>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.OneIdAuthenticationExtensions.AddOneId(Microsoft.AspNetCore.Authentication.AuthenticationBuilder,System.String,System.String,System.Action{AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions})">
+            <summary>
+            Adds <see cref="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationHandler"/> to the specified
+            <see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationBuilder"/>, which enables OneId authentication capabilities.
+            </summary>
+            <param name="builder">The authentication builder.</param>
+            <param name="scheme">The authentication scheme associated with this instance.</param>
+            <param name="caption">The optional display name associated with this instance.</param>
+            <param name="configuration">The delegate used to configure the OneId options.</param>
+            <returns>The <see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationBuilder"/>.</returns>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationHandler">
+            <summary>
+            The OneId oauth/oidc authentication handler
+            </summary>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.OneIdAuthenticationHandler.#ctor(Microsoft.Extensions.Options.IOptionsMonitor{AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions},Microsoft.Extensions.Logging.ILoggerFactory,System.Text.Encodings.Web.UrlEncoder,Microsoft.AspNetCore.Authentication.ISystemClock,System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="options">The options</param>
+            <param name="logger">The logger</param>
+            <param name="encoder">The encoder</param>
+            <param name="clock">The clock skew</param>
+            <param name="tokenHandler">The security token handler</param>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.OneIdAuthenticationHandler.BuildChallengeUrl(Microsoft.AspNetCore.Authentication.AuthenticationProperties,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.OneIdAuthenticationHandler.CreateTicketAsync(System.Security.Claims.ClaimsIdentity,Microsoft.AspNetCore.Authentication.AuthenticationProperties,Microsoft.AspNetCore.Authentication.OAuth.OAuthTokenResponse)">
+            <inheritdoc />
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.OneIdAuthenticationHandler.ExtractClaimsFromToken(System.String)">
+            <summary>
+            Extract the security claims from the id token.
+            </summary>
+            <param name="token">The json token content</param>
+            <returns>The list of claims</returns>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.OneIdAuthenticationHandler.ExchangeCodeAsync(Microsoft.AspNetCore.Authentication.OAuth.OAuthCodeExchangeContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.OneIdAuthenticationHandler.ProcessIdTokenAndGetContactIdentifier(Microsoft.AspNetCore.Authentication.OAuth.OAuthTokenResponse,Microsoft.AspNetCore.Authentication.AuthenticationProperties,System.Security.Claims.ClaimsIdentity)">
+            <summary>
+            Save tokens if required and get the context identifier.
+            </summary>
+            <param name="tokens">The tokens</param>
+            <param name="properties">The authentication properties.</param>
+            <param name="identity">The claims identity</param>
+            <returns></returns>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions">
+            <summary>
+            Defines a set of options used by <see cref="T:AspNet.Security.OAuth.OneID.OneIdAuthenticationHandler"/>.
+            </summary>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions.AdditionalParameters">
+            <summary>
+                Gets or sets additional values set in this property will be appended to the authorization request.
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions.Authority">
+            <summary>
+            Authority, which depends on the environment
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions.CertificateThumbprint">
+            <summary>
+            The thumbprint of the PKI certificate pre-configured with eHealth Ontario
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions.CertificateFilename">
+            <summary>
+            Certificate filename, if not using thumbprint
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions.CertificatePassword">
+            <summary>
+            Certificate password, if not using thumbprint
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions.ResponseType">
+            <summary>
+            Response type
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions.GetClaimsFromUserInfoEndpoint">
+            <summary>
+            Get claims from the user info endpoint? no.
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions.ValidateTokens">
+            <summary>
+            Validate tokens?
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions.TokenValidationParameters">
+            <summary>
+            Token validation parameterd
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions.Environment">
+            <summary>
+            Gets or sets the target online environment to either development, stage or production.
+            The default value is <see cref="F:AspNet.Security.OAuth.OneID.OneIdAuthenticationEnvironment.Development"/>.
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions.Audience">
+            <summary>
+            Audience
+            </summary>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions.GetEnvironment">
+            <summary>
+            Used to determine current target environment.
+            </summary>
+            <returns>Returns the online environment, i.e. development, stage, production.</returns>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions.Validate">
+            <inheritdoc/>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.OneIdValidateIdTokenContext">
+            <summary>
+            Contains information about the ID token to validate.
+            </summary>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.OneIdValidateIdTokenContext.#ctor(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Authentication.AuthenticationScheme,AspNet.Security.OAuth.OneID.OneIdAuthenticationOptions,System.String)">
+            <summary>
+            Creates a new instance of the <see cref="T:AspNet.Security.OAuth.OneID.OneIdValidateIdTokenContext"/> class.
+            </summary>
+            <param name="context">The HTTP context.</param>
+            <param name="scheme">The authentication scheme.</param>
+            <param name="options">The authentication options associated with the scheme.</param>
+            <param name="idToken">The OneID ID token for the user to validate.</param>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.OneIdValidateIdTokenContext.IdToken">
+            <summary>
+            Gets the Apple ID token.
+            </summary>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.Properties.Resources.Exception_OptionMustBeProvided">
+            <summary>
+              Looks up a localized string similar to The &apos;{0}&apos; option must be provided..
+            </summary>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.Provider.OneIdAuthenticatedContext">
+            <summary>
+            The OneId authenticated context
+            </summary>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.Provider.OneIdAuthenticatedContext.#ctor(System.Security.Claims.ClaimsPrincipal,Microsoft.AspNetCore.Authentication.AuthenticationProperties,Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Authentication.AuthenticationScheme,Microsoft.AspNetCore.Authentication.OAuth.OAuthOptions,System.Net.Http.HttpClient,Microsoft.AspNetCore.Authentication.OAuth.OAuthTokenResponse,System.Text.Json.JsonElement)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="principal">The principal</param>
+            <param name="properties">The properties</param>
+            <param name="context">The context</param>
+            <param name="scheme">The authentication scheme, ie. OneId</param>
+            <param name="options">The options</param>
+            <param name="backchannel">The backchannel</param>
+            <param name="tokens">The tokens</param>
+            <param name="user">The user data from the id token</param>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.Provider.OneIdAuthenticatedContext.Context">
+            <summary>
+            The http context
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.Provider.OneIdAuthenticatedContext.ParsedResponse">
+            <summary>
+            The parsed response
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.Provider.OneIdAuthenticatedContext.IdentityToken">
+            <summary>
+            Gets the identity token.
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.Provider.OneIdAuthenticatedContext.GivenName">
+            <summary>
+            First name
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.Provider.OneIdAuthenticatedContext.FamilyName">
+            <summary>
+            Last name
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.Provider.OneIdAuthenticatedContext.Id">
+            <summary>
+            User identifier
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.Provider.OneIdAuthenticatedContext.Email">
+            <summary>
+            User email address
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.Provider.OneIdAuthenticatedContext.PhoneNumber">
+            <summary>
+            Phone number
+            </summary>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.TokenEndpoint">
+            <summary>
+            The access_token endpoint return data
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.TokenEndpoint.AccessToken">
+            <summary>
+            The access token
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.TokenEndpoint.RefreshToken">
+            <summary>
+            The refresh token
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.TokenEndpoint.Scope">
+            <summary>
+            The oauth scope
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.TokenEndpoint.ContextSessionId">
+            <summary>
+            The returned context session id
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.TokenEndpoint.IdToken">
+            <summary>
+            The id token
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.TokenEndpoint.TokenType">
+            <summary>
+            The token type
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.TokenEndpoint.ExpiresIn">
+            <summary>
+            How many seconds until the access_token expires
+            </summary>
+        </member>
+        <member name="P:AspNet.Security.OAuth.OneID.TokenEndpoint.Nonce">
+            <summary>
+            Nonce
+            </summary>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.TokenEndpoint.FromJson(System.Text.Json.JsonElement)">
+            <summary>
+            Deserialize
+            </summary>
+            <param name="json">The json to deserialize</param>
+            <returns>The <see cref="T:AspNet.Security.OAuth.OneID.TokenEndpoint"/> object</returns>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.JsonExtensions">
+            <summary>
+            Extensions related to deserializing json
+            </summary>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.JsonExtensions.ToObject``1(System.Text.Json.JsonElement,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Deserialize
+            </summary>
+            <typeparam name="T">The type</typeparam>
+            <param name="element">The json containing element</param>
+            <param name="options">Serializer options</param>
+            <returns>The object</returns>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.JsonExtensions.ToObject``1(System.Text.Json.JsonDocument,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Deserialize
+            </summary>
+            <typeparam name="T">The type</typeparam>
+            <param name="document">The json document</param>
+            <param name="options">Serializer options</param>
+            <returns>The object</returns>
+        </member>
+        <member name="T:AspNet.Security.OAuth.OneID.Serialize">
+            <summary>
+            Serialization extensions
+            </summary>
+        </member>
+        <member name="M:AspNet.Security.OAuth.OneID.Serialize.ToJson(AspNet.Security.OAuth.OneID.TokenEndpoint)">
+            <summary>
+            Serialize <see cref="T:AspNet.Security.OAuth.OneID.TokenEndpoint"/> to json string
+            </summary>
+            <param name="self">The object to serialize</param>
+            <returns>The json string</returns>
+        </member>
+    </members>
+</doc>
