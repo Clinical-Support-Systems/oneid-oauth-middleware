@@ -39,3 +39,4 @@ jobs:
           PROJECT_FILE_PATH: src/AspNet.Security.OAuth.OneID/AspNet.Security.OAuth.OneID.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_STATIC: $NBGV_SemVer2
+          TAG_COMMIT: false
