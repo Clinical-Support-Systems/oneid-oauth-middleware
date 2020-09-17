@@ -30,7 +30,7 @@ namespace ConsumerApp.Kestrel
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             // Add authentication services
-            services.AddAuthentication().AddOneId("OneId", options =>
+            services.AddAuthentication().AddOneId(options =>
             {
                 options.ClientId = Configuration["EHS:AuthClientId"];
                 options.CertificateThumbprint = Configuration["EHS:CertificateThumbprint"];

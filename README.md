@@ -2,22 +2,22 @@
 
 - An easy to use library that makes connecting with eHealth Ontario easy for .NET Kestrel/Owin/Katana applications.
 
-[![Build Status](https://dev.azure.com/css/eHealthServices/_apis/build/status/eHealthServices-CI?branchName=develop)](https://dev.azure.com/css/eHealthServices/_build/latest?definitionId=39&branchName=develop)
+<p align="center">
+  <a href="https://dev.azure.com/css/eHealthServices/_build/latest?definitionId=39&branchName=develop">
+    <img src="https://dev.azure.com/css/eHealthServices/_apis/build/status/eHealthServices-CI?branchName=develop" alt="Sublime's custom image"/>
+  </a>
+</p>
 
-# :ledger: Index
+<p align="center">
+    <a href="#beginner-about">About</a> |
+    <a href="#sunny-usage">Usage</a> |
+    <a href="#wrench-development">Development</a> |
+    <a href="#camera-gallery">Gallery</a> |
+    <a href="#star2-creditacknowledgment">Acknowledgement</a> |
+    <a href="#lock-license">License</a>
+</p>
 
-- [About](#beginner-about)
-- [Usage](#sunny-usage)
-  - [NuGet Installation](#electric_plug-nuget-installation)
-  - [Setup](#package-startup.cs)
-- [Development](#wrench-development)
-  - [Pre-Requisites](#notebook-pre-requisites)
-  - [Contribution](#fire-contribution)
-  - [Branches](#cactus-branches)
-  - [Guideline](#exclamation-guideline)
-- [Gallery](#camera-gallery)
-- [Credit/Acknowledgment](#star2-creditacknowledgment)
-- [License](#lock-license)
+---
 
 # :beginner: About
 This library was created by Clinical Support Systems and Kori Francis, who have experience integrating with APIs of varying complexity. We wanted to simplify the connection in .NET web applications so we could get on with the actual API implementation.
@@ -47,7 +47,7 @@ app.UseOneIdAuthentication(new OneIdAuthenticationOptions()
 
 **Kestrel (ASP.NET Core)**
 ```c#
-services.AddAuthentication().AddOneId("OneId", options =>
+services.AddAuthentication().AddOneId(options =>
     {
         options.ClientId = Configuration["EHS:AuthClientId"];
         options.CertificateThumbprint = Configuration["EHS:CertificateThumbprint"];
@@ -70,13 +70,13 @@ List all the pre-requisites the system needs to develop this project.
  Your contributions are always welcome and appreciated. Following are the things you can do to contribute to this project.
 
  1. **Report a bug** <br>
- If you think you have encountered a bug, and I should know about it, feel free to report it [here](https://trello.com/b/ZMBrWMaP/quebec-billing-project) and I will take care of it.
+ If you think you have encountered a bug, and I should know about it, feel free to report it and I will take care of it.
 
  2. **Request a feature** <br>
  You can also request for a feature.
 
  3. **Create a pull request** <br>
- It can't get better then this, your pull request will be appreciated by the community. You can get started by picking up any open issues from [here]() and make a pull request.
+ It can't get better then this, your pull request will be appreciated by the community. You can get started by picking up any open issues from [here](https://github.com/Clinical-Support-Systems/oneid-oauth-middleware/issues) and make a pull request.
 
  > If you are new to open-source, make sure to check read more about it [here](https://www.digitalocean.com/community/tutorial_series/an-introduction-to-open-source) and learn more about creating a pull request [here](https://www.digitalocean.com/community/tutorials/how-to-create-a-pull-request-on-github).
 
@@ -109,4 +109,5 @@ After this, changes will be merged.
  * Alex McKeever
 
 #  :lock: License
-Add a license here, or a link to it.
+
+[License](https://raw.githubusercontent.com/Clinical-Support-Systems/oneid-oauth-middleware/master/LICENSE)
