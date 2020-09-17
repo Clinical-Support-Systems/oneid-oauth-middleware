@@ -9,6 +9,7 @@
     <Description>Authentication provider for eHealth Ontario's OneID service</Description>
     <PackageProjectUrl>https://github.com/Clinical-Support-Systems/oneid-oauth-middleware</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Clinical-Support-Systems/oneid-oauth-middleware</RepositoryUrl>
+    <Version>0.5.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
