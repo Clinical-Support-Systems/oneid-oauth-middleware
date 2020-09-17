@@ -15,8 +15,6 @@
   - [Contribution](#fire-contribution)
   - [Branches](#cactus-branches)
   - [Guideline](#exclamation-guideline)
-- [FAQ](#question-faq)
-- [Resources](#page_facing_up-resources)
 - [Gallery](#camera-gallery)
 - [Credit/Acknowledgment](#star2-creditacknowledgment)
 - [License](#lock-license)
@@ -29,7 +27,7 @@ Here's how to use this library in your project.
 
 ###  :electric_plug: NuGet Installation
 
-```
+```powershell
 Install-Package AspNet.Security.OAuth.OneID
 ```
 
@@ -38,7 +36,7 @@ Install-Package AspNet.Security.OAuth.OneID
 Add the following to your authentication pipeline:
 
 **OWIN/Katana (ASP.NET)**
-```
+```c#
 app.UseOneIdAuthentication(new OneIdAuthenticationOptions()
     {
         CertificateThumbprint = ConfigurationManager.AppSettings["EHS:CertificateThumbprint"],
@@ -48,7 +46,7 @@ app.UseOneIdAuthentication(new OneIdAuthenticationOptions()
 ```
 
 **Kestrel (ASP.NET Core)**
-```
+```c#
 services.AddAuthentication().AddOneId("OneId", options =>
     {
         options.ClientId = Configuration["EHS:AuthClientId"];
@@ -100,16 +98,6 @@ List all the pre-requisites the system needs to develop this project.
 3. It must pass all continuous integration checks and get positive reviews.
 
 After this, changes will be merged.
-
-
-### :exclamation: Guideline
-coding guidelines or other things you want people to follow should follow.
-
-# :question: FAQ
-You can optionally add a FAQ section about the project.
-
-#  :page_facing_up: Resources
-Add important resources here
 
 #  :camera: Gallery
 
