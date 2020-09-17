@@ -19,10 +19,6 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # get nerdbank
-      - name: Nerdbank.GitVersioning
-        uses: dotnet/nbgv@v0.3.1
-
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with:
