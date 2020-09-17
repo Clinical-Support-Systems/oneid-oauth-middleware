@@ -24,6 +24,13 @@ jobs:
         with:
           fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
 
+      - name: Nerdbank.GitVersioning
+        uses: dotnet/nbgv@v0.3.1
+        with:
+          setAllVars: true
+
+      - run: echo "NBGV_SemVer2 $NBGV_SemVer2"
+
       # pack and publish the nuget package
       - name: Publish NuGet
         uses: brandedoutcast/publish-nuget@v2.5.5
@@ -31,4 +38,4 @@ jobs:
           # Filepath of the project to be packaged, relative to root of repository
           PROJECT_FILE_PATH: src/AspNet.Security.OAuth.OneID/AspNet.Security.OAuth.OneID.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_STATIC: ${{NBGV_SemVer2}}
+          VERSION_STATIC: $NBGV_SemVer2
