@@ -15,12 +15,21 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+
+      - name: Nerdbank.GitVersioning
+        uses: dotnet/nbgv@v0.3.1
+        with:
+          setAllVars: true
+
+      - run: echo "NBGV_SemVer2 $NBGV_SemVer2"
 
       # pack and publish the nuget package
       - name: Publish NuGet
@@ -29,3 +38,5 @@ jobs:
           # Filepath of the project to be packaged, relative to root of repository
           PROJECT_FILE_PATH: src/AspNet.Security.OAuth.OneID/AspNet.Security.OAuth.OneID.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          VERSION_STATIC: $NBGV_SemVer2
+          TAG_COMMIT: false
