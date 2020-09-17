@@ -112,7 +112,8 @@ You can optionally add a FAQ section about the project.
 Add important resources here
 
 #  :camera: Gallery
-Pictures of your project.
+
+![OneId Authentication](oneid.gif)
 
 # :star2: Credit/Acknowledgment
  * Kori Francis
