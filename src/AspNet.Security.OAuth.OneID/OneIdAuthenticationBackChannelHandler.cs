@@ -69,7 +69,7 @@ namespace AspNet.Security.OAuth.OneID
             X509Certificate2 cert = null;
             if (!string.IsNullOrEmpty(_options.CertificateThumbprint))
             {
-                cert = CertificateUtility.FindCertificateByThumbprint(StoreName.My, StoreLocation.LocalMachine, _options.CertificateThumbprint, false);
+                cert = CertificateUtility.FindCertificateByThumbprint(_options.CertificateStoreName, _options.CertificateStoreLocation, _options.CertificateThumbprint, false);
             }
             if (!string.IsNullOrEmpty(_options.CertificateFilename))
             {

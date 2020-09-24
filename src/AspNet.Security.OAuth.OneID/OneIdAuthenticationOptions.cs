@@ -35,6 +35,7 @@ using System.Security;
 using static AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 
 #if NETCORE
 
@@ -88,6 +89,8 @@ namespace AspNet.Security.OAuth.OneID
             GetClaimsFromUserInfoEndpoint = false;
             UsePkce = true;
             BackchannelHttpHandler = new OneIdAuthenticationBackChannelHandler(this);
+            CertificateStoreLocation = StoreLocation.CurrentUser;
+            CertificateStoreName = StoreName.My;
             TokenValidationParameters = new TokenValidationParameters()
             {
                 ValidateAudience = true,
@@ -169,6 +172,9 @@ namespace AspNet.Security.OAuth.OneID
         /// The thumbprint of the PKI certificate pre-configured with eHealth Ontario
         /// </summary>
         public string CertificateThumbprint { get; set; }
+
+        public StoreLocation CertificateStoreLocation { get; set; }
+        public StoreName CertificateStoreName { get; set; }
 
         /// <summary>
         /// Certificate filename, if not using thumbprint
