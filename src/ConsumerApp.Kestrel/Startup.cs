@@ -29,15 +29,22 @@ namespace ConsumerApp.Kestrel
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            services.AddSession();
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
+                options.CheckConsentNeeded = context => true;
+                options.MinimumSameSitePolicy = SameSiteMode.None;
+            });
+
             // Add authentication services
-            services.AddAuthentication().AddOneId(options =>
+            services.AddAuthentication().AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, options =>
             {
                 options.ClientId = Configuration["EHS:AuthClientId"];
                 options.CertificateThumbprint = Configuration["EHS:CertificateThumbprint"];
                 options.Environment = OneIdAuthenticationEnvironment.PartnerSelfTest;
-
-                // This must be pre-registered with eHealth Ontario
                 options.CallbackPath = new PathString("/oneid-signin");
+                options.TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken | OneIdAuthenticationTokenSave.IdToken;
             });
 
             services.AddRazorPages();
@@ -62,6 +69,9 @@ namespace ConsumerApp.Kestrel
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseCookiePolicy();
+            app.UseSession();
 
             app.UseAuthentication();
             app.UseAuthorization();

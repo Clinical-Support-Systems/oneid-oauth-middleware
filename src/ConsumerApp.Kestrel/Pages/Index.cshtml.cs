@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using AspNet.Security.OAuth.OneID;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ConsumerApp.Kestrel.Pages
 {
@@ -17,9 +17,20 @@ namespace ConsumerApp.Kestrel.Pages
             _logger = logger;
         }
 
-        public void OnGet()
+        public async Task OnGet()
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                var properites = await HttpContext.AuthenticateAsync(OneIdAuthenticationDefaults.AuthenticationScheme);
 
+                var refreshToken = await HttpContext.GetTokenAsync("refresh_token");
+                if (string.IsNullOrEmpty(refreshToken) && HttpContext.Session.Keys.Contains("refresh_token"))
+                {
+                    refreshToken = HttpContext.Session.GetString("refresh_token");
+                }
+
+                string t = "";
+            }
         }
     }
 }

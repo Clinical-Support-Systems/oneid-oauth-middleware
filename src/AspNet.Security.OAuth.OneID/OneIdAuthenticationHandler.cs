@@ -147,8 +147,17 @@ namespace AspNet.Security.OAuth.OneID
 
             var context = new OneIdAuthenticatedContext(principal, properties, Context, Scheme, Options, Backchannel, tokens, tokens.Response.RootElement);
 
-            // Store the received authentication token somewhere. In a cookie for example
-            context.HttpContext.Session.SetString("access_token", context.AccessToken);
+            List<AuthenticationToken> exactTokens = context.Properties.GetTokens().ToList();
+
+            // Store the received tokens somewhere, if we should
+            if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.AccessToken) == OneIdAuthenticationTokenSave.AccessToken)
+            {
+                context.HttpContext.Session.SetString("access_token", context.AccessToken);
+            }
+            if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.RefreshToken) == OneIdAuthenticationTokenSave.RefreshToken)
+            {
+                context.HttpContext.Session.SetString("refresh_token", context.RefreshToken);
+            }
 
             context.RunClaimActions();
 
@@ -256,7 +265,10 @@ namespace AspNet.Security.OAuth.OneID
             if (Options.SaveTokens)
             {
                 // Save id_token as well.
-                SaveIdToken(properties, idToken);
+                if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.IdToken) == OneIdAuthenticationTokenSave.IdToken && !string.IsNullOrEmpty(idToken))
+                {
+                    SaveIdToken(properties, idToken);
+                }
             }
 
             //var tokenValidationResult = await ValidateAsync(idToken, Options.TokenValidationParameters);
