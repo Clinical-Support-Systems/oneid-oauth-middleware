@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Microsoft.AspNet.Identity;
+using Microsoft.Owin.Security;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Web;
-using Microsoft.AspNet.Identity;
-using Microsoft.Owin.Security;
 
 namespace ConsumerApp.Katana.Account
 {
@@ -29,7 +29,9 @@ namespace ConsumerApp.Katana.Account
                 }
                 Context.GetOwinContext().Authentication.Challenge(properties, provider);
                 Response.StatusCode = 401;
-                Response.End();
+                HttpContext.Current.Response.Flush(); // Sends all currently buffered output to the client.
+                HttpContext.Current.Response.SuppressContent = true;  // Gets or sets a value indicating whether to send HTTP content to the client.
+                HttpContext.Current.ApplicationInstance.CompleteRequest(); // Causes ASP.NET to bypass all events and filtering in the HTTP pipeline chain of execution and directly execute the EndRequest event.
             }
         }
 
