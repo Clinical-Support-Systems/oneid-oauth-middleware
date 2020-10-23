@@ -140,6 +140,8 @@ namespace AspNet.Security.OAuth.OneID
             };
 #endif
 
+            TokenSaveOptions = OneIdAuthenticationDefaults.TokenSave;
+
             UpdateEndpoints();
         }
 
@@ -167,6 +169,11 @@ namespace AspNet.Security.OAuth.OneID
             }
             set => _authority = value;
         }
+
+        /// <summary>
+        /// When SaveTokens is true, this let's you specify which tokens get persisted non-session (ie. cookie)
+        /// </summary>
+        public OneIdAuthenticationTokenSave TokenSaveOptions { get; set; }
 
         /// <summary>
         /// The thumbprint of the PKI certificate pre-configured with eHealth Ontario

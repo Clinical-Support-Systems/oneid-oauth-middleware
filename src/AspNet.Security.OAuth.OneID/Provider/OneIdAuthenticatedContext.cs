@@ -32,6 +32,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using System.Security.Claims;
+using System.Globalization;
+using System;
+using System.Collections.Generic;
 
 #if NETFULL
 using Microsoft.Owin;
@@ -81,6 +84,44 @@ BaseContext
             Properties = properties;
 
             _response = user.ToObject<TokenEndpoint>();
+
+            if (options.SaveTokens)
+            {
+                var authTokens = new List<AuthenticationToken>();
+
+                if ((((OneIdAuthenticationOptions)options).TokenSaveOptions & OneIdAuthenticationTokenSave.AccessToken) == OneIdAuthenticationTokenSave.AccessToken && !string.IsNullOrEmpty(tokens.AccessToken))
+                {
+                    authTokens.Add(new AuthenticationToken() { Name = "access_token", Value = tokens.AccessToken });
+                };
+
+                if ((((OneIdAuthenticationOptions)options).TokenSaveOptions & OneIdAuthenticationTokenSave.RefreshToken) == OneIdAuthenticationTokenSave.RefreshToken && !string.IsNullOrEmpty(tokens.RefreshToken))
+                {
+                    authTokens.Add(new AuthenticationToken() { Name = "refresh_token", Value = tokens.RefreshToken });
+                }
+
+                if (!string.IsNullOrEmpty(tokens.TokenType))
+                {
+                    authTokens.Add(new AuthenticationToken() { Name = "token_type", Value = tokens.TokenType });
+                }
+
+                if (!string.IsNullOrEmpty(tokens.ExpiresIn))
+                {
+                    if (int.TryParse(tokens.ExpiresIn, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value))
+                    {
+                        // https://www.w3.org/TR/xmlschema-2/#dateTime
+                        // https://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110).aspx
+                        var expiresAt = DateTime.UtcNow + TimeSpan.FromSeconds(value);
+
+                        authTokens.Add(new AuthenticationToken()
+                        {
+                            Name = "expires_at",
+                            Value = expiresAt.ToString("o", CultureInfo.InvariantCulture),
+                        });
+                    }
+                }
+
+                Properties.StoreTokens(authTokens);
+            }
 
             this.Email = user.GetString("email");
             this.Id = user.GetString("sub");

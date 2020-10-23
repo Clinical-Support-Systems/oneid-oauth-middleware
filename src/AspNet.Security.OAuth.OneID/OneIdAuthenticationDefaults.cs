@@ -29,6 +29,8 @@
 
 #endregion License, Terms and Conditions
 
+using System;
+
 namespace AspNet.Security.OAuth.OneID
 {
     /// <summary>
@@ -69,5 +71,19 @@ namespace AspNet.Security.OAuth.OneID
         /// The default envionrment
         /// </summary>
         public const OneIdAuthenticationEnvironment Environment = OneIdAuthenticationEnvironment.Development;
+
+        /// <summary>
+        /// Don't store the access_token because it's large, by default.
+        /// </summary>
+        public const OneIdAuthenticationTokenSave TokenSave = OneIdAuthenticationTokenSave.IdToken | OneIdAuthenticationTokenSave.RefreshToken;
+    }
+
+    [Flags]
+    public enum OneIdAuthenticationTokenSave
+    {
+        None = 0,
+        IdToken = 1,
+        RefreshToken = 2,
+        AccessToken = 4
     }
 }
