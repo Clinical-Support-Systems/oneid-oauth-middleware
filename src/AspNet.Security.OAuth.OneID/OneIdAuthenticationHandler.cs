@@ -149,6 +149,8 @@ namespace AspNet.Security.OAuth.OneID
 
             List<AuthenticationToken> exactTokens = context.Properties.GetTokens().ToList();
 
+            context.HttpContext.Session.SetString("original_username", principal.Identity.Name);
+
             // Store the received tokens somewhere, if we should
             if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.AccessToken) == OneIdAuthenticationTokenSave.AccessToken)
             {
