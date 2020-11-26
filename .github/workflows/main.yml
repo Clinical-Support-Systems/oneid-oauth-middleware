@@ -26,6 +26,8 @@ jobs:
 
       - name: Nerdbank.GitVersioning
         uses: dotnet/nbgv@v0.4
+        env: 
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
         id: nbgv
         with:
           setAllVars: true
@@ -35,6 +37,8 @@ jobs:
       # pack and publish the nuget package
       - name: Publish NuGet
         uses: brandedoutcast/publish-nuget@v2.5.5
+        env: 
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
         with:
           # Filepath of the project to be packaged, relative to root of repository
           PROJECT_FILE_PATH: src/AspNet.Security.OAuth.OneID/AspNet.Security.OAuth.OneID.csproj
