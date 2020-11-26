@@ -151,6 +151,12 @@ namespace AspNet.Security.OAuth.OneID
         public Dictionary<string, string> AdditionalParameters { get; set; }
 
         /// <summary>
+        /// For the purposes of removing subdomains from the request and restoring them for the redirect once complete
+        /// Add second and third level TLDs that might be expected (ie. (host).uk is 1st, (host).co.uk is a 2nd, (host).k12.ma.us is a third)
+        /// </summary>
+        public List<string> Tlds { get; set; }
+
+        /// <summary>
         /// Authority, which depends on the environment
         /// </summary>
         public string Authority

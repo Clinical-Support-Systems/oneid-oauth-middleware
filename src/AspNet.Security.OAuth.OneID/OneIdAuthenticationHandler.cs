@@ -42,6 +42,7 @@ using System.Globalization;
 using System.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using AspNet.Security.OAuth.OneID.Provider;
+using System.Text.RegularExpressions;
 
 #if NETCORE
 
@@ -97,7 +98,31 @@ namespace AspNet.Security.OAuth.OneID
         /// <inheritdoc />
         protected override string BuildChallengeUrl(AuthenticationProperties properties, string redirectUri)
         {
-            string challengeUrl = base.BuildChallengeUrl(properties, redirectUri);
+            var uri = new Uri(redirectUri);
+            string subdomain = null;
+
+            if (uri.HostNameType == UriHostNameType.Dns)
+            {
+                var host = uri.Host;
+                if (host.Count(f => f == '.') > 1)
+                {
+                    subdomain = host.Split('.')[0];
+                }
+            }
+
+            string challengeUrl = null;
+
+            if (!string.IsNullOrEmpty(subdomain))
+            {
+                properties.SetString("subdomain", subdomain);
+
+                // challenge without the subdomain
+                challengeUrl = base.BuildChallengeUrl(properties, redirectUri.Replace(subdomain + ".", string.Empty));
+            }
+            else
+            {
+                challengeUrl = base.BuildChallengeUrl(properties, redirectUri);
+            }
 
             challengeUrl = QueryHelpers.AddQueryString(challengeUrl, "aud", ClaimNames.ApiAudience);
             challengeUrl = QueryHelpers.AddQueryString(challengeUrl, "_profile", ProfileNames.DiagnosticSearchProfile);
@@ -395,7 +420,32 @@ namespace AspNet.Security.OAuth.OneID
                 var tokenRequestContext = new OneIdTokenRequestContext(this.Context, this.Options, state, code, properties);
                 await this.Options.Provider.TokenRequest(tokenRequestContext);
 
-                var requestPrefix = Request.Scheme + Uri.SchemeDelimiter + this.Request.Host + this.Request.PathBase;
+                string host = Request.Host.Value;
+                string hostWithoutPrefix = null;
+
+                if (Options.Tlds != null)
+                {
+                    foreach (var tld in Options.Tlds)
+                    {
+                        Regex regex = new Regex($"(?<=\\.|)\\w+\\.{tld}$");
+                        Match match = regex.Match(host);
+
+                        if (match.Success)
+                            hostWithoutPrefix = match.Groups[0].Value;
+                    }
+                }
+
+                //second/third levels not provided or not found -- try single-level
+                if (string.IsNullOrWhiteSpace(hostWithoutPrefix))
+                {
+                    Regex regex = new Regex("(?<=\\.|)\\w+\\.\\w+$");
+                    Match match = regex.Match(host);
+
+                    if (match.Success)
+                        hostWithoutPrefix = match.Groups[0].Value;
+                }
+
+                var requestPrefix = Request.Scheme + Uri.SchemeDelimiter + hostWithoutPrefix + this.Request.PathBase;
                 var redirectUri = requestPrefix + Options.CallbackPath;
                 var body = new Dictionary<string, string>
                 {
@@ -609,10 +659,35 @@ namespace AspNet.Security.OAuth.OneID
                 return Task.FromResult<object>(null);
             }
 
+            string host = Request.Host.Value;
+            string hostWithoutPrefix = null;
+
+            if (Options.Tlds != null)
+            {
+                foreach (var tld in Options.Tlds)
+                {
+                    Regex regex = new Regex($"(?<=\\.|)\\w+\\.{tld}$");
+                    Match match = regex.Match(host);
+
+                    if (match.Success)
+                        hostWithoutPrefix = match.Groups[0].Value;
+                }
+            }
+
+            //second/third levels not provided or not found -- try single-level
+            if (string.IsNullOrWhiteSpace(hostWithoutPrefix))
+            {
+                Regex regex = new Regex("(?<=\\.|)\\w+\\.\\w+$");
+                Match match = regex.Match(host);
+
+                if (match.Success)
+                    hostWithoutPrefix = match.Groups[0].Value;
+            }
+
             string baseUri =
                 Request.Scheme +
                 Uri.SchemeDelimiter +
-                Request.Host +
+                hostWithoutPrefix +
                 Request.PathBase;
 
             string currentUri =
