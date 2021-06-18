@@ -44,7 +44,8 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Constants related to oAuth/OIDC
         /// </summary>
-        internal static class OAuth2Constants
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "<Pending>")]
+        public static class OAuth2Constants
         {
             /// <summary>
             /// The access token
@@ -140,7 +141,8 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Profile names
         /// </summary>
-        internal static class ProfileNames
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "<Pending>")]
+        public static class ProfileNames
         {
             /// <summary>
             /// The diagnostic search profile name
@@ -151,7 +153,8 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// oAuth2/OIDC claim names
         /// </summary>
-        internal static class ClaimNames
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "<Pending>")]
+        public static class ClaimNames
         {
             /// <summary>
             /// The JWT bearer assertion
@@ -167,7 +170,8 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Scope names
         /// </summary>
-        internal static class ScopeNames
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "<Pending>")]
+        public static class ScopeNames
         {
             /// <summary>
             /// Name of the DiagnosticReport scope
@@ -175,7 +179,8 @@ namespace AspNet.Security.OAuth.OneID
             public const string DiagnosticReport = "user/DiagnosticReport.read";
         }
 
-        internal static class FormatStrings
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "<Pending>")]
+        public static class FormatStrings
         {
             /// <summary>
             /// A format string used to construct <see cref="OneIdAuthenticationOptions.Authority"/>.
