@@ -43,6 +43,7 @@ using System.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using AspNet.Security.OAuth.OneID.Provider;
 using System.Text.RegularExpressions;
+using System.Security.Cryptography;
 
 #if NETCORE
 
@@ -64,6 +65,7 @@ using Newtonsoft.Json.Linq;
 using System.Security.Claims;
 using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin;
+using Microsoft.Owin.Security.DataHandler.Encoder;
 #endif
 
 namespace AspNet.Security.OAuth.OneID
@@ -98,6 +100,16 @@ namespace AspNet.Security.OAuth.OneID
         /// <inheritdoc />
         protected override string BuildChallengeUrl(AuthenticationProperties properties, string redirectUri)
         {
+            if (properties is null)
+            {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            if (string.IsNullOrEmpty(redirectUri))
+            {
+                throw new ArgumentException($"'{nameof(redirectUri)}' cannot be null or empty.", nameof(redirectUri));
+            }
+
             var uri = new Uri(redirectUri);
             string subdomain = null;
 
@@ -117,7 +129,11 @@ namespace AspNet.Security.OAuth.OneID
                 properties.SetString("subdomain", subdomain);
 
                 // challenge without the subdomain
+#if NET5_0_OR_GREATER
+                challengeUrl = base.BuildChallengeUrl(properties, redirectUri.Replace(subdomain + ".", string.Empty, StringComparison.InvariantCulture));
+#else
                 challengeUrl = base.BuildChallengeUrl(properties, redirectUri.Replace(subdomain + ".", string.Empty));
+#endif
             }
             else
             {
@@ -133,7 +149,22 @@ namespace AspNet.Security.OAuth.OneID
         /// <inheritdoc />
         protected override async Task<AuthenticationTicket> CreateTicketAsync(ClaimsIdentity identity, AuthenticationProperties properties, OAuthTokenResponse tokens)
         {
-            var contextId = ProcessIdTokenAndGetContactIdentifier(tokens, properties, identity);
+            if (identity is null)
+            {
+                throw new ArgumentNullException(nameof(identity));
+            }
+
+            if (properties is null)
+            {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            if (tokens is null)
+            {
+                throw new ArgumentNullException(nameof(tokens));
+            }
+
+            var contextId = ProcessIdTokenAndGetContactIdentifier(tokens, properties);
 
             string idToken = tokens.Response.RootElement.GetString("id_token");
 
@@ -188,7 +219,7 @@ namespace AspNet.Security.OAuth.OneID
 
             context.RunClaimActions();
 
-            await Events.CreatingTicket(context);
+            await Events.CreatingTicket(context).ConfigureAwait(false);
             return new AuthenticationTicket(context.Principal, context.Properties, Scheme.Name);
         }
 
@@ -243,7 +274,10 @@ namespace AspNet.Security.OAuth.OneID
         /// <inheritdoc/>
         protected override async Task<OAuthTokenResponse> ExchangeCodeAsync(OAuthCodeExchangeContext context)
         {
-            Contract.Requires(context != null);
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
 
             using var request = new HttpRequestMessage(HttpMethod.Post, Options.TokenEndpoint);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
@@ -260,7 +294,7 @@ namespace AspNet.Security.OAuth.OneID
 
             request.Content = new FormUrlEncodedContent(parameters);
 
-            using var response = await Backchannel.SendAsync(request, Context.RequestAborted);
+            using var response = await Backchannel.SendAsync(request, Context.RequestAborted).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -268,12 +302,12 @@ namespace AspNet.Security.OAuth.OneID
                                 "returned a {Status} response with the following payload: {Headers} {Body}.",
                                 /* Status: */ response.StatusCode,
                                 /* Headers: */ response.Headers.ToString(),
-                                /* Body: */ await response.Content.ReadAsStringAsync());
+                                /* Body: */ await response.Content.ReadAsStringAsync().ConfigureAwait(false));
 
-                return OAuthTokenResponse.Failed(new Exception("An error occurred while retrieving an access token."));
+                return OAuthTokenResponse.Failed(new OneIdAuthenticationException("An error occurred while retrieving an access token."));
             }
 
-            var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
 
             return OAuthTokenResponse.Success(payload);
         }
@@ -285,7 +319,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <param name="properties">The authentication properties.</param>
         /// <param name="identity">The claims identity</param>
         /// <returns></returns>
-        private string ProcessIdTokenAndGetContactIdentifier(OAuthTokenResponse tokens, AuthenticationProperties properties, ClaimsIdentity identity)
+        private string ProcessIdTokenAndGetContactIdentifier(OAuthTokenResponse tokens, AuthenticationProperties properties)
         {
             var idToken = tokens.Response.RootElement.GetString("id_token");
 
@@ -347,7 +381,7 @@ namespace AspNet.Security.OAuth.OneID
         //    }
         //}
 
-        private void SaveIdToken(AuthenticationProperties properties, string idToken)
+        private static void SaveIdToken(AuthenticationProperties properties, string idToken)
         {
             Contract.Requires(properties != null);
             Contract.Requires(idToken != null);
@@ -374,7 +408,12 @@ namespace AspNet.Security.OAuth.OneID
         private const string StateCookie = ".AspNet.Correlation.OneID";
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;
-        public static PKCECode _pkceCode;
+        private static PKCECode _pkceCode;
+        private static readonly RandomNumberGenerator CryptoRandom = RandomNumberGenerator.Create();
+        private const string CorrelationPrefix = ".AspNetCore.Correlation.";
+        private const string CorrelationProperty = ".xsrf";
+        private const string CorrelationMarker = "N";
+        private const string NonceProperty = "N";
 
         public OneIdAuthenticationHandler(ILogger logger, HttpClient httpClient)
         {
@@ -409,7 +448,7 @@ namespace AspNet.Security.OAuth.OneID
                     return null;
 
                 // OAuth2 10.12 CSRF
-                if (!ValidateOurCorrelationId(properties, _logger))
+                if (!ValidateCorrelationId(properties, _logger))
                     return new AuthenticationTicket(null, properties);
 
                 if (string.IsNullOrWhiteSpace(code))
@@ -418,7 +457,7 @@ namespace AspNet.Security.OAuth.OneID
                 }
 
                 var tokenRequestContext = new OneIdTokenRequestContext(this.Context, this.Options, state, code, properties);
-                await this.Options.Provider.TokenRequest(tokenRequestContext);
+                await Options.Provider.TokenRequest(tokenRequestContext).ConfigureAwait(false);
 
                 string host = Request.Host.Value;
                 string hostWithoutPrefix = null;
@@ -427,7 +466,7 @@ namespace AspNet.Security.OAuth.OneID
                 {
                     foreach (var tld in Options.Tlds)
                     {
-                        Regex regex = new Regex($"(?<=\\.|)\\w+\\.{tld}$");
+                        Regex regex = new($"(?<=\\.|)\\w+\\.{tld}$");
                         Match match = regex.Match(host);
 
                         if (match.Success)
@@ -438,7 +477,7 @@ namespace AspNet.Security.OAuth.OneID
                 //second/third levels not provided or not found -- try single-level
                 if (string.IsNullOrWhiteSpace(hostWithoutPrefix))
                 {
-                    Regex regex = new Regex("(?<=\\.|)\\w+\\.\\w+$");
+                    Regex regex = new("(?<=\\.|)\\w+\\.\\w+$");
                     Match match = regex.Match(host);
 
                     if (match.Success)
@@ -458,11 +497,11 @@ namespace AspNet.Security.OAuth.OneID
                 };
 
                 // Request the token
-                var requestMessage = new HttpRequestMessage(HttpMethod.Post, this.Options.TokenEndpoint);
+                using var requestMessage = new HttpRequestMessage(HttpMethod.Post, this.Options.TokenEndpoint);
                 requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 requestMessage.Content = new FormUrlEncodedContent(body);
-                var tokenResponse = await _httpClient.SendAsync(requestMessage);
-                var text = await tokenResponse.Content.ReadAsStringAsync();
+                var tokenResponse = await _httpClient.SendAsync(requestMessage).ConfigureAwait(false);
+                var text = await tokenResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
 
                 // Check if there was an error in the response
                 if (!tokenResponse.IsSuccessStatusCode)
@@ -479,7 +518,7 @@ namespace AspNet.Security.OAuth.OneID
                     tokenResponse.EnsureSuccessStatusCode();
                 }
 
-                var token = await tokenResponse.Content.ReadAsStringAsync();
+                var token = await tokenResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 var response = JsonConvert.DeserializeObject<TokenEndpoint>(text);
 
                 string accessToken = response.AccessToken;
@@ -523,13 +562,13 @@ namespace AspNet.Security.OAuth.OneID
 
                 context.Properties = properties;
 
-                await Options.Provider.Authenticated(context);
+                await Options.Provider.Authenticated(context).ConfigureAwait(false);
 
                 return new AuthenticationTicket(context.Identity, context.Properties);
             }
             catch (Exception ex)
             {
-                _logger.WriteError("Authentication failed", ex);
+                LogErrorResult("Authentication failed", ex.Message, ex);
             }
             return new AuthenticationTicket(null, properties);
         }
@@ -545,7 +584,7 @@ namespace AspNet.Security.OAuth.OneID
         {
             if (properties == null)
             {
-                throw new ArgumentNullException("properties");
+                throw new ArgumentNullException(nameof(properties));
             }
 
             string correlationCookie = Request.Cookies[StateCookie];
@@ -563,10 +602,9 @@ namespace AspNet.Security.OAuth.OneID
 
             Response.Cookies.Delete(StateCookie, cookieOptions);
 
-            string correlationExtra;
             if (!properties.Dictionary.TryGetValue(
                 StateCookie,
-                out correlationExtra))
+                out string correlationExtra))
             {
                 logger.WriteWarning("{0} state property not found.", StateCookie);
                 return false;
@@ -578,7 +616,7 @@ namespace AspNet.Security.OAuth.OneID
             {
                 logger.WriteWarning("{0} correlation cookie and state property mismatch.",
                                         StateCookie);
-                return true; // HACK
+                return false;
             }
 
             return true;
@@ -587,21 +625,21 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>The log error result.</summary>
         /// <param name="error">The error.</param>
         /// <param name="errorDescription">The error description.</param>
-        private void LogErrorResult(string error, string errorDescription)
+        private void LogErrorResult(string error, string errorDescription, Exception ex)
         {
-            _logger.WriteError(string.Format(CultureInfo.InvariantCulture, "OneId error occurred. error: {0} description: {1}", error, errorDescription));
+            _logger.WriteError(string.Format(CultureInfo.InvariantCulture, "OneId error occurred. error: {0} description: {1}", error, errorDescription), ex);
         }
 
         public override async Task<bool> InvokeAsync()
         {
-            return await InvokeReplyPathAsync();
+            return await InvokeReplyPathAsync().ConfigureAwait(false);
         }
 
         private async Task<bool> InvokeReplyPathAsync()
         {
             if (Options.CallbackPath.HasValue && Options.CallbackPath == Request.Path)
             {
-                var ticket = await AuthenticateAsync();
+                var ticket = await AuthenticateAsync().ConfigureAwait(false);
 
                 if (ticket == null)
                 {
@@ -617,7 +655,7 @@ namespace AspNet.Security.OAuth.OneID
                 };
                 ticket.Properties.RedirectUri = null;
 
-                await Options.Provider.ReturnEndpoint(context);
+                await Options.Provider.ReturnEndpoint(context).ConfigureAwait(false);
 
                 if (context.Identity != null && context.SignInAsAuthenticationType != null)
                 {
@@ -666,7 +704,7 @@ namespace AspNet.Security.OAuth.OneID
             {
                 foreach (var tld in Options.Tlds)
                 {
-                    Regex regex = new Regex($"(?<=\\.|)\\w+\\.{tld}$");
+                    Regex regex = new($"(?<=\\.|)\\w+\\.{tld}$");
                     Match match = regex.Match(host);
 
                     if (match.Success)
@@ -677,7 +715,7 @@ namespace AspNet.Security.OAuth.OneID
             //second/third levels not provided or not found -- try single-level
             if (string.IsNullOrWhiteSpace(hostWithoutPrefix))
             {
-                Regex regex = new Regex("(?<=\\.|)\\w+\\.\\w+$");
+                Regex regex = new("(?<=\\.|)\\w+\\.\\w+$");
                 Match match = regex.Match(host);
 
                 if (match.Success)
@@ -739,7 +777,7 @@ namespace AspNet.Security.OAuth.OneID
                 Secure = Request.IsSecure
             };
 
-            var context = new OneIdApplyRedirectContext(Context, Options, authorizationEndpoint, properties);
+            var context = new OneIdApplyRedirectContext(Context, Options, new Uri(authorizationEndpoint), properties);
 
             context.Response.Cookies.Append(StateCookie, state, cookieOptions);
 
@@ -767,6 +805,30 @@ namespace AspNet.Security.OAuth.OneID
             }
 
             return merged;
+        }
+
+        protected void GenerateOurCorrelationId(AuthenticationProperties properties)
+        {
+            if (properties == null)
+            {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            string correlationKey = StateCookie;
+
+            var nonceBytes = new byte[32];
+            CryptoRandom.GetBytes(nonceBytes);
+            string correlationId = TextEncodings.Base64Url.Encode(nonceBytes);
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = Request.IsSecure
+            };
+
+            properties.Dictionary[correlationKey] = correlationId;
+
+            Response.Cookies.Append(correlationKey, correlationId, cookieOptions);
         }
     }
 

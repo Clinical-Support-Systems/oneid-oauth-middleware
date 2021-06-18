@@ -79,6 +79,16 @@ BaseContext
         /// <param name="user">The user data from the id token</param>
         public OneIdAuthenticatedContext(ClaimsPrincipal principal, AuthenticationProperties properties, HttpContext context, AuthenticationScheme scheme, OAuthOptions options, HttpClient backchannel, OAuthTokenResponse tokens, JsonElement user) : base(principal, properties, context, scheme, options, backchannel, tokens, user)
         {
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (tokens is null)
+            {
+                throw new ArgumentNullException(nameof(tokens));
+            }
+
             Context = context;
             Principal = principal;
             Properties = properties;
@@ -141,6 +151,11 @@ BaseContext
         public OneIdAuthenticatedContext(IOwinContext context, TokenEndpoint response, JwtPayload user, string accessToken, string idToken, string refreshToken)
             : base(context)
         {
+            if (user is null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
             Context = context;
             _response = response;
 
@@ -152,7 +167,7 @@ BaseContext
             this.Email = email.ToString();
 
             user.TryGetValue("sub", out var id);
-            this.Id = email.ToString();
+            this.Id = id.ToString();
 
             user.TryGetValue("given_name", out var givenName);
             this.GivenName = givenName.ToString();
@@ -165,21 +180,6 @@ BaseContext
         }
 
         public IOwinContext Context { get; private set; }
-
-        /// <summary>The try get value.</summary>
-        /// <param name="user">The user.</param>
-        /// <param name="propertyName">The property name.</param>
-        /// <returns>The <see cref="string"/>.</returns>
-        private static string TryGetValue(JObject user, string propertyName)
-        {
-            if (user == null)
-            {
-                return null;
-            }
-
-            JToken value;
-            return user.TryGetValue(propertyName, out value) ? value.ToString() : null;
-        }
 
         public ClaimsIdentity Identity { get; set; }
         public AuthenticationProperties Properties { get; set; }

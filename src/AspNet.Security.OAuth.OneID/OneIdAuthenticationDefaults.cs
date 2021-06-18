@@ -41,9 +41,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// The user agent
         /// </summary>
-        public static string UserAgent => _userAgent ??=
-                                               string.Format("OneId Authentication Middleware v" +
-                                                             System.Reflection.Assembly.GetExecutingAssembly().GetName().Version);
+        public static string UserAgent => _userAgent ??= $"OneId Authentication Middleware v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version}";
 
         private static string _userAgent;
 

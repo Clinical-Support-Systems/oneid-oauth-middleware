@@ -29,6 +29,11 @@
 
 #endregion License, Terms and Conditions
 
+using System;
+using System.Resources;
+
+[assembly: NeutralResourcesLanguage("en")]
+
 namespace AspNet.Security.OAuth.OneID
 {
     /// <summary>
@@ -39,7 +44,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Constants related to oAuth/OIDC
         /// </summary>
-        public static class OAuth2Constants
+        internal static class OAuth2Constants
         {
             /// <summary>
             /// The access token
@@ -135,7 +140,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Profile names
         /// </summary>
-        public static class ProfileNames
+        internal static class ProfileNames
         {
             /// <summary>
             /// The diagnostic search profile name
@@ -146,7 +151,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// oAuth2/OIDC claim names
         /// </summary>
-        public static class ClaimNames
+        internal static class ClaimNames
         {
             /// <summary>
             /// The JWT bearer assertion
@@ -162,7 +167,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Scope names
         /// </summary>
-        public static class ScopeNames
+        internal static class ScopeNames
         {
             /// <summary>
             /// Name of the DiagnosticReport scope

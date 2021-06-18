@@ -24,7 +24,7 @@ namespace ConsumerApp.Kestrel.Pages
             {
                 var properites = await HttpContext.AuthenticateAsync(OneIdAuthenticationDefaults.AuthenticationScheme);
 
-                if (HttpContext.Session.GetString("original_username") != User.Identity.Name)
+                if (string.IsNullOrEmpty(HttpContext.Session.GetString("original_username")))
                 {
                     throw new Exception("Uh oh.");
                 }

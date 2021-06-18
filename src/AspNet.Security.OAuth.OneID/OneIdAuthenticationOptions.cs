@@ -36,6 +36,7 @@ using static AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
+using System.Collections.ObjectModel;
 
 #if NETCORE
 
@@ -89,7 +90,7 @@ namespace AspNet.Security.OAuth.OneID
             GetClaimsFromUserInfoEndpoint = false;
             UsePkce = true;
             BackchannelHttpHandler = new OneIdAuthenticationBackChannelHandler(this);
-            CertificateStoreLocation = StoreLocation.CurrentUser;
+            CertificateStoreLocation = StoreLocation.LocalMachine;
             CertificateStoreName = StoreName.My;
             TokenValidationParameters = new TokenValidationParameters()
             {
@@ -154,7 +155,7 @@ namespace AspNet.Security.OAuth.OneID
         /// For the purposes of removing subdomains from the request and restoring them for the redirect once complete
         /// Add second and third level TLDs that might be expected (ie. (host).uk is 1st, (host).co.uk is a 2nd, (host).k12.ma.us is a third)
         /// </summary>
-        public List<string> Tlds { get; set; }
+        public ReadOnlyCollection<string> Tlds { get; set; }
 
         /// <summary>
         /// Authority, which depends on the environment
@@ -328,9 +329,15 @@ namespace AspNet.Security.OAuth.OneID
             {
                 // unlike all other environments, prod simply removes the domain
                 // ie. you won't see login.prod.oneidfederation.ehealthontario.ca, just login.oneidfederation.ehealthontario.ca
+#if NET5_0_OR_GREATER
+                AuthorizationEndpoint = AuthorizationEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
+                TokenEndpoint = TokenEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
+                ClaimsIssuer = ClaimsIssuer.Replace(".prod", string.Empty, StringComparison.InvariantCulture); 
+#else
                 AuthorizationEndpoint = AuthorizationEndpoint.Replace(".prod", string.Empty);
                 TokenEndpoint = TokenEndpoint.Replace(".prod", string.Empty);
                 ClaimsIssuer = ClaimsIssuer.Replace(".prod", string.Empty);
+#endif
             }
         }
 

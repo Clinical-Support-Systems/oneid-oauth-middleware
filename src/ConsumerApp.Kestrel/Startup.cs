@@ -8,17 +8,20 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Security.Cryptography.X509Certificates;
 
 namespace ConsumerApp.Kestrel
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             Configuration = configuration;
+            Environment = environment;
         }
 
         public IConfiguration Configuration { get; }
+        public IWebHostEnvironment Environment { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -37,6 +40,11 @@ namespace ConsumerApp.Kestrel
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            if (Environment.IsDevelopment())
+            {
+                services.AddDatabaseDeveloperPageExceptionFilter();
+            }
+
             // Add authentication services
             services.AddAuthentication().AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, options =>
             {
@@ -44,6 +52,8 @@ namespace ConsumerApp.Kestrel
                 options.CertificateThumbprint = Configuration["EHS:CertificateThumbprint"];
                 options.Environment = OneIdAuthenticationEnvironment.PartnerSelfTest;
                 options.CallbackPath = new PathString("/oneid-signin");
+                options.CertificateStoreName = StoreName.My;
+                options.CertificateStoreLocation = StoreLocation.LocalMachine;
                 options.TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken | OneIdAuthenticationTokenSave.IdToken;
             });
 
@@ -56,7 +66,6 @@ namespace ConsumerApp.Kestrel
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
             }
             else
             {
@@ -70,7 +79,10 @@ namespace ConsumerApp.Kestrel
 
             app.UseRouting();
 
-            app.UseCookiePolicy();
+            app.UseCookiePolicy(new CookiePolicyOptions
+            {
+                MinimumSameSitePolicy = SameSiteMode.Strict
+            });
             app.UseSession();
 
             app.UseAuthentication();
