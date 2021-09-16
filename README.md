@@ -129,6 +129,7 @@ After this, changes will be merged.
  * Kori Francis
  * David Ball
  * Alex McKeever
+ * Victoria Tolls
 
 #  :lock: License
 
