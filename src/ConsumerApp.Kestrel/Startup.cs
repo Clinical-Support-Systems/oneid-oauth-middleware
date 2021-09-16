@@ -46,7 +46,7 @@ namespace ConsumerApp.Kestrel
             }
 
             // Add authentication services
-            services.AddAuthentication().AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, options =>
+            services.AddAuthentication().AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, (OneIdAuthenticationOptions options) =>
             {
                 options.ClientId = Configuration["EHS:AuthClientId"];
                 options.CertificateThumbprint = Configuration["EHS:CertificateThumbprint"];
@@ -55,6 +55,7 @@ namespace ConsumerApp.Kestrel
                 options.CertificateStoreName = StoreName.My;
                 options.CertificateStoreLocation = StoreLocation.LocalMachine;
                 options.TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken | OneIdAuthenticationTokenSave.IdToken;
+                options.ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS;
             });
 
             services.AddRazorPages();

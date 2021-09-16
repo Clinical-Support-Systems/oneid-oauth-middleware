@@ -141,7 +141,7 @@ namespace AspNet.Security.OAuth.OneID
             }
 
             challengeUrl = QueryHelpers.AddQueryString(challengeUrl, "aud", ClaimNames.ApiAudience);
-            challengeUrl = QueryHelpers.AddQueryString(challengeUrl, "_profile", ProfileNames.DiagnosticSearchProfile);
+            challengeUrl = QueryHelpers.AddQueryString(challengeUrl, "_profile", Options.GetServiceProfileOptionsString());
 
             return challengeUrl;
         }
@@ -491,7 +491,6 @@ namespace AspNet.Security.OAuth.OneID
                     { OneIdAuthenticationConstants.OAuth2Constants.RedirectUri, redirectUri },
                     { OneIdAuthenticationConstants.OAuth2Constants.GrantType, OneIdAuthenticationConstants.OAuth2Constants.AuthorizationCode },
                     { OneIdAuthenticationConstants.OAuth2Constants.ClientId, Uri.EscapeDataString(this.Options.ClientId) },
-                    //{ OneIdAuthenticationConstants.OAuth2Constants.Scope, string.Join(" ", Options.Scope) },
                     { OneIdAuthenticationConstants.OAuth2Constants.Code, Uri.EscapeDataString(code) },
                     { OneIdAuthenticationConstants.OAuth2Constants.CodeVerifier, Uri.EscapeDataString(_pkceCode.CodeVerifier) },
                 };
@@ -765,7 +764,7 @@ namespace AspNet.Security.OAuth.OneID
                     { OneIdAuthenticationConstants.OAuth2Constants.CodeChallenge, Uri.EscapeDataString(_pkceCode.CodeChallenge) },
                     { OneIdAuthenticationConstants.OAuth2Constants.CodeChallengeMethod, Uri.EscapeDataString("S256") },
                     { OneIdAuthenticationConstants.OAuth2Constants.Audience, Uri.EscapeDataString(ClaimNames.ApiAudience) },
-                    { OneIdAuthenticationConstants.OAuth2Constants.Profile, Uri.EscapeDataString(ProfileNames.DiagnosticSearchProfile) },
+                    { OneIdAuthenticationConstants.OAuth2Constants.Profile, Uri.EscapeDataString(Options.GetServiceProfileOptionsString()) },
                 };
 
             var requestParameters = MergeAdditionalKeyValuePairsIntoExplicitKeyValuePairs(explicitParameters, this.Options.AdditionalParameters);

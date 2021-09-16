@@ -74,6 +74,12 @@ namespace AspNet.Security.OAuth.OneID
         /// Don't store the access_token because it's large, by default.
         /// </summary>
         public const OneIdAuthenticationTokenSave TokenSave = OneIdAuthenticationTokenSave.IdToken | OneIdAuthenticationTokenSave.RefreshToken;
+
+        /// <summary>
+        /// Since there's no way to tell what service you might be using this with, none is the default.
+        /// You must pick one before you can get a token.
+        /// </summary>
+        public const OneIdAuthenticationServiceProfiles ServiceProfiles = OneIdAuthenticationServiceProfiles.None;
     }
 
     [Flags]
@@ -83,5 +89,13 @@ namespace AspNet.Security.OAuth.OneID
         IdToken = 1,
         RefreshToken = 2,
         AccessToken = 4
+    }
+
+    [Flags]
+    public enum OneIdAuthenticationServiceProfiles
+    {
+        None = 0,
+        OLIS = 1,
+        DHDR = 2
     }
 }

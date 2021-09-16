@@ -36,7 +36,7 @@ using static AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
-using System.Collections.ObjectModel;
+using System.Text;
 
 #if NETCORE
 
@@ -71,6 +71,7 @@ namespace AspNet.Security.OAuth.OneID
     {
         private OneIdAuthenticationEnvironment _environment;
         private string _authority;
+        private OneIdAuthenticationServiceProfiles serviceProfileOptions;
 
         /// <summary>
         /// Constructor
@@ -134,11 +135,23 @@ namespace AspNet.Security.OAuth.OneID
             AuthenticationMode = AuthenticationMode.Passive;
             CallbackPath = new PathString(OneIdAuthenticationDefaults.CallbackPath);
             BackchannelTimeout = TimeSpan.FromSeconds(60);
+
             Scope = new List<string>
             {
-                "openid",
-                ScopeNames.DiagnosticReport
+                "openid"
             };
+
+            ServiceProfileOptions = OneIdAuthenticationDefaults.ServiceProfiles;
+
+            if ((ServiceProfileOptions & OneIdAuthenticationServiceProfiles.OLIS) == OneIdAuthenticationServiceProfiles.OLIS)
+            {
+                Scope.Add(ScopeNames.DiagnosticReport);
+            }
+
+            if ((ServiceProfileOptions & OneIdAuthenticationServiceProfiles.DHDR) == OneIdAuthenticationServiceProfiles.DHDR)
+            {
+                Scope.Add(ScopeNames.MedicationDispense);
+            }
 #endif
 
             TokenSaveOptions = OneIdAuthenticationDefaults.TokenSave;
@@ -181,6 +194,49 @@ namespace AspNet.Security.OAuth.OneID
         /// When SaveTokens is true, this let's you specify which tokens get persisted non-session (ie. cookie)
         /// </summary>
         public OneIdAuthenticationTokenSave TokenSaveOptions { get; set; }
+
+        /// <summary>
+        /// None is specified as default an so will not work
+        /// </summary>
+        public OneIdAuthenticationServiceProfiles ServiceProfileOptions
+        {
+            get => serviceProfileOptions;
+            set
+            {
+                serviceProfileOptions = value;
+
+                if (!Scope.Contains("openid")) Scope.Add("openid");
+
+                if ((ServiceProfileOptions & OneIdAuthenticationServiceProfiles.OLIS) == OneIdAuthenticationServiceProfiles.OLIS)
+                {
+                    Scope.Remove(ScopeNames.MedicationDispense);
+                    Scope.Add(ScopeNames.DiagnosticReport);
+                }
+
+                if ((ServiceProfileOptions & OneIdAuthenticationServiceProfiles.DHDR) == OneIdAuthenticationServiceProfiles.DHDR)
+                {
+                    Scope.Remove(ScopeNames.DiagnosticReport);
+                    Scope.Add(ScopeNames.MedicationDispense);
+                }
+            }
+        }
+
+        public string GetServiceProfileOptionsString()
+        {
+            var retVal = string.Empty;
+
+            if ((ServiceProfileOptions & OneIdAuthenticationServiceProfiles.OLIS) == OneIdAuthenticationServiceProfiles.OLIS)
+            {
+                retVal += ProfileNames.DiagnosticSearchProfile;
+            }
+
+            if ((ServiceProfileOptions & OneIdAuthenticationServiceProfiles.DHDR) == OneIdAuthenticationServiceProfiles.DHDR)
+            {
+                retVal += $"{(string.IsNullOrEmpty(retVal) ? string.Empty : " ")}{ProfileNames.MedicationSearchProfile}";
+            }
+
+            return retVal;
+        }
 
         /// <summary>
         /// The thumbprint of the PKI certificate pre-configured with eHealth Ontario
