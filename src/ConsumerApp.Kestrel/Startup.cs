@@ -55,7 +55,7 @@ namespace ConsumerApp.Kestrel
                 options.CertificateStoreName = StoreName.My;
                 options.CertificateStoreLocation = StoreLocation.LocalMachine;
                 options.TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken | OneIdAuthenticationTokenSave.IdToken;
-                options.ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS;
+                options.ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS | OneIdAuthenticationServiceProfiles.DHDR;
             });
 
             services.AddRazorPages();

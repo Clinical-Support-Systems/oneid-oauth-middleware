@@ -25,6 +25,16 @@
 # :beginner: About
 This library was created by Clinical Support Systems and Kori Francis, who have experience integrating with APIs of varying complexity. We wanted to simplify the connection in .NET web applications so we could get on with the actual API implementation.
 
+### :tada: Supported eHealth Services
+
+To make integration simple, there's support in this middlewear to adjust the scope and profile depending on the service you're integrating with. As such, we currently support the following:
+
+- :heavy_check_mark: [OLIS](https://ehealthontario.on.ca/en/standards/ontario-laboratories-information-system-standard)
+- :heavy_check_mark: [DHDR](https://ehealthontario.on.ca/en/standards/digital-health-drug-repository-specification-fhir)
+- :x: [DHIR](https://ehealthontario.on.ca/en/standards/digital-health-immunization-repository-consumer-access-specification-fhir)
+
+This will allow you to perform authentication once but retrieve an `access_token` that can access multiple services.
+
 # :sunny: Usage
 Here's how to use this library in your project.
 
@@ -55,6 +65,15 @@ services.AddAuthentication().AddOneId(options =>
         options.ClientId = Configuration["EHS:AuthClientId"];
         options.CertificateThumbprint = Configuration["EHS:CertificateThumbprint"];
         options.Environment = OneIdAuthenticationEnvironment.PartnerSelfTest;
+    });
+```
+
+In the case of multiple service usage, simply specify that in the authentication options:
+```c#
+services.AddAuthentication().AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, (OneIdAuthenticationOptions options) =>
+    {
+        // ...
+        options.ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS | OneIdAuthenticationServiceProfiles.DHDR;
     });
 ```
 
@@ -110,6 +129,7 @@ After this, changes will be merged.
  * Kori Francis
  * David Ball
  * Alex McKeever
+ * Victoria Tolls
 
 #  :lock: License
 

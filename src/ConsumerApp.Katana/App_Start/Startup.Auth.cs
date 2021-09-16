@@ -52,7 +52,8 @@ namespace ConsumerApp.Katana
                 Environment = OneIdAuthenticationEnvironment.PartnerSelfTest,
 
                 // This must be pre-registered with eHealth Ontario
-                CallbackPath = new PathString("/oneid-signin")
+                CallbackPath = new PathString("/oneid-signin"),
+                ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS | OneIdAuthenticationServiceProfiles.DHDR
             });
         }
     }
