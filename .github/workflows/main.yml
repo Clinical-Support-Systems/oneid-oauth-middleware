@@ -9,6 +9,9 @@ on:
   push:
     branches: [ master ]
 
+env:
+  DOTNET_VERSION: '5.0.401'
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -27,8 +30,7 @@ jobs:
       - name: ⚙️ Setup dotnet 5.0.x
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '5.0.x'
-          include-prerelease: False
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: ⚙️ Setup GIT versioning
         uses: dotnet/nbgv@v0.4.0
