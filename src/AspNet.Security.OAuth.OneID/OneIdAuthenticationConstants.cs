@@ -29,6 +29,11 @@
 
 #endregion License, Terms and Conditions
 
+using System;
+using System.Resources;
+
+[assembly: NeutralResourcesLanguage("en")]
+
 namespace AspNet.Security.OAuth.OneID
 {
     /// <summary>
@@ -39,6 +44,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Constants related to oAuth/OIDC
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "<Pending>")]
         public static class OAuth2Constants
         {
             /// <summary>
@@ -135,6 +141,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Profile names
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "<Pending>")]
         public static class ProfileNames
         {
             /// <summary>
@@ -147,6 +154,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// oAuth2/OIDC claim names
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "<Pending>")]
         public static class ClaimNames
         {
             /// <summary>
@@ -163,6 +171,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Scope names
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "<Pending>")]
         public static class ScopeNames
         {
             /// <summary>
@@ -172,7 +181,8 @@ namespace AspNet.Security.OAuth.OneID
             public const string MedicationDispense = "user/MedicationDispense.read";
         }
 
-        internal static class FormatStrings
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "<Pending>")]
+        public static class FormatStrings
         {
             /// <summary>
             /// A format string used to construct <see cref="OneIdAuthenticationOptions.Authority"/>.

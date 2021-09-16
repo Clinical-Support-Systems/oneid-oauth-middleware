@@ -33,6 +33,7 @@
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Provider;
+using System;
 
 namespace AspNet.Security.OAuth.OneID.Provider
 {
@@ -44,7 +45,7 @@ namespace AspNet.Security.OAuth.OneID.Provider
         public OneIdApplyRedirectContext(
             IOwinContext context,
             OneIdAuthenticationOptions options,
-            string redirectUri,
+            Uri redirectUri,
             AuthenticationProperties properties)
             : base(context, options)
         {
@@ -55,7 +56,7 @@ namespace AspNet.Security.OAuth.OneID.Provider
         /// <summary>
         /// The redirect uri
         /// </summary>
-        public string RedirectUri { get; }
+        public Uri RedirectUri { get; }
 
         /// <summary>
         /// Authentication properties

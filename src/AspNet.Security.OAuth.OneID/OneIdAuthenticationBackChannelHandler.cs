@@ -32,6 +32,7 @@
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
@@ -67,78 +68,107 @@ namespace AspNet.Security.OAuth.OneID
         {
             // Get the certificate
             X509Certificate2 cert = null;
-            if (!string.IsNullOrEmpty(_options.CertificateThumbprint))
-            {
-                cert = CertificateUtility.FindCertificateByThumbprint(_options.CertificateStoreName, _options.CertificateStoreLocation, _options.CertificateThumbprint, false);
-            }
-            if (!string.IsNullOrEmpty(_options.CertificateFilename))
-            {
-                var certBytes = File.ReadAllBytes(_options.CertificateFilename);
-                cert = new X509Certificate2(certBytes, _options.CertificatePassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
-            }
-            if (cert == null)
-            {
-                throw new InvalidOperationException("Must specify CertificateThumbprint or CertificateFilename (with CertificatePassword if applicable).");
-            }
 
-            X509SecurityKey key = new X509SecurityKey(cert);
-            SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);
+            try
+            {
 
-            var now = DateTimeOffset.Now.ToUnixTimeSeconds();
-            var expire = DateTimeOffset.Now.AddMinutes(20).ToUnixTimeSeconds();
 
-            // we now need to create a JWT that we include in the response as the claim_assertion
-            var permClaims = new List<Claim>
+                if (!string.IsNullOrEmpty(_options.CertificateThumbprint))
+                {
+                    cert = CertificateUtility.FindCertificateByThumbprint(_options.CertificateStoreName, _options.CertificateStoreLocation, _options.CertificateThumbprint, false);
+                }
+                if (!string.IsNullOrEmpty(_options.CertificateFilename))
+                {
+                    var certBytes = File.ReadAllBytes(_options.CertificateFilename);
+                    cert = new X509Certificate2(certBytes, _options.CertificatePassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
+                }
+                if (cert == null)
+                {
+                    throw new InvalidOperationException("Must specify CertificateThumbprint or CertificateFilename (with CertificatePassword if applicable).");
+                }
+
+                X509SecurityKey key = new(cert);
+                SigningCredentials credentials = new(key, SecurityAlgorithms.RsaSha256);
+
+                var now = DateTimeOffset.Now.ToUnixTimeSeconds();
+                var expire = DateTimeOffset.Now.AddMinutes(20).ToUnixTimeSeconds();
+
+                // we now need to create a JWT that we include in the response as the claim_assertion
+                var permClaims = new List<Claim>
             {
                 new Claim("iss", _options.ClientId),
                 new Claim("sub", _options.ClientId),
                 new Claim("aud", _options.Audience),
-                new Claim("iat", now.ToString(), ClaimValueTypes.Integer64),
-                new Claim("exp", expire.ToString(), ClaimValueTypes.Integer64),
+                new Claim("iat", now.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
+                new Claim("exp", expire.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
+#if NET5_0_OR_GREATER
+                new Claim("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-","", StringComparison.InvariantCulture)}")
+#else
                 new Claim("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-","")}")
+#endif
+                
             };
 
-            // Create Security Token object by giving required parameters. Since we're specifically setting the iss/sub/aud/exp above, don't include them below
-            var token = new JwtSecurityToken(
-                            claims: permClaims,
-                            signingCredentials: credentials);
+                // Create Security Token object by giving required parameters. Since we're specifically setting the iss/sub/aud/exp above, don't include them below
+                var token = new JwtSecurityToken(
+                                claims: permClaims,
+                                signingCredentials: credentials);
 
-            token.Header.Remove("kid");
+                token.Header.Remove("kid");
 
-            var jwt_token = new JwtSecurityTokenHandler().WriteToken(token);
+                var jwt_token = new JwtSecurityTokenHandler().WriteToken(token);
 
-            // Now we need to redo the form params so we can add/modify. Let's first take the values out and put them into a mutable dictionary
-            var oldContent = (await request.Content.ReadAsStringAsync());
-            var data = oldContent.Replace("?", string.Empty).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
+                // Now we need to redo the form params so we can add/modify. Let's first take the values out and put them into a mutable dictionary
+                if (request == null) return null;
+#if NET5_0_OR_GREATER
+                var oldContent = await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+#else
+                var oldContent = await request.Content.ReadAsStringAsync().ConfigureAwait(false);
+#endif
 
-            // Helen reported we were double encoding this, so let's set it again
-            data["redirect_uri"] = WebUtility.UrlDecode(data["redirect_uri"]);
+#if NET5_0_OR_GREATER
+                var data = oldContent.Replace("?", string.Empty, StringComparison.InvariantCulture).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
+#else
+                var data = oldContent.Replace("?", string.Empty).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
+#endif
 
-            // Make sure the client_assertion_type is what is expected.
-            if (data.ContainsKey("client_assertion_type"))
-            {
-                data.Remove("client_assertion_type");
+
+                // Helen reported we were double encoding this, so let's set it again
+                data["redirect_uri"] = WebUtility.UrlDecode(data["redirect_uri"]);
+
+                // Make sure the client_assertion_type is what is expected.
+                if (data.ContainsKey("client_assertion_type"))
+                {
+                    data.Remove("client_assertion_type");
+                }
+                data.Add("client_assertion_type", ClaimNames.JwtBearerAssertion); // must include this non-encoded as the process will re-encode it
+
+                // Make sure the client_assertion is what is expected.
+                if (data.ContainsKey("client_assertion"))
+                {
+                    data.Remove("client_assertion");
+                }
+                data.Add("client_assertion", jwt_token);
+
+                if (data.ContainsKey("aud"))
+                {
+                    data.Remove("aud");
+                }
+                data.Add("aud", ClaimNames.ApiAudience); // Is this value ever changing?
+
+                // Now put it back ibnto the request
+                var content = new FormUrlEncodedContent(data);
+                request.Content = content;
+
+                return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
             }
-            data.Add("client_assertion_type", ClaimNames.JwtBearerAssertion); // must include this non-encoded as the process will re-encode it
-
-            // Make sure the client_assertion is what is expected.
-            if (data.ContainsKey("client_assertion"))
+            finally
             {
-                data.Remove("client_assertion");
+                if (cert != null)
+                {
+                    cert.Dispose();
+                }
             }
-            data.Add("client_assertion", jwt_token);
-
-            if (data.ContainsKey("aud"))
-            {
-                data.Remove("aud");
-            }
-            data.Add("aud", ClaimNames.ApiAudience); // Is this value ever changing?
-
-            // Now put it back ibnto the request
-            var content = new FormUrlEncodedContent(data);
-            request.Content = content;
-
-            return await base.SendAsync(request, cancellationToken);
         }
     }
 
@@ -164,7 +194,7 @@ namespace AspNet.Security.OAuth.OneID
                 var col = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, validationRequired);
                 if (col == null || col.Count == 0)
                 {
-                    throw new ArgumentException("certificate was not found in store");
+                    throw new ArgumentException($"Certificate was not found in store {storeName}:{storeLocation}");
                 }
 
                 return col[0];
@@ -189,7 +219,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <returns>X509Certificate2</returns>
         public static X509Certificate2 FindCertificateByThumbprint(string thumbprint, bool validateCertificate)
         {
-            return FindCertificateByThumbprint(StoreName.My, StoreLocation.CurrentUser, thumbprint, validateCertificate);
+            return FindCertificateByThumbprint(StoreName.My, StoreLocation.LocalMachine, thumbprint, validateCertificate);
         }
 
         /// <summary>
@@ -200,6 +230,11 @@ namespace AspNet.Security.OAuth.OneID
         /// <returns></returns>
         public static byte[] ExportCertificateWithPrivateKey(X509Certificate2 cert, out string password)
         {
+            if (cert is null)
+            {
+                throw new ArgumentNullException(nameof(cert));
+            }
+
             password = Convert.ToBase64String(Encoding.Unicode.GetBytes(Guid.NewGuid().ToString("N")));
             return cert.Export(X509ContentType.Pkcs12, password);
         }
