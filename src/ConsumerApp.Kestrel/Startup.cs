@@ -38,13 +38,14 @@ namespace ConsumerApp.Kestrel
             });
 
             // Add authentication services
-            services.AddAuthentication().AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, options =>
+            services.AddAuthentication().AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, (OneIdAuthenticationOptions options) =>
             {
                 options.ClientId = Configuration["EHS:AuthClientId"];
                 options.CertificateThumbprint = Configuration["EHS:CertificateThumbprint"];
                 options.Environment = OneIdAuthenticationEnvironment.PartnerSelfTest;
                 options.CallbackPath = new PathString("/oneid-signin");
                 options.TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken | OneIdAuthenticationTokenSave.IdToken;
+                options.ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS;
             });
 
             services.AddRazorPages();

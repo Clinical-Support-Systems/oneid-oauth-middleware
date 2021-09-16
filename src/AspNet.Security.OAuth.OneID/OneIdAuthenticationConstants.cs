@@ -141,6 +141,7 @@ namespace AspNet.Security.OAuth.OneID
             /// The diagnostic search profile name
             /// </summary>
             public const string DiagnosticSearchProfile = "http://ehealthontario.ca/StructureDefinition/ca-on-lab-profile-DiagnosticReport";
+            public const string MedicationSearchProfile = "http://ehealthontario.ca/StructureDefinition/ca-on-lab-profile-MedicationDispense";
         }
 
         /// <summary>
@@ -168,6 +169,7 @@ namespace AspNet.Security.OAuth.OneID
             /// Name of the DiagnosticReport scope
             /// </summary>
             public const string DiagnosticReport = "user/DiagnosticReport.read";
+            public const string MedicationDispense = "user/MedicationDispense.read";
         }
 
         internal static class FormatStrings
