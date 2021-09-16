@@ -1,13 +1,12 @@
-# This is a basic workflow to help you get started with Actions
+﻿# This is a basic workflow to help you get started with Actions
 
 name: CI
+concurrency: CI
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
 on:
   push:
-    branches: [ master ]
-  pull_request:
     branches: [ master ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -20,23 +19,41 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - name: 🛒 Checkout repository
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
 
-      - name: Nerdbank.GitVersioning
-        uses: dotnet/nbgv@v0.3.1
+      - name: ⚙️ Setup dotnet 5.0.x
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.0'
+          include-prerelease: True
+
+      - name: ⚙️ Setup GIT versioning
+        uses: dotnet/nbgv@v0.4.0
+        env: 
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+        id: nbgv
         with:
           setAllVars: true
-
+      
       - run: echo "NBGV_SemVer2 $NBGV_SemVer2"
+      
+      - name: Restore dependancies
+        run: dotnet restore
+      
+      - name: 🛠️ Building library in release mode
+        run: dotnet build --no-restore --configuration Release
 
       # pack and publish the nuget package
       - name: Publish NuGet
         uses: brandedoutcast/publish-nuget@v2.5.5
+        env: 
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
         with:
           # Filepath of the project to be packaged, relative to root of repository
           PROJECT_FILE_PATH: src/AspNet.Security.OAuth.OneID/AspNet.Security.OAuth.OneID.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_STATIC: $NBGV_SemVer2
+          VERSION_STATIC: ${{env.NBGV_SemVer1}}
           TAG_COMMIT: false

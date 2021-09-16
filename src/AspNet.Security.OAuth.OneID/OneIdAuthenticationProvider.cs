@@ -83,7 +83,7 @@ namespace AspNet.Security.OAuth.OneID
             this.OnAuthenticating = context => Task.CompletedTask;
             this.OnAuthenticated = context => Task.CompletedTask;
             this.OnReturnEndpoint = context => Task.CompletedTask;
-            this.OnApplyRedirect = context => context.Response.Redirect(context.RedirectUri);
+            this.OnApplyRedirect = context => context.Response.Redirect(context.RedirectUri.AbsoluteUri);
             this.OnTokenRequest = context => Task.FromResult<object>(null);
         }
 

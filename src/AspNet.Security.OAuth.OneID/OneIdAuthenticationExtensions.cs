@@ -145,7 +145,7 @@ namespace AspNet.Security.OAuth.OneID
         {
             if (parameters == null)
             {
-                throw new ArgumentNullException("parameters");
+                throw new ArgumentNullException(nameof(parameters));
             }
 
             // Avoiding URL encoding the query string parameters as it is NOT compatible with OneId.

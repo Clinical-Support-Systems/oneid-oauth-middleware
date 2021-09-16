@@ -6,6 +6,9 @@
   <a href="https://dev.azure.com/css/eHealthServices/_build/latest?definitionId=39&branchName=develop">
     <img src="https://dev.azure.com/css/eHealthServices/_apis/build/status/eHealthServices-CI?branchName=develop" alt="Sublime's custom image"/>
   </a>
+  <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Clinical-Support-Systems/oneid-oauth-middleware/CI">
+  <img alt="Nuget" src="https://img.shields.io/nuget/v/AspNet.Security.OAuth.OneID">
+  <img alt="Nuget" src="https://img.shields.io/nuget/dt/AspNet.Security.OAuth.OneID">
 </p>
 
 <p align="center">
