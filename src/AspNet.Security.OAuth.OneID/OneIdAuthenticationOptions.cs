@@ -72,7 +72,7 @@ namespace AspNet.Security.OAuth.OneID
     {
         private OneIdAuthenticationEnvironment _environment;
         private string _authority;
-        private OneIdAuthenticationServiceProfiles serviceProfileOptions;
+        private OneIdAuthenticationServiceProfiles _serviceProfileOptions = OneIdAuthenticationDefaults.ServiceProfiles;
 
         /// <summary>
         /// Constructor
@@ -123,7 +123,16 @@ namespace AspNet.Security.OAuth.OneID
 
             Scope.Clear();
             Scope.Add("openid");
-            Scope.Add(ScopeNames.DiagnosticReport);
+
+            if ((_serviceProfileOptions & OneIdAuthenticationServiceProfiles.OLIS) == OneIdAuthenticationServiceProfiles.OLIS)
+            {
+                Scope.Add(ScopeNames.DiagnosticReport);
+            }
+
+            if ((_serviceProfileOptions & OneIdAuthenticationServiceProfiles.DHDR) == OneIdAuthenticationServiceProfiles.DHDR)
+            {
+                Scope.Add(ScopeNames.MedicationDispense);
+            }
 
             ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
             ClaimActions.MapJsonKey(ClaimTypes.GivenName, "given_name");
@@ -201,22 +210,20 @@ namespace AspNet.Security.OAuth.OneID
         /// </summary>
         public OneIdAuthenticationServiceProfiles ServiceProfileOptions
         {
-            get => serviceProfileOptions;
+            get => _serviceProfileOptions;
             set
             {
-                serviceProfileOptions = value;
+                _serviceProfileOptions = value;
 
                 if (!Scope.Contains("openid")) Scope.Add("openid");
 
-                if ((ServiceProfileOptions & OneIdAuthenticationServiceProfiles.OLIS) == OneIdAuthenticationServiceProfiles.OLIS)
+                if ((_serviceProfileOptions & OneIdAuthenticationServiceProfiles.OLIS) == OneIdAuthenticationServiceProfiles.OLIS)
                 {
-                    Scope.Remove(ScopeNames.MedicationDispense);
                     Scope.Add(ScopeNames.DiagnosticReport);
                 }
 
-                if ((ServiceProfileOptions & OneIdAuthenticationServiceProfiles.DHDR) == OneIdAuthenticationServiceProfiles.DHDR)
+                if ((_serviceProfileOptions & OneIdAuthenticationServiceProfiles.DHDR) == OneIdAuthenticationServiceProfiles.DHDR)
                 {
-                    Scope.Remove(ScopeNames.DiagnosticReport);
                     Scope.Add(ScopeNames.MedicationDispense);
                 }
             }
@@ -226,12 +233,12 @@ namespace AspNet.Security.OAuth.OneID
         {
             var retVal = string.Empty;
 
-            if ((ServiceProfileOptions & OneIdAuthenticationServiceProfiles.OLIS) == OneIdAuthenticationServiceProfiles.OLIS)
+            if ((_serviceProfileOptions & OneIdAuthenticationServiceProfiles.OLIS) == OneIdAuthenticationServiceProfiles.OLIS)
             {
                 retVal += ProfileNames.DiagnosticSearchProfile;
             }
 
-            if ((ServiceProfileOptions & OneIdAuthenticationServiceProfiles.DHDR) == OneIdAuthenticationServiceProfiles.DHDR)
+            if ((_serviceProfileOptions & OneIdAuthenticationServiceProfiles.DHDR) == OneIdAuthenticationServiceProfiles.DHDR)
             {
                 retVal += $"{(string.IsNullOrEmpty(retVal) ? string.Empty : " ")}{ProfileNames.MedicationSearchProfile}";
             }

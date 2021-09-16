@@ -183,10 +183,10 @@ namespace AspNet.Security.OAuth.OneID
                 throw new InvalidOperationException("No OneID ID token was returned in the OAuth token response.");
             }
 
-            if (string.IsNullOrEmpty(contextId))
-            {
-                throw new InvalidOperationException("An error occurred trying to obtain the context identifier from the current user's identity claims.");
-            }
+            //if (string.IsNullOrEmpty(contextId))
+            //{
+            //    throw new InvalidOperationException("An error occurred trying to obtain the context identifier from the current user's identity claims.");
+            //}
 
             if (Options.ValidateTokens)
             {

@@ -148,7 +148,7 @@ namespace AspNet.Security.OAuth.OneID
             /// The diagnostic search profile name
             /// </summary>
             public const string DiagnosticSearchProfile = "http://ehealthontario.ca/StructureDefinition/ca-on-lab-profile-DiagnosticReport";
-            public const string MedicationSearchProfile = "http://ehealthontario.ca/StructureDefinition/ca-on-lab-profile-MedicationDispense";
+            public const string MedicationSearchProfile = "http://ehealthontario.ca/StructureDefinition/ca-on-dhdr-profile-MedicationDispense";
         }
 
         /// <summary>
