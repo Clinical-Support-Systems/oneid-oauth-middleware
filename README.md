@@ -36,7 +36,7 @@ To make integration simple, there's support in this middlewear to adjust the sco
 This will allow you to perform authentication once but retrieve an `access_token` that can access multiple services.
 
 # :sunny: Usage
-Here's how to use this library in your project.
+Here is how to use this library in your project.
 
 ###  :electric_plug: NuGet Installation
 
