@@ -298,13 +298,14 @@ namespace AspNet.Security.OAuth.OneID
 
             if (!response.IsSuccessStatusCode)
             {
+                string errorBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 Logger.LogError("An error occurred while retrieving an access token: the remote server " +
                                 "returned a {Status} response with the following payload: {Headers} {Body}.",
                                 /* Status: */ response.StatusCode,
                                 /* Headers: */ response.Headers.ToString(),
-                                /* Body: */ await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+                                /* Body: */ errorBody);
 
-                return OAuthTokenResponse.Failed(new OneIdAuthenticationException("An error occurred while retrieving an access token."));
+                return OAuthTokenResponse.Failed(new OneIdAuthenticationException($"An error occurred while retrieving an access token. The remote server returned a {response.StatusCode} response with the following payload: {response.Headers.ToString()} {errorBody}"));
             }
 
             var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
