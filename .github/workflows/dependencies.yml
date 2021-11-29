@@ -1,0 +1,54 @@
+﻿name: Automated Dependency Updates
+
+on:
+  schedule:
+    - cron:  '0 0 * * 0'
+
+jobs:
+  dependencies:
+    name: Update Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      id: checkout
+      uses: actions/checkout@v2
+      with:
+          token: ${{ secrets.AUTOMATED_DEPENDENCY_UPDATES_TOKEN }}
+
+    - name: Setup
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x
+
+    - name: Tools
+      id: tools
+      run: dotnet tool install --global dotnet-outdated-tool
+
+    - name: Update
+      id: update
+      run: |
+        OUTPUT=$(dotnet outdated)
+        if [[ $OUTPUT =~ "No outdated dependencies were detected" ]]; then
+            echo "::set-output name=updated::false"
+        else
+            dotnet outdated -u
+        
+            echo "::set-output name=updated::true"
+        fi
+      shell: bash
+
+    - name: Test
+      id: test
+      if: ${{ steps.update.outputs.updated == 'true' }}
+      run: dotnet test -c Release -v minimal
+
+    - name: Push
+      id: push
+      if: ${{ steps.update.outputs.updated == 'true' }}
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+        commit_user_name: github-actions[bot]
+        commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
+        commit_message: Automated Dependency Updates

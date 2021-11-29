@@ -1,23 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net48;net5.0</TargetFrameworks>
+		<TargetFrameworks>net48;net5.0;net6.0</TargetFrameworks>
 		<LangVersion>latest</LangVersion>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Kori Francis</Authors>
 		<Company>Clinical Support Systems</Company>
-		<Description>Authentication provider for eHealth Ontario's OneID service</Description>
+		<Description>Middleware that enables an application to support Ontario Health's OneID Accesss Gateway OAuth 2.0 authentication workflow</Description>
 		<PackageProjectUrl>https://github.com/Clinical-Support-Systems/oneid-oauth-middleware</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Clinical-Support-Systems/oneid-oauth-middleware</RepositoryUrl>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 	</PropertyGroup>
-	<ItemGroup>
-		<None Include="..\..\LICENSE" Pack="true" PackagePath="LICENSE" />
-	</ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.13.1" />
 		<PackageReference Include="Nerdbank.GitVersioning" Version="3.4.240">
@@ -32,6 +29,12 @@
 		<PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.OAuth" Version="2.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="5.0.10" />
+	</ItemGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
+		<PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.OAuth" Version="2.2.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="6.0.*" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net48'">
@@ -64,7 +67,7 @@
 		</EmbeddedResource>
 	</ItemGroup>
 
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net5.0'">
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net5.0' or '$(TargetFramework)' == 'net6.0'">
 		<DefineConstants>NETCORE</DefineConstants>
 	</PropertyGroup>
 
@@ -72,13 +75,13 @@
 		<DefineConstants>NET48;NETFULL</DefineConstants>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5.0|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
 		<DebugType>embedded</DebugType>
 		<DebugSymbols>true</DebugSymbols>
 		<DocumentationFile></DocumentationFile>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net5.0|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net5.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
 		<DebugType>embedded</DebugType>
 		<DebugSymbols>true</DebugSymbols>
 		<DocumentationFile></DocumentationFile>
