@@ -208,14 +208,17 @@ namespace AspNet.Security.OAuth.OneID
             context.HttpContext.Session.SetString("original_username", principal.Identity.Name);
 
             // Store the received tokens somewhere, if we should
-            if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.AccessToken) == OneIdAuthenticationTokenSave.AccessToken)
-            {
-                context.HttpContext.Session.SetString("access_token", context.AccessToken);
-            }
-            if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.RefreshToken) == OneIdAuthenticationTokenSave.RefreshToken)
-            {
-                context.HttpContext.Session.SetString("refresh_token", context.RefreshToken);
-            }
+            // Store the received tokens somewhere, if we should
+            context.HttpContext.Session.SetString("access_token", context.AccessToken);
+            context.HttpContext.Session.SetString("refresh_token", context.RefreshToken);
+            //if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.AccessToken) == OneIdAuthenticationTokenSave.AccessToken)
+            //{
+            // context.HttpContext.Session.SetString("access_token", context.AccessToken);    
+            //}
+            //if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.RefreshToken) == OneIdAuthenticationTokenSave.RefreshToken)
+            //{
+            // context.HttpContext.Session.SetString("refresh_token", context.RefreshToken);
+            //}
 
             context.RunClaimActions();
 
