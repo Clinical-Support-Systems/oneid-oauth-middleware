@@ -110,36 +110,36 @@ namespace AspNet.Security.OAuth.OneID
                 throw new ArgumentException($"'{nameof(redirectUri)}' cannot be null or empty.", nameof(redirectUri));
             }
 
-            var uri = new Uri(redirectUri);
-            string subdomain = null;
+            //            var uri = new Uri(redirectUri);
+            //            string subdomain = null;
 
-            if (uri.HostNameType == UriHostNameType.Dns)
-            {
-                var host = uri.Host;
-                if (host.Count(f => f == '.') > 1)
-                {
-                    subdomain = host.Split('.')[0];
-                }
-            }
+            //            if (uri.HostNameType == UriHostNameType.Dns)
+            //            {
+            //                var host = uri.Host;
+            //                if (host.Count(f => f == '.') > 1)
+            //                {
+            //                    subdomain = host.Split('.')[0];
+            //                }
+            //            }
 
-            string challengeUrl = null;
+            //            string challengeUrl = null;
 
-            if (!string.IsNullOrEmpty(subdomain))
-            {
-                properties.SetString("subdomain", subdomain);
+            //            if (!string.IsNullOrEmpty(subdomain))
+            //            {
+            //                properties.SetString("subdomain", subdomain);
 
-                // challenge without the subdomain
-#if NET5_0_OR_GREATER
-                challengeUrl = base.BuildChallengeUrl(properties, redirectUri.Replace(subdomain + ".", string.Empty, StringComparison.InvariantCulture));
-#else
-                challengeUrl = base.BuildChallengeUrl(properties, redirectUri.Replace(subdomain + ".", string.Empty));
-#endif
-            }
-            else
-            {
-                challengeUrl = base.BuildChallengeUrl(properties, redirectUri);
-            }
-
+            //                // challenge without the subdomain
+            //#if NET5_0_OR_GREATER
+            //                challengeUrl = base.BuildChallengeUrl(properties, redirectUri.Replace(subdomain + ".", string.Empty, StringComparison.InvariantCulture));
+            //#else
+            //                challengeUrl = base.BuildChallengeUrl(properties, redirectUri.Replace(subdomain + ".", string.Empty));
+            //#endif
+            //            }
+            //            else
+            //            {
+            //                challengeUrl = base.BuildChallengeUrl(properties, redirectUri);
+            //            }
+            var challengeUrl = base.BuildChallengeUrl(properties, redirectUri);
             challengeUrl = QueryHelpers.AddQueryString(challengeUrl, "aud", ClaimNames.ApiAudience);
             challengeUrl = QueryHelpers.AddQueryString(challengeUrl, "_profile", Options.GetServiceProfileOptionsString());
 
