@@ -53,7 +53,7 @@ namespace ConsumerApp.Kestrel
                 options.Environment = OneIdAuthenticationEnvironment.PartnerSelfTest;
                 options.CallbackPath = new PathString("/oneid-signin");
                 options.CertificateStoreName = StoreName.My;
-                options.CertificateStoreLocation = StoreLocation.LocalMachine;
+                options.CertificateStoreLocation = StoreLocation.CurrentUser;
                 options.TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken | OneIdAuthenticationTokenSave.IdToken;
                 options.ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS | OneIdAuthenticationServiceProfiles.DHDR;
             });
