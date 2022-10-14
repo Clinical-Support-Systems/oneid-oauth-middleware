@@ -73,6 +73,7 @@ namespace AspNet.Security.OAuth.OneID
         private OneIdAuthenticationEnvironment _environment;
         private string _authority;
         private OneIdAuthenticationServiceProfiles _serviceProfileOptions = OneIdAuthenticationDefaults.ServiceProfiles;
+        private string _audience;
 
         /// <summary>
         /// Constructor
@@ -310,9 +311,17 @@ namespace AspNet.Security.OAuth.OneID
         {
             get
             {
-                string env = GetEnvironment();
-                return string.Format(CultureInfo.InvariantCulture, FormatStrings.Audience, env);
+                if (string.IsNullOrEmpty(_audience))
+                {
+                    var env = GetEnvironment();
+                    _audience = string.Format(CultureInfo.InvariantCulture,
+                       FormatStrings.Audience,
+                       env);
+                }
+
+                return _audience;
             }
+            set => _audience = value;
         }
 
 #if NETFULL
@@ -397,10 +406,12 @@ namespace AspNet.Security.OAuth.OneID
                 AuthorizationEndpoint = AuthorizationEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
                 TokenEndpoint = TokenEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
                 ClaimsIssuer = ClaimsIssuer.Replace(".prod", string.Empty, StringComparison.InvariantCulture); 
+                ClaimsIssuer = Audience.Replace(".prod", string.Empty, StringComparison.InvariantCulture); 
 #else
                 AuthorizationEndpoint = AuthorizationEndpoint.Replace(".prod", string.Empty);
                 TokenEndpoint = TokenEndpoint.Replace(".prod", string.Empty);
                 ClaimsIssuer = ClaimsIssuer.Replace(".prod", string.Empty);
+                Audience = Audience.Replace(".prod", string.Empty);
 #endif
             }
         }
