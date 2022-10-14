@@ -2,23 +2,9 @@
 
 - An easy to use library that makes connecting with eHealth Ontario easy for .NET Kestrel/Owin/Katana applications.
 
-<p align="center">
-  <a href="https://dev.azure.com/css/eHealthServices/_build/latest?definitionId=39&branchName=develop">
-    <img src="https://dev.azure.com/css/eHealthServices/_apis/build/status/eHealthServices-CI?branchName=develop" alt="Sublime's custom image"/>
-  </a>
-  <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Clinical-Support-Systems/oneid-oauth-middleware/CI">
-  <img alt="Nuget" src="https://img.shields.io/nuget/v/AspNet.Security.OAuth.OneID">
-  <img alt="Nuget" src="https://img.shields.io/nuget/dt/AspNet.Security.OAuth.OneID">
-</p>
+ [![Sublime's custom image](https://dev.azure.com/css/eHealthServices/_apis/build/status/eHealthServices-CI?branchName=develop)](https://dev.azure.com/css/eHealthServices/_build/latest?definitionId=39&branchName=develop)![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Clinical-Support-Systems/oneid-oauth-middleware/CI) ![Nuget](https://img.shields.io/nuget/v/AspNet.Security.OAuth.OneID) ![Nuget](https://img.shields.io/nuget/dt/AspNet.Security.OAuth.OneID)
 
-<p align="center">
-    <a href="#beginner-about">About</a> |
-    <a href="#sunny-usage">Usage</a> |
-    <a href="#wrench-development">Development</a> |
-    <a href="#camera-gallery">Gallery</a> |
-    <a href="#star2-creditacknowledgment">Acknowledgement</a> |
-    <a href="#lock-license">License</a>
-</p>
+[About](#beginner-about) | [Usage](#sunny-usage) | [Development](#wrench-development) | [Gallery](#camera-gallery) | [Acknowledgement](#star2-creditacknowledgment) | [License](#lock-license)
 
 ---
 
