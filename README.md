@@ -109,7 +109,7 @@ After this, changes will be merged.
 
 #  :camera: Gallery
 
-![OneId Authentication](oneid.gif)
+![OneId Authentication](https://raw.githubusercontent.com/Clinical-Support-Systems/oneid-oauth-middleware/master/oneid.gif)
 
 # :star2: Credit/Acknowledgment
  * Kori Francis
