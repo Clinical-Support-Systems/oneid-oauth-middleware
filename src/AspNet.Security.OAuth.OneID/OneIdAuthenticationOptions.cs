@@ -406,12 +406,12 @@ namespace AspNet.Security.OAuth.OneID
                 AuthorizationEndpoint = AuthorizationEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
                 TokenEndpoint = TokenEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
                 ClaimsIssuer = ClaimsIssuer.Replace(".prod", string.Empty, StringComparison.InvariantCulture); 
-                ClaimsIssuer = Audience.Replace(".prod", string.Empty, StringComparison.InvariantCulture); 
+                Audience = Audience.Replace(".prod", string.Empty, StringComparison.InvariantCulture).Replace("idaasprodoidc", "idaasoidc"); // Special case
 #else
                 AuthorizationEndpoint = AuthorizationEndpoint.Replace(".prod", string.Empty);
                 TokenEndpoint = TokenEndpoint.Replace(".prod", string.Empty);
                 ClaimsIssuer = ClaimsIssuer.Replace(".prod", string.Empty);
-                Audience = Audience.Replace(".prod", string.Empty);
+                Audience = Audience.Replace(".prod", string.Empty).Replace("idaasprodoidc", "idaasoidc"); // Special case
 #endif
             }
         }

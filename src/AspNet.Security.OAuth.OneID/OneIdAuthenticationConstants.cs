@@ -212,7 +212,7 @@ namespace AspNet.Security.OAuth.OneID
             /// <summary>
             /// The audience
             /// </summary>
-            public const string Audience = "https://login.{0}.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaaspstoidc/access_token";
+            public const string Audience = "https://login.{0}.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaas{0}oidc/access_token";
         }
     }
 }
