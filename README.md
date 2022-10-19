@@ -2,7 +2,7 @@
 
 - An easy to use library that makes connecting with eHealth Ontario easy for .NET Kestrel/Owin/Katana applications.
 
- [![Sublime's custom image](https://dev.azure.com/css/eHealthServices/_apis/build/status/eHealthServices-CI?branchName=develop)](https://dev.azure.com/css/eHealthServices/_build/latest?definitionId=39&branchName=develop)![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Clinical-Support-Systems/oneid-oauth-middleware/CI) ![Nuget](https://img.shields.io/nuget/v/AspNet.Security.OAuth.OneID) ![Nuget](https://img.shields.io/nuget/dt/AspNet.Security.OAuth.OneID)
+ [![CI](https://github.com/Clinical-Support-Systems/oneid-oauth-middleware/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/Clinical-Support-Systems/oneid-oauth-middleware/actions/workflows/main.yml) ![Nuget](https://img.shields.io/nuget/v/AspNet.Security.OAuth.OneID) ![Nuget](https://img.shields.io/nuget/dt/AspNet.Security.OAuth.OneID)
 
 [About](#beginner-about) | [Usage](#sunny-usage) | [Development](#wrench-development) | [Gallery](#camera-gallery) | [Acknowledgement](#star2-creditacknowledgment) | [License](#lock-license)
 
