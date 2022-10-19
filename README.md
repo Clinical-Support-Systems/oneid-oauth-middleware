@@ -11,7 +11,7 @@
 # :beginner: About
 This library was created by Clinical Support Systems and Kori Francis, who have experience integrating with APIs of varying complexity. We wanted to simplify the connection in .NET web applications so we could get on with the actual API implementation.
 
-### :tada: Supported eHealth Services
+## :tada: Supported eHealth Services
 
 To make integration simple, there's support in this middlewear to adjust the scope and profile depending on the service you're integrating with. As such, we currently support the following:
 
@@ -24,7 +24,7 @@ This will allow you to perform authentication once but retrieve an `access_token
 # :sunny: Usage
 Here is how to use this library in your project.
 
-###  :electric_plug: NuGet Installation
+##  :electric_plug: NuGet Installation
 
 ```powershell
 Install-Package AspNet.Security.OAuth.OneID
@@ -66,7 +66,7 @@ services.AddAuthentication().AddOneId(OneIdAuthenticationDefaults.Authentication
 #  :wrench: Development
 If you want other people to contribute to this project, this is the section, make sure you always add this.
 
-### :notebook: Pre-Requisites
+## :notebook: Pre-Requisites
 
 List all the pre-requisites the system needs to develop this project.
 
