@@ -36,7 +36,6 @@ using static AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Collections.ObjectModel;
 
 #if NETCORE
@@ -70,10 +69,10 @@ namespace AspNet.Security.OAuth.OneID
         AuthenticationOptions
 #endif
     {
-        private OneIdAuthenticationEnvironment _environment;
-        private string _authority;
+        private OneIdAuthenticationEnvironment _environment = OneIdAuthenticationEnvironment.PartnerSelfTest;
+        private string _authority = string.Empty;
         private OneIdAuthenticationServiceProfiles _serviceProfileOptions = OneIdAuthenticationDefaults.ServiceProfiles;
-        private string _audience;
+        private string _audience = string.Empty;
 
         /// <summary>
         /// Constructor
@@ -100,8 +99,9 @@ namespace AspNet.Security.OAuth.OneID
                 ValidateAudience = true,
                 ValidAudience = ClientId,
 
-                ValidateIssuer = false,
-                ValidIssuers = new[] { Authority },
+                ValidateIssuer = true,
+                ValidIssuer = Authority,
+
                 IssuerSigningKeyValidator = (sk, st, tvp) =>
                 {
                     return true;
@@ -173,13 +173,13 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         ///     Gets or sets additional values set in this property will be appended to the authorization request.
         /// </summary>
-        public Dictionary<string, string> AdditionalParameters { get; set; }
+        public Dictionary<string, string> AdditionalParameters { get; private set; } = new();
 
         /// <summary>
         /// For the purposes of removing subdomains from the request and restoring them for the redirect once complete
         /// Add second and third level TLDs that might be expected (ie. (host).uk is 1st, (host).co.uk is a 2nd, (host).k12.ma.us is a third)
         /// </summary>
-        public ReadOnlyCollection<string> Tlds { get; set; }
+        public ReadOnlyCollection<string>? Tlds { get; set; }
 
         /// <summary>
         /// Authority, which depends on the environment
@@ -250,7 +250,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// The thumbprint of the PKI certificate pre-configured with eHealth Ontario
         /// </summary>
-        public string CertificateThumbprint { get; set; }
+        public string? CertificateThumbprint { get; set; }
 
         public StoreLocation CertificateStoreLocation { get; set; }
         public StoreName CertificateStoreName { get; set; }
@@ -258,17 +258,17 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Certificate filename, if not using thumbprint
         /// </summary>
-        public string CertificateFilename { get; set; }
+        public string? CertificateFilename { get; set; }
 
         /// <summary>
         /// Certificate password, if not using thumbprint
         /// </summary>
-        public SecureString CertificatePassword { get; set; }
+        public SecureString? CertificatePassword { get; set; }
 
         /// <summary>
         /// Response type
         /// </summary>
-        public string ResponseType { get; private set; }
+        public string ResponseType { get; private set; } = string.Empty;
 
         /// <summary>
         /// Get claims from the user info endpoint? no.
@@ -284,7 +284,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Token validation parameterd
         /// </summary>
-        public object TokenValidationParameters { get; internal set; }
+        public object? TokenValidationParameters { get; internal set; }
 
         /// <summary>
         /// Gets or sets the target online environment to either development, stage or production.
@@ -325,16 +325,16 @@ namespace AspNet.Security.OAuth.OneID
         }
 
 #if NETFULL
-        public string AuthorizationEndpoint { get; private set; }
-        public string TokenEndpoint { get; private set; }
-        public string ClaimsIssuer { get; private set; }
+        public string AuthorizationEndpoint { get; private set; } = string.Empty;
+        public string TokenEndpoint { get; private set; } = string.Empty;
+        public string ClaimsIssuer { get; private set; } = string.Empty;
 
-        public string ClientId { get; set; }
+        public string ClientId { get; set; } = string.Empty;
 
-        public ISecureDataFormat<AuthenticationProperties> StateDataFormat { get; set; }
-        public IOneIdAuthenticationProvider Provider { get; set; }
+        public ISecureDataFormat<AuthenticationProperties>? StateDataFormat { get; set; }
+        public IOneIdAuthenticationProvider Provider { get; set; } = new OneIdAuthenticationProvider();
 
-        public string SignInAsAuthenticationType { get; set; }
+        public string SignInAsAuthenticationType { get; set; } = string.Empty;
         public IList<string> Scope { get; }
         public PathString CallbackPath { get; set; }
 
@@ -343,10 +343,10 @@ namespace AspNet.Security.OAuth.OneID
         /// This cannot be set at the same time as BackchannelCertificateValidator unless the value
         /// can be downcast to a WebRequestHandler.
         /// </summary>
-        public HttpMessageHandler BackchannelHttpHandler { get; set; }
+        public HttpMessageHandler? BackchannelHttpHandler { get; set; }
 
         /// <summary>Gets or sets the authentication handler.</summary>
-        public IOneIdAuthenticationHandlerFactory AuthenticationHandlerFactory { get; set; }
+        public IOneIdAuthenticationHandlerFactory? AuthenticationHandlerFactory { get; set; }
 
         /// <summary>
         /// Gets or sets timeout value in milliseconds for back channel communications with OneId.
@@ -364,6 +364,7 @@ namespace AspNet.Security.OAuth.OneID
             get { return Description.Caption; }
             set { Description.Caption = value; }
         }
+
 #endif
 
         /// <summary>
@@ -405,8 +406,8 @@ namespace AspNet.Security.OAuth.OneID
 #if NET5_0_OR_GREATER
                 AuthorizationEndpoint = AuthorizationEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
                 TokenEndpoint = TokenEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
-                ClaimsIssuer = ClaimsIssuer.Replace(".prod", string.Empty, StringComparison.InvariantCulture); 
-                Audience = Audience.Replace(".prod", string.Empty, StringComparison.InvariantCulture).Replace("idaasprodoidc", "idaasoidc"); // Special case
+                ClaimsIssuer = ClaimsIssuer.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
+                Audience = Audience.Replace(".prod", string.Empty, StringComparison.InvariantCulture).Replace("idaasprodoidc", "idaasoidc", StringComparison.InvariantCultureIgnoreCase); // Special case
 #else
                 AuthorizationEndpoint = AuthorizationEndpoint.Replace(".prod", string.Empty);
                 TokenEndpoint = TokenEndpoint.Replace(".prod", string.Empty);
@@ -423,7 +424,7 @@ namespace AspNet.Security.OAuth.OneID
         {
             ClientSecret = Guid.NewGuid().ToString(); // HACK, base.Validate is checking to see thast ClientSecret isn't empty. Ron Popeil this (set and then forget).
             base.Validate();
-            ClientSecret = null;
+            ClientSecret = null!;
         }
 
 #endif

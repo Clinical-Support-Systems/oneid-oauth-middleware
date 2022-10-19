@@ -11,9 +11,15 @@
 		<RepositoryUrl>https://github.com/Clinical-Support-Systems/oneid-oauth-middleware</RepositoryUrl>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
-		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<!--<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>-->
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<NoWarn>$(NoWarn);CS1591;CA1014</NoWarn>
+		<nullable>enable</nullable>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -45,7 +51,6 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net48'">
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 		<PackageReference Include="Microsoft.Owin" Version="4.2.2" />
 		<PackageReference Include="Microsoft.Owin.Security.OAuth" Version="4.2.2" />
 		<PackageReference Include="Microsoft.Net.Http" Version="2.2.29" />

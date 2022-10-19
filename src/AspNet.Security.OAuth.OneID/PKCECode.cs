@@ -37,9 +37,9 @@ namespace AspNet.Security.OAuth.OneID
 {
     public class PKCECode
     {
-        public string CodeChallenge { get; set; }
+        public string? CodeChallenge { get; set; }
 
-        public string CodeVerifier { get; set; }
+        public string? CodeVerifier { get; set; }
 
         public static PKCECode GeneratePKCECodes()
         {

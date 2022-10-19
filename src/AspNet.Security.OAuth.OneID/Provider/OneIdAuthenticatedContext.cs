@@ -62,7 +62,7 @@ namespace AspNet.Security.OAuth.OneID.Provider
 BaseContext
 #endif
     {
-        private readonly TokenEndpoint _response;
+        private readonly TokenEndpoint? _response;
 
 #if NETCORE
 
@@ -181,8 +181,8 @@ BaseContext
 
         public IOwinContext Context { get; private set; }
 
-        public ClaimsIdentity Identity { get; set; }
-        public AuthenticationProperties Properties { get; set; }
+        public ClaimsIdentity? Identity { get; set; }
+        public AuthenticationProperties? Properties { get; set; }
         /// <summary>
         /// Gets the refresh token.
         /// </summary>
@@ -197,36 +197,36 @@ BaseContext
         /// <summary>
         /// The parsed response
         /// </summary>
-        public TokenEndpoint ParsedResponse => _response;
+        public TokenEndpoint? ParsedResponse => _response;
 
         /// <summary>
         /// Gets the identity token.
         /// </summary>
-        public string IdentityToken { get; private set; }
+        public string? IdentityToken { get; private set; }
 
         /// <summary>
         /// First name
         /// </summary>
-        public string GivenName { get; private set; }
+        public string? GivenName { get; private set; }
 
         /// <summary>
         /// Last name
         /// </summary>
-        public string FamilyName { get; private set; }
+        public string? FamilyName { get; private set; }
 
         /// <summary>
         /// User identifier
         /// </summary>
-        public string Id { get; private set; }
+        public string? Id { get; private set; }
 
         /// <summary>
         /// User email address
         /// </summary>
-        public string Email { get; private set; }
+        public string? Email { get; private set; }
 
         /// <summary>
         /// Phone number
         /// </summary>
-        public string PhoneNumber { get; private set; }
+        public string? PhoneNumber { get; private set; }
     }
 }

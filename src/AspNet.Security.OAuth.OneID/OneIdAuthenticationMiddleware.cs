@@ -48,7 +48,7 @@ namespace AspNet.Security.OAuth.OneID
 {
     public sealed class OneIdAuthenticationMiddleware : AuthenticationMiddleware<OneIdAuthenticationOptions> , IDisposable
     {
-        private HttpClient _httpClient;
+        private HttpClient? _httpClient;
         private readonly ILogger _logger;
         private bool _isDisposed;
 
@@ -61,9 +61,6 @@ namespace AspNet.Security.OAuth.OneID
             }
 
             _logger = app.CreateLogger<OneIdAuthenticationMiddleware>();
-
-            if (Options.Provider == null)
-                Options.Provider = new OneIdAuthenticationProvider();
 
             if (options != null && options.StateDataFormat == null)
             {
@@ -104,7 +101,7 @@ namespace AspNet.Security.OAuth.OneID
 
         protected override AuthenticationHandler<OneIdAuthenticationOptions> CreateHandler()
         {
-            return this.Options.AuthenticationHandlerFactory.CreateHandler();
+            return this.Options.AuthenticationHandlerFactory!.CreateHandler();
         }
 
         private void Dispose(bool disposing)
@@ -113,23 +110,18 @@ namespace AspNet.Security.OAuth.OneID
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects)
-                    _httpClient.Dispose();
+                    _httpClient?.Dispose();
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
                 _httpClient = null;
                 _isDisposed = true;
             }
         }
-
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~OneIdAuthenticationMiddleware()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
+        ~OneIdAuthenticationMiddleware()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
+        }
 
         public void Dispose()
         {

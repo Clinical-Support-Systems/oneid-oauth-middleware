@@ -46,7 +46,7 @@ namespace AspNet.Security.OAuth.OneID.Provider
         /// <param name="state">The state.</param>
         /// <param name="code">The code.</param>
         /// <param name="properties">The properties</param>
-        public OneIdTokenRequestContext(IOwinContext context, OneIdAuthenticationOptions options, string state, string code, AuthenticationProperties properties)
+        public OneIdTokenRequestContext(IOwinContext context, OneIdAuthenticationOptions options, string state, string? code, AuthenticationProperties properties)
             : base(context)
         {
             this.Context = context;
@@ -61,7 +61,7 @@ namespace AspNet.Security.OAuth.OneID.Provider
         #region Public Properties
 
         /// <summary>Gets or sets the code.</summary>
-        public string Code { get; set; }
+        public string? Code { get; set; }
 
         /// <summary>
         ///     Gets or sets the context.

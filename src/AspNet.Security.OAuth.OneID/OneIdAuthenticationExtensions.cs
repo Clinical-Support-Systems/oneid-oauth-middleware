@@ -31,7 +31,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
 
@@ -66,7 +65,10 @@ namespace AspNet.Security.OAuth.OneID
         /// <returns>A reference to this instance after the operation has completed.</returns>
         public static AuthenticationBuilder AddOneId(this AuthenticationBuilder builder)
         {
-            Contract.Requires(builder != null);
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
 
             return builder.AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, options => { });
         }
@@ -82,8 +84,15 @@ namespace AspNet.Security.OAuth.OneID
             this AuthenticationBuilder builder,
             Action<OneIdAuthenticationOptions> configuration)
         {
-            Contract.Requires(builder != null);
-            Contract.Requires(configuration != null);
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configuration is null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
 
             return builder.AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, configuration);
         }
@@ -101,9 +110,20 @@ namespace AspNet.Security.OAuth.OneID
             string scheme,
             Action<OneIdAuthenticationOptions> configuration)
         {
-            Contract.Requires(builder != null);
-            Contract.Requires(scheme != null);
-            Contract.Requires(configuration != null);
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (string.IsNullOrEmpty(scheme))
+            {
+                throw new ArgumentException($"'{nameof(scheme)}' cannot be null or empty.", nameof(scheme));
+            }
+
+            if (configuration is null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
 
             return builder.AddOneId(scheme, OneIdAuthenticationDefaults.DisplayName, configuration);
         }
@@ -123,9 +143,20 @@ namespace AspNet.Security.OAuth.OneID
             string caption,
             Action<OneIdAuthenticationOptions> configuration)
         {
-            Contract.Requires(builder != null);
-            Contract.Requires(scheme != null);
-            Contract.Requires(configuration != null);
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (scheme is null)
+            {
+                throw new ArgumentNullException(nameof(scheme));
+            }
+
+            if (configuration is null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
 
             builder.Services.TryAddSingleton<JwtSecurityTokenHandler>();
             //builder.Services.TryAddSingleton<IPostConfigureOptions<OneIdAuthenticationOptions>, OneIdAuthenticationPostConfigureOptions>();
@@ -186,6 +217,7 @@ namespace AspNet.Security.OAuth.OneID
             });
             return app;
         }
+
 #endif
     }
 }

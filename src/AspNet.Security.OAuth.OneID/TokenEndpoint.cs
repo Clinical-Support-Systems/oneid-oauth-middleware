@@ -59,7 +59,7 @@ namespace AspNet.Security.OAuth.OneID
 
         [JsonPropertyName("access_token")]
 #endif
-        public string AccessToken { get; set; }
+        public string AccessToken { get; set; } = string.Empty;
 
         /// <summary>
         /// The refresh token
@@ -70,7 +70,7 @@ namespace AspNet.Security.OAuth.OneID
 
         [JsonPropertyName("refresh_token")]
 #endif
-        public string RefreshToken { get; set; }
+        public string RefreshToken { get; set; } = string.Empty;
 
         /// <summary>
         /// The oauth scope
@@ -81,7 +81,7 @@ namespace AspNet.Security.OAuth.OneID
 
         [JsonPropertyName("scope")]
 #endif
-        public string Scope { get; set; }
+        public string Scope { get; set; } = string.Empty;
 
         /// <summary>
         /// The returned context session id
@@ -92,7 +92,7 @@ namespace AspNet.Security.OAuth.OneID
 
         [JsonPropertyName("contextSessionId")]
 #endif
-        public string ContextSessionId { get; set; }
+        public string ContextSessionId { get; set; } = string.Empty;
 
         /// <summary>
         /// The id token
@@ -103,7 +103,7 @@ namespace AspNet.Security.OAuth.OneID
 
         [JsonPropertyName("id_token")]
 #endif
-        public string IdToken { get; set; }
+        public string IdToken { get; set; } = string.Empty;
 
         /// <summary>
         /// The token type
@@ -114,7 +114,7 @@ namespace AspNet.Security.OAuth.OneID
 
         [JsonPropertyName("token_type")]
 #endif
-        public string TokenType { get; set; }
+        public string TokenType { get; set; } = string.Empty;
 
         /// <summary>
         /// How many seconds until the access_token expires
@@ -136,13 +136,13 @@ namespace AspNet.Security.OAuth.OneID
 
         [JsonPropertyName("nonce")]
 #endif
-        public string Nonce { get; set; }
+        public string Nonce { get; set; } = string.Empty;
     }
 
     public partial class TokenEndpoint
     {
 #if NETFULL
-        public static TokenEndpoint FromJson(string json) => JsonConvert.DeserializeObject<TokenEndpoint>(json, Converter.Settings);
+        public static TokenEndpoint? FromJson(string json) => JsonConvert.DeserializeObject<TokenEndpoint>(json, Converter.Settings);
 #else
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace AspNet.Security.OAuth.OneID
         /// </summary>
         /// <param name="json">The json to deserialize</param>
         /// <returns>The <see cref="TokenEndpoint"/> object</returns>
-        public static TokenEndpoint FromJson(JsonElement json) => json.ToObject<TokenEndpoint>();
+        public static TokenEndpoint? FromJson(JsonElement json) => json.ToObject<TokenEndpoint>();
 
 #endif
     }
@@ -169,7 +169,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <param name="element">The json containing element</param>
         /// <param name="options">Serializer options</param>
         /// <returns>The object</returns>
-        public static T ToObject<T>(this JsonElement element, JsonSerializerOptions options = null)
+        public static T? ToObject<T>(this JsonElement element, JsonSerializerOptions? options = null)
         {
             var bufferWriter = new ArrayBufferWriter<byte>();
             using (var writer = new Utf8JsonWriter(bufferWriter))
@@ -184,7 +184,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <param name="document">The json document</param>
         /// <param name="options">Serializer options</param>
         /// <returns>The object</returns>
-        public static T ToObject<T>(this JsonDocument document, JsonSerializerOptions options = null)
+        public static T? ToObject<T>(this JsonDocument document, JsonSerializerOptions? options = null)
         {
             if (document == null)
                 throw new ArgumentNullException(nameof(document));

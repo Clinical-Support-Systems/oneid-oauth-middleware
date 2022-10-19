@@ -29,390 +29,42 @@
 
 #endregion License, Terms and Conditions
 
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Diagnostics.Contracts;
-using static AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants;
-using System.Net.Http.Headers;
-using System.Collections.Generic;
-using System.Net;
-using Newtonsoft.Json;
-using System.Globalization;
-using System.Linq;
-using System.IdentityModel.Tokens.Jwt;
+#if NETFULL
+
 using AspNet.Security.OAuth.OneID.Provider;
-using System.Text.RegularExpressions;
-using System.Security.Cryptography;
-
-#if NETCORE
-
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Security.Claims;
-
-#elif NETFULL
+using Microsoft.Owin;
+using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Infrastructure;
-using Newtonsoft.Json.Linq;
-using System.Security.Claims;
-using Microsoft.Owin.Infrastructure;
-using Microsoft.Owin;
 using Microsoft.Owin.Security.DataHandler.Encoder;
-#endif
+using Microsoft.Owin.Security.Infrastructure;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.Contracts;
+using System.Globalization;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using static AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants;
 
 namespace AspNet.Security.OAuth.OneID
 {
-#if NETCORE
-
-    /// <summary>
-    /// The OneId oauth/oidc authentication handler
-    /// </summary>
-    public class OneIdAuthenticationHandler : OAuthHandler<OneIdAuthenticationOptions>
-    {
-        private readonly JwtSecurityTokenHandler _tokenHandler;
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="options">The options</param>
-        /// <param name="logger">The logger</param>
-        /// <param name="encoder">The encoder</param>
-        /// <param name="clock">The clock skew</param>
-        /// <param name="tokenHandler">The security token handler</param>
-        public OneIdAuthenticationHandler(IOptionsMonitor<OneIdAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, JwtSecurityTokenHandler tokenHandler) : base(options, logger, encoder, clock)
-        {
-            Contract.Requires(options != null);
-            Contract.Requires(logger != null);
-            Contract.Requires(encoder != null);
-            Contract.Requires(clock != null);
-
-            _tokenHandler = tokenHandler;
-        }
-
-        /// <inheritdoc />
-        protected override string BuildChallengeUrl(AuthenticationProperties properties, string redirectUri)
-        {
-            if (properties is null)
-            {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            if (string.IsNullOrEmpty(redirectUri))
-            {
-                throw new ArgumentException($"'{nameof(redirectUri)}' cannot be null or empty.", nameof(redirectUri));
-            }
-
-            //            var uri = new Uri(redirectUri);
-            //            string subdomain = null;
-
-            //            if (uri.HostNameType == UriHostNameType.Dns)
-            //            {
-            //                var host = uri.Host;
-            //                if (host.Count(f => f == '.') > 1)
-            //                {
-            //                    subdomain = host.Split('.')[0];
-            //                }
-            //            }
-
-            //            string challengeUrl = null;
-
-            //            if (!string.IsNullOrEmpty(subdomain))
-            //            {
-            //                properties.SetString("subdomain", subdomain);
-
-            //                // challenge without the subdomain
-            //#if NET5_0_OR_GREATER
-            //                challengeUrl = base.BuildChallengeUrl(properties, redirectUri.Replace(subdomain + ".", string.Empty, StringComparison.InvariantCulture));
-            //#else
-            //                challengeUrl = base.BuildChallengeUrl(properties, redirectUri.Replace(subdomain + ".", string.Empty));
-            //#endif
-            //            }
-            //            else
-            //            {
-            //                challengeUrl = base.BuildChallengeUrl(properties, redirectUri);
-            //            }
-            var challengeUrl = base.BuildChallengeUrl(properties, redirectUri);
-            challengeUrl = QueryHelpers.AddQueryString(challengeUrl, "aud", ClaimNames.ApiAudience);
-            challengeUrl = QueryHelpers.AddQueryString(challengeUrl, "_profile", Options.GetServiceProfileOptionsString());
-
-            return challengeUrl;
-        }
-
-        /// <inheritdoc />
-        protected override async Task<AuthenticationTicket> CreateTicketAsync(ClaimsIdentity identity, AuthenticationProperties properties, OAuthTokenResponse tokens)
-        {
-            if (identity is null)
-            {
-                throw new ArgumentNullException(nameof(identity));
-            }
-
-            if (properties is null)
-            {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            if (tokens is null)
-            {
-                throw new ArgumentNullException(nameof(tokens));
-            }
-
-            var contextId = ProcessIdTokenAndGetContactIdentifier(tokens, properties);
-
-            string idToken = tokens.Response.RootElement.GetString("id_token");
-
-            if (Logger.IsEnabled(LogLevel.Trace))
-            {
-                Logger.LogTrace("Access Token: {AccessToken}", tokens.AccessToken);
-                Logger.LogTrace("Refresh Token: {RefreshToken}", tokens.RefreshToken);
-                Logger.LogTrace("Token Type: {TokenType}", tokens.TokenType);
-                Logger.LogTrace("Expires In: {ExpiresIn}", tokens.ExpiresIn);
-                Logger.LogTrace("Response: {TokenResponse}", tokens.Response.RootElement);
-                Logger.LogTrace("ID Token: {IdToken}", idToken);
-            }
-
-            if (string.IsNullOrWhiteSpace(idToken))
-            {
-                throw new InvalidOperationException("No OneID ID token was returned in the OAuth token response.");
-            }
-
-            //if (string.IsNullOrEmpty(contextId))
-            //{
-            //    throw new InvalidOperationException("An error occurred trying to obtain the context identifier from the current user's identity claims.");
-            //}
-
-            if (Options.ValidateTokens)
-            {
-                var validateIdContext = new OneIdValidateIdTokenContext(Context, Scheme, Options, idToken);
-                //await Options.Events.ValidateIdToken(validateIdContext);
-            }
-
-            foreach (var claim in ExtractClaimsFromToken(idToken))
-            {
-                identity.AddClaim(claim);
-            }
-
-            var principal = new ClaimsPrincipal(identity);
-
-            var context = new OneIdAuthenticatedContext(principal, properties, Context, Scheme, Options, Backchannel, tokens, tokens.Response.RootElement);
-
-            List<AuthenticationToken> exactTokens = context.Properties.GetTokens().ToList();
-
-            context.HttpContext.Session.SetString("original_username", principal.Identity.Name);
-
-            // Store the received tokens somewhere, if we should
-            // Store the received tokens somewhere, if we should
-            context.HttpContext.Session.SetString("access_token", context.AccessToken);
-            context.HttpContext.Session.SetString("refresh_token", context.RefreshToken);
-            //if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.AccessToken) == OneIdAuthenticationTokenSave.AccessToken)
-            //{
-            // context.HttpContext.Session.SetString("access_token", context.AccessToken);    
-            //}
-            //if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.RefreshToken) == OneIdAuthenticationTokenSave.RefreshToken)
-            //{
-            // context.HttpContext.Session.SetString("refresh_token", context.RefreshToken);
-            //}
-
-            context.RunClaimActions();
-
-            await Events.CreatingTicket(context).ConfigureAwait(false);
-            return new AuthenticationTicket(context.Principal, context.Properties, Scheme.Name);
-        }
-
-        /// <summary>
-        /// Extract the security claims from the id token.
-        /// </summary>
-        /// <param name="token">The json token content</param>
-        /// <returns>The list of claims</returns>
-        protected virtual IEnumerable<Claim> ExtractClaimsFromToken(string token)
-        {
-            try
-            {
-                var securityToken = _tokenHandler.ReadJwtToken(token);
-
-                var retVal = new List<Claim>(securityToken.Claims)
-                {
-                    new Claim(ClaimTypes.NameIdentifier, securityToken.Subject, ClaimValueTypes.String, ClaimsIssuer),
-                };
-
-                string address = securityToken.Claims.FirstOrDefault(x => x.Type == "email")?.Value;
-                if (!string.IsNullOrEmpty(address))
-                {
-                    retVal.Add(new Claim(ClaimTypes.Email, address, ClaimValueTypes.String, Options.ClaimsIssuer));
-                }
-
-                string givenName = securityToken.Claims.FirstOrDefault(x => x.Type == "given_name")?.Value;
-                if (!string.IsNullOrEmpty(givenName))
-                {
-                    retVal.Add(new Claim(ClaimTypes.GivenName, givenName, ClaimValueTypes.String, Options.ClaimsIssuer));
-                }
-
-                string familyName = securityToken.Claims.FirstOrDefault(x => x.Type == "family_name")?.Value;
-                if (!string.IsNullOrEmpty(familyName))
-                {
-                    retVal.Add(new Claim(ClaimTypes.Name, familyName, ClaimValueTypes.String, Options.ClaimsIssuer));
-                }
-
-                string phoneNumber = securityToken.Claims.FirstOrDefault(x => x.Type == "phoneNumber")?.Value;
-                if (!string.IsNullOrEmpty(phoneNumber))
-                {
-                    retVal.Add(new Claim(ClaimTypes.HomePhone, phoneNumber, ClaimValueTypes.String, Options.ClaimsIssuer));
-                }
-
-                return retVal;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Failed to parse JWT for claims from Apple ID token.", ex);
-            }
-        }
-
-        /// <inheritdoc/>
-        protected override async Task<OAuthTokenResponse> ExchangeCodeAsync(OAuthCodeExchangeContext context)
-        {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            using var request = new HttpRequestMessage(HttpMethod.Post, Options.TokenEndpoint);
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
-            request.Headers.UserAgent.ParseAdd(OneIdAuthenticationDefaults.UserAgent);
-
-            var parameters = new Dictionary<string, string>
-            {
-                ["redirect_uri"] = context.RedirectUri,
-                ["grant_type"] = "authorization_code",
-                ["client_id"] = Options.ClientId,
-                ["code"] = context.Code,
-                ["code_verifier"] = context.Properties.Items["code_verifier"]
-            };
-
-            request.Content = new FormUrlEncodedContent(parameters);
-
-            using var response = await Backchannel.SendAsync(request, Context.RequestAborted).ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                string errorBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                Logger.LogError("An error occurred while retrieving an access token: the remote server " +
-                                "returned a {Status} response with the following payload: {Headers} {Body}.",
-                                /* Status: */ response.StatusCode,
-                                /* Headers: */ response.Headers.ToString(),
-                                /* Body: */ errorBody);
-
-                return OAuthTokenResponse.Failed(new OneIdAuthenticationException($"An error occurred while retrieving an access token. The remote server returned a {response.StatusCode} response with the following payload: {response.Headers.ToString()} {errorBody}"));
-            }
-
-            var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
-
-            return OAuthTokenResponse.Success(payload);
-        }
-
-        /// <summary>
-        /// Save tokens if required and get the context identifier.
-        /// </summary>
-        /// <param name="tokens">The tokens</param>
-        /// <param name="properties">The authentication properties.</param>
-        /// <param name="identity">The claims identity</param>
-        /// <returns></returns>
-        private string ProcessIdTokenAndGetContactIdentifier(OAuthTokenResponse tokens, AuthenticationProperties properties)
-        {
-            var idToken = tokens.Response.RootElement.GetString("id_token");
-
-            if (Options.SaveTokens)
-            {
-                // Save id_token as well.
-                if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.IdToken) == OneIdAuthenticationTokenSave.IdToken && !string.IsNullOrEmpty(idToken))
-                {
-                    SaveIdToken(properties, idToken);
-                }
-            }
-
-            //var tokenValidationResult = await ValidateAsync(idToken, Options.TokenValidationParameters);
-
-            var contextIdentifier = tokens.Response.RootElement.GetString("contextSessionId");
-
-            return contextIdentifier;
-        }
-
-        //private async Task<TokenValidationResult> ValidateAsync(
-        //    string idToken,
-        //    TokenValidationParameters validationParameters)
-        //{
-        //    Contract.Requires(idToken != null);
-        //    Contract.Requires(validationParameters != null);
-
-        //    if (Options.SecurityTokenHandler == null)
-        //    {
-        //        throw new InvalidOperationException("The options SecurityTokenHandler is null.");
-        //    }
-
-        //    if (!Options.SecurityTokenHandler.CanValidateToken)
-        //    {
-        //        throw new NotSupportedException($"The configured {nameof(JsonWebTokenHandler)} cannot validate tokens.");
-        //    }
-
-        //    if (Options.ConfigurationManager == null)
-        //    {
-        //        throw new InvalidOperationException($"An OpenID Connect configuration manager has not been set on the {nameof(SuperOfficeAuthenticationOptions)} instance.");
-        //    }
-
-        //    var openIdConnectConfiguration = await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted);
-        //    validationParameters.IssuerSigningKeys = openIdConnectConfiguration.JsonWebKeySet.Keys;
-
-        //    try
-        //    {
-        //        var result = Options.SecurityTokenHandler.ValidateToken(idToken, validationParameters);
-
-        //        if (result.Exception != null || !result.IsValid)
-        //        {
-        //            throw new SecurityTokenValidationException("SuperOffice ID token validation failed.", result.Exception);
-        //        }
-
-        //        return result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new SecurityTokenValidationException("SuperOffice ID token validation failed.", ex);
-        //    }
-        //}
-
-        private static void SaveIdToken(AuthenticationProperties properties, string idToken)
-        {
-            Contract.Requires(properties != null);
-            Contract.Requires(idToken != null);
-
-            if (!string.IsNullOrWhiteSpace(idToken))
-            {
-                // Get the currently available tokens
-                var tokens = properties.GetTokens().ToList();
-
-                // Add the extra token
-                tokens.Add(new AuthenticationToken() { Name = "id_token", Value = idToken });
-
-                // Overwrite store with original tokens with the new additional token
-                properties.StoreTokens(tokens);
-            }
-        }
-    }
-
-#elif NETFULL
-
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1823:Avoid unused private fields", Justification = "<Pending>")]
     public class OneIdAuthenticationHandler : AuthenticationHandler<OneIdAuthenticationOptions>
     {
         private const string XmlSchemaString = "http://www.w3.org/2001/XMLSchema#string";
         private const string StateCookie = ".AspNet.Correlation.OneID";
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;
-        private static PKCECode _pkceCode;
+        private static PKCECode? _pkceCode;
         private static readonly RandomNumberGenerator CryptoRandom = RandomNumberGenerator.Create();
         private const string CorrelationPrefix = ".AspNetCore.Correlation.";
         private const string CorrelationProperty = ".xsrf";
@@ -425,14 +77,15 @@ namespace AspNet.Security.OAuth.OneID
             _logger = logger;
         }
 
-        protected override async Task<AuthenticationTicket> AuthenticateCoreAsync()
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
+        protected override async Task<AuthenticationTicket?> AuthenticateCoreAsync()
         {
-            AuthenticationProperties properties = null;
+            AuthenticationProperties? properties = null;
 
             try
             {
-                string code = null;
-                string state = null;
+                string? code = null;
+                string? state = null;
 
                 var query = Request.Query;
 
@@ -446,7 +99,7 @@ namespace AspNet.Security.OAuth.OneID
 
                 state = Request.Cookies[StateCookie];
 
-                properties = Options.StateDataFormat.Unprotect(state);
+                properties = Options.StateDataFormat?.Unprotect(state);
 
                 if (properties == null)
                     return null;
@@ -464,7 +117,7 @@ namespace AspNet.Security.OAuth.OneID
                 await Options.Provider.TokenRequest(tokenRequestContext).ConfigureAwait(false);
 
                 string host = Request.Host.Value;
-                string hostWithoutPrefix = null;
+                string? hostWithoutPrefix = null;
 
                 if (Options.Tlds != null)
                 {
@@ -496,7 +149,7 @@ namespace AspNet.Security.OAuth.OneID
                     { OneIdAuthenticationConstants.OAuth2Constants.GrantType, OneIdAuthenticationConstants.OAuth2Constants.AuthorizationCode },
                     { OneIdAuthenticationConstants.OAuth2Constants.ClientId, Uri.EscapeDataString(this.Options.ClientId) },
                     { OneIdAuthenticationConstants.OAuth2Constants.Code, Uri.EscapeDataString(code) },
-                    { OneIdAuthenticationConstants.OAuth2Constants.CodeVerifier, Uri.EscapeDataString(_pkceCode.CodeVerifier) },
+                    { OneIdAuthenticationConstants.OAuth2Constants.CodeVerifier, Uri.EscapeDataString(_pkceCode?.CodeVerifier) },
                 };
 
                 // Request the token
@@ -523,6 +176,9 @@ namespace AspNet.Security.OAuth.OneID
 
                 var token = await tokenResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 var response = JsonConvert.DeserializeObject<TokenEndpoint>(text);
+
+                if (response == null)
+                    throw new InvalidOperationException("Unexpected response.");
 
                 string accessToken = response.AccessToken;
                 string idToken = response.IdToken;
@@ -697,11 +353,11 @@ namespace AspNet.Security.OAuth.OneID
 
             if (challenge == null)
             {
-                return Task.FromResult<object>(null);
+                return Task.FromResult<object?>(null);
             }
 
             string host = Request.Host.Value;
-            string hostWithoutPrefix = null;
+            string? hostWithoutPrefix = null;
 
             if (Options.Tlds != null)
             {
@@ -749,7 +405,7 @@ namespace AspNet.Security.OAuth.OneID
 
             string scope = string.Join(" ", Options.Scope);
 
-            string state = Options.StateDataFormat.Protect(properties);
+            string state = Options.StateDataFormat!.Protect(properties);
 
             // First generate the PKCE verifier and challenge
             _pkceCode = PKCECode.GeneratePKCECodes();
@@ -795,7 +451,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <returns>The <see cref="Dictionary{String,String}"/>.</returns>
         private static Dictionary<string, string> MergeAdditionalKeyValuePairsIntoExplicitKeyValuePairs(
             Dictionary<string, string> explicitProperties,
-            Dictionary<string, string> additionalProperties = null)
+            Dictionary<string, string>? additionalProperties = null)
         {
             var merged = explicitProperties;
 
@@ -834,6 +490,6 @@ namespace AspNet.Security.OAuth.OneID
             Response.Cookies.Append(correlationKey, correlationId, cookieOptions);
         }
     }
+}
 
 #endif
-}
