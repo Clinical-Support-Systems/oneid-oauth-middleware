@@ -19,34 +19,60 @@ namespace AspNet.Security.OAuth.OneID
 
         private static readonly Action<ILogger, string?, Exception?> _logRefreshToken = LoggerMessage.Define<string?>(
                 logLevel: LogLevel.Trace,
-                eventId: 1,
+                eventId: 2,
                 formatString: "Refresh Token: {RefreshToken}");
 
         private static readonly Action<ILogger, string?, Exception?> _logTokenType = LoggerMessage.Define<string?>(
                logLevel: LogLevel.Trace,
-               eventId: 1,
+               eventId: 3,
                formatString: "Token Type: {TokenType}");
 
         private static readonly Action<ILogger, string?, Exception?> _logExpiresIn = LoggerMessage.Define<string?>(
                logLevel: LogLevel.Trace,
-               eventId: 1,
+               eventId: 4,
                formatString: "Expires In: {ExpiresIn}");
 
         private static readonly Action<ILogger, string?, Exception?> _logIdToken = LoggerMessage.Define<string?>(
                logLevel: LogLevel.Trace,
-               eventId: 1,
+               eventId: 5,
                formatString: "ID Token: {IdToken}");
 
         private static readonly Action<ILogger, JsonElement?, Exception?> _logTokenResponse = LoggerMessage.Define<JsonElement?>(
                logLevel: LogLevel.Trace,
-               eventId: 1,
+               eventId: 6,
                formatString: "Token Response: {TokenResponse}");
 
         private static readonly Action<ILogger, HttpStatusCode, string?, string, Exception?> _logBackchannelException = LoggerMessage.Define<HttpStatusCode, string?, string>(
                logLevel: LogLevel.Error,
-               eventId: 1,
+               eventId: 7,
                formatString: "An error occurred while retrieving an access token: the remote server " +
                                 "returned a {Status} response with the following payload: {Headers} {Body}.");
+
+        private static readonly Action<ILogger, HttpStatusCode, string?, string, Exception?> _logUserInfoException = LoggerMessage.Define<HttpStatusCode, string?, string>(
+               logLevel: LogLevel.Error,
+               eventId: 7,
+               formatString: "An error occurred while retrieving the user profile: the remote server " +
+                                "returned a {Status} response with the following payload: {Headers} {Body}.");
+
+        private static readonly Action<ILogger, string, string, Exception?> _tokenValidationFailed = LoggerMessage.Define<string, string>(
+            logLevel: LogLevel.Error, 
+            eventId: 8, 
+            formatString: "OneID token validation failed for issuer {TokenIssuer} and audience {TokenAudience}.");
+
+        private static readonly Action<ILogger, string, Exception?> _tokenInvalid = LoggerMessage.Define<string>(
+            logLevel: LogLevel.Trace,
+            eventId: 9,
+            formatString: "OneID token {IdToken} could not be validated.");
+
+        public static void TokenValidationFailed(this ILogger logger, Exception exception, string tokenIssuer, string tokenAudience)
+        {
+            _tokenValidationFailed(logger, tokenIssuer, tokenAudience, exception);
+        }
+
+        public static void TokenInvalid(this ILogger logger, Exception exception, string idToken)
+        {
+            _tokenInvalid(logger, idToken, exception);
+        }
 
         public static void LogAccessToken(
             this ILogger logger, string? accessToken)
@@ -94,6 +120,12 @@ namespace AspNet.Security.OAuth.OneID
             this ILogger logger, HttpStatusCode statusCode, string? headers, string body, Exception? exception = null)
         {
             _logBackchannelException(logger, statusCode, headers, body, exception);
+        }
+
+        public static void LogUserInfoFailure(
+            this ILogger logger, HttpStatusCode statusCode, string? headers, string body, Exception? exception = null)
+        {
+            _logUserInfoException(logger, statusCode, headers, body, exception);
         }
     }
 }

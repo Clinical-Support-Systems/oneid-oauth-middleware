@@ -1,5 +1,6 @@
 ﻿using AspNet.Security.OAuth.OneID;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
@@ -13,6 +14,9 @@ namespace ConsumerApp.Kestrel.Pages
     {
         private readonly ILogger<IndexModel> _logger;
 
+        public string? AccessToken { get; set; }
+        public string? RefreshToken { get; set; }
+
         public IndexModel(ILogger<IndexModel> logger)
         {
             _logger = logger;
@@ -22,26 +26,17 @@ namespace ConsumerApp.Kestrel.Pages
         {
             if (User.Identity.IsAuthenticated)
             {
-                var properites = await HttpContext.AuthenticateAsync(OneIdAuthenticationDefaults.AuthenticationScheme);
-
-                if (string.IsNullOrEmpty(HttpContext.Session.GetString("original_username")))
+                AccessToken = await HttpContext.GetTokenAsync("access_token");
+                if (string.IsNullOrEmpty(AccessToken) && HttpContext.Session.Keys.Contains("access_token"))
                 {
-                    throw new Exception("Uh oh.");
+                    AccessToken = HttpContext.Session.GetString("access_token");
                 }
 
-                var accessToken = await HttpContext.GetTokenAsync("access_token");
-                if (string.IsNullOrEmpty(accessToken) && HttpContext.Session.Keys.Contains("access_token"))
+                RefreshToken = await HttpContext.GetTokenAsync("refresh_token");
+                if (string.IsNullOrEmpty(RefreshToken) && HttpContext.Session.Keys.Contains("refresh_token"))
                 {
-                    accessToken = HttpContext.Session.GetString("access_token");
+                    RefreshToken = HttpContext.Session.GetString("refresh_token");
                 }
-
-                var refreshToken = await HttpContext.GetTokenAsync("refresh_token");
-                if (string.IsNullOrEmpty(refreshToken) && HttpContext.Session.Keys.Contains("refresh_token"))
-                {
-                    refreshToken = HttpContext.Session.GetString("refresh_token");
-                }
-
-                string t = "";
             }
         }
     }

@@ -7,6 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNet.Security.OAuth.OneID
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6ABB3DF9-B761-4A23-ACEA-E17FCE145BC6}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		.github\workflows\dependencies.yml = .github\workflows\dependencies.yml
 		Directory.Build.props = Directory.Build.props
 		global.json = global.json
@@ -20,6 +21,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsumerApp.Katana", "src\ConsumerApp.Katana\ConsumerApp.Katana.csproj", "{9A498F43-1200-4217-8C1A-4D27CB8177D5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerApp.Kestrel", "src\ConsumerApp.Kestrel\ConsumerApp.Kestrel.csproj", "{2D0470EC-1E9D-49AF-A1B1-5329DAF4C088}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNet.Security.OAuth.Providers.Tests", "tests\AspNet.Security.OAuth.OneID.Tests\AspNet.Security.OAuth.Providers.Tests.csproj", "{742B1C22-4197-4EA2-A180-ED68C922DDA8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,6 +40,10 @@ Global
 		{2D0470EC-1E9D-49AF-A1B1-5329DAF4C088}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2D0470EC-1E9D-49AF-A1B1-5329DAF4C088}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D0470EC-1E9D-49AF-A1B1-5329DAF4C088}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{742B1C22-4197-4EA2-A180-ED68C922DDA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{742B1C22-4197-4EA2-A180-ED68C922DDA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{742B1C22-4197-4EA2-A180-ED68C922DDA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{742B1C22-4197-4EA2-A180-ED68C922DDA8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

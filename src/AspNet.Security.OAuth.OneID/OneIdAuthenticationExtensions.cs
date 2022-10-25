@@ -158,10 +158,9 @@ namespace AspNet.Security.OAuth.OneID
                 throw new ArgumentNullException(nameof(configuration));
             }
 
+            builder.Services.AddHttpClient();
             builder.Services.TryAddSingleton<JwtSecurityTokenHandler>();
-            //builder.Services.TryAddSingleton<IPostConfigureOptions<OneIdAuthenticationOptions>, OneIdAuthenticationPostConfigureOptions>();
-
-            //builder.Services.Configure(configuration);`
+            builder.Services.TryAddSingleton<IPostConfigureOptions<OneIdAuthenticationOptions>, OneIdAuthenticationPostConfigureOptions>();
 
             return builder.AddOAuth<OneIdAuthenticationOptions, OneIdAuthenticationHandler>(scheme, caption, configuration);
         }

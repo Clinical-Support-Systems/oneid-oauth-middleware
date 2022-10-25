@@ -37,15 +37,17 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Collections.ObjectModel;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Policy;
 
 #if NETCORE
-
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -89,11 +91,14 @@ namespace AspNet.Security.OAuth.OneID
             SaveTokens = false;
             SignInScheme = IdentityConstants.ExternalScheme;
             ResponseType = OpenIdConnectResponseType.Code;
-            GetClaimsFromUserInfoEndpoint = false;
             UsePkce = true;
             BackchannelHttpHandler = new OneIdAuthenticationBackChannelHandler(this);
             CertificateStoreLocation = StoreLocation.LocalMachine;
             CertificateStoreName = StoreName.My;
+            Events = new OneIdAuthenticationEvents();
+
+            UpdateEndpoints();
+
             TokenValidationParameters = new TokenValidationParameters()
             {
                 ValidateAudience = true,
@@ -102,24 +107,10 @@ namespace AspNet.Security.OAuth.OneID
                 ValidateIssuer = true,
                 ValidIssuer = Authority,
 
-                IssuerSigningKeyValidator = (sk, st, tvp) =>
-                {
-                    return true;
-                },
+                ValidateIssuerSigningKey = true,
 
                 NameClaimType = "name",
-                RoleClaimType = "groups",
-
-                SignatureValidator = (token, validationParameters) =>
-                {
-                    validationParameters.RequireSignedTokens = false;
-                    var tokenHandler = new JwtSecurityTokenHandler();
-                    return tokenHandler.ReadToken(token);
-                },
-
-                RequireExpirationTime = true,
-                ValidateLifetime = true,
-                RequireSignedTokens = true,
+                RoleClaimType = "groups"
             };
 
             Scope.Clear();
@@ -139,6 +130,10 @@ namespace AspNet.Security.OAuth.OneID
             ClaimActions.MapJsonKey(ClaimTypes.GivenName, "given_name");
             ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "sub");
             ClaimActions.MapJsonKey(ClaimTypes.Surname, "family_name");
+
+            // Add a custom claim action that maps the email claim from the ID token if
+            // it was not otherwise provided in the user endpoint response.
+            ClaimActions.Add(new OneIdAuthenticationClaimAction(this));
 
 #elif NETFULL
             AuthenticationType = OneIdAuthenticationDefaults.DisplayName;
@@ -200,6 +195,11 @@ namespace AspNet.Security.OAuth.OneID
             }
             set => _authority = value;
         }
+
+        /// <summary>
+        /// Gets or sets the security token validator to use.
+        /// </summary>
+        public JsonWebTokenHandler? SecurityTokenHandler { get; set; }
 
         /// <summary>
         /// When SaveTokens is true, this let's you specify which tokens get persisted non-session (ie. cookie)
@@ -270,21 +270,12 @@ namespace AspNet.Security.OAuth.OneID
         /// </summary>
         public string ResponseType { get; private set; } = string.Empty;
 
-        /// <summary>
-        /// Get claims from the user info endpoint? no.
-        /// </summary>
 
-        public bool GetClaimsFromUserInfoEndpoint { get; private set; }
 
         /// <summary>
         /// Validate tokens?
         /// </summary>
-        public bool ValidateTokens { get; internal set; }
-
-        /// <summary>
-        /// Token validation parameterd
-        /// </summary>
-        public object? TokenValidationParameters { get; internal set; }
+        public bool ValidateTokens { get; set; } = true;
 
         /// <summary>
         /// Gets or sets the target online environment to either development, stage or production.
@@ -323,6 +314,12 @@ namespace AspNet.Security.OAuth.OneID
             }
             set => _audience = value;
         }
+
+        public string EndSessionEndpoint { get; private set; } = string.Empty;
+        public string MetadataEndpoint { get; private set; } = string.Empty;
+
+
+
 
 #if NETFULL
         public string AuthorizationEndpoint { get; private set; } = string.Empty;
@@ -365,6 +362,54 @@ namespace AspNet.Security.OAuth.OneID
             set { Description.Caption = value; }
         }
 
+#else
+        /// <summary>
+        /// UserInformationEndpoint, which depends on the environment
+        /// </summary>
+        public string UserInfo
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(UserInformationEndpoint))
+                {
+                    var env = GetEnvironment();
+                    UserInformationEndpoint = string.Format(CultureInfo.InvariantCulture,
+                       FormatStrings.UserInfoEndpoint,
+                       env);
+                }
+
+                return UserInformationEndpoint;
+            }
+            set => UserInformationEndpoint = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the <see cref="AppleAuthenticationEvents"/> used to handle authentication events.
+        /// </summary>
+        public new OneIdAuthenticationEvents Events
+        {
+            get => (OneIdAuthenticationEvents)base.Events;
+            set => base.Events = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the configuration manager responsible for retrieving, caching, and refreshing the
+        /// OpenId configuration from metadata. If not provided, then one will be created using the <see cref="MetadataAddress"/>
+        /// and <see cref="RemoteAuthenticationOptions.Backchannel"/> properties.
+        /// </summary>
+        public IConfigurationManager<OpenIdConnectConfiguration>? ConfigurationManager { get; set; }
+
+        /// <summary>
+        /// Gets or sets the parameters used to validate identity tokens.
+        /// </summary>
+        /// <remarks>Contains the types and definitions required for validating a token.</remarks>
+        public TokenValidationParameters TokenValidationParameters { get; set; } = new TokenValidationParameters();
+
+        /// <summary>
+        /// Gets or sets the <see cref="OneIdTokenValidator"/> to use.
+        /// </summary>
+        public OneIdTokenValidator TokenValidator { get; set; } = default!;
+
 #endif
 
         /// <summary>
@@ -399,6 +444,19 @@ namespace AspNet.Security.OAuth.OneID
                 FormatStrings.ClaimsIssuer,
                 env);
 
+            EndSessionEndpoint = string.Format(CultureInfo.InvariantCulture,
+                FormatStrings.EndSessionEndpoint,
+                env);
+
+            MetadataEndpoint = string.Format(CultureInfo.InvariantCulture,
+               FormatStrings.MetadataEndpoint,
+               env);
+#if NETCORE
+            UserInformationEndpoint = string.Format(CultureInfo.InvariantCulture,
+               FormatStrings.UserInfoEndpoint,
+               env);
+#endif
+
             if (_environment == OneIdAuthenticationEnvironment.Production)
             {
                 // unlike all other environments, prod simply removes the domain
@@ -408,11 +466,16 @@ namespace AspNet.Security.OAuth.OneID
                 TokenEndpoint = TokenEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
                 ClaimsIssuer = ClaimsIssuer.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
                 Audience = Audience.Replace(".prod", string.Empty, StringComparison.InvariantCulture).Replace("idaasprodoidc", "idaasoidc", StringComparison.InvariantCultureIgnoreCase); // Special case
+                EndSessionEndpoint = EndSessionEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
+                MetadataEndpoint = MetadataEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
+                UserInfo = UserInfo.Replace(".prod", string.Empty, StringComparison.InvariantCulture).Replace("idaasprodoidc", "idaasoidc", StringComparison.InvariantCultureIgnoreCase); // Special case;
 #else
                 AuthorizationEndpoint = AuthorizationEndpoint.Replace(".prod", string.Empty);
                 TokenEndpoint = TokenEndpoint.Replace(".prod", string.Empty);
                 ClaimsIssuer = ClaimsIssuer.Replace(".prod", string.Empty);
                 Audience = Audience.Replace(".prod", string.Empty).Replace("idaasprodoidc", "idaasoidc"); // Special case
+                EndSessionEndpoint = EndSessionEndpoint.Replace(".prod", string.Empty);
+                MetadataEndpoint = MetadataEndpoint.Replace(".prod", string.Empty);
 #endif
             }
         }
@@ -422,9 +485,55 @@ namespace AspNet.Security.OAuth.OneID
         /// <inheritdoc/>
         public override void Validate()
         {
-            ClientSecret = Guid.NewGuid().ToString(); // HACK, base.Validate is checking to see thast ClientSecret isn't empty. Ron Popeil this (set and then forget).
+            var old = ClientSecret;
+            // base.Validate is checking to see that ClientSecret isn't empty. Ron Popeil this (set and then forget).
+            if (string.IsNullOrEmpty(old)) ClientSecret = Guid.NewGuid().ToString(); 
             base.Validate();
-            ClientSecret = null!;
+            ClientSecret = old;
+
+            if (_environment == OneIdAuthenticationEnvironment.Production
+            && !AuthorizationEndpoint.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new NotSupportedException("Production environment requires secure endpoints, i.e. begins with 'https://'.");
+            }
+
+            if (string.IsNullOrEmpty(AuthorizationEndpoint))
+            {
+                throw new ArgumentException($"The '{nameof(AuthorizationEndpoint)}' option must be provided.", nameof(AuthorizationEndpoint));
+            }
+
+            if (string.IsNullOrEmpty(TokenEndpoint))
+            {
+                throw new ArgumentException($"The '{nameof(TokenEndpoint)}' option must be provided.", nameof(TokenEndpoint));
+            }
+
+            if (!ServiceProfileOptions.HasFlag(OneIdAuthenticationServiceProfiles.OLIS) && !ServiceProfileOptions.HasFlag(OneIdAuthenticationServiceProfiles.DHDR))
+            {
+                throw new ArgumentException($"A '{nameof(ServiceProfileOptions)}' option must be provided.", nameof(ServiceProfileOptions));
+            }
+
+            if (!TokenSaveOptions.HasFlag(OneIdAuthenticationTokenSave.AccessToken) 
+                && !TokenSaveOptions.HasFlag(OneIdAuthenticationTokenSave.RefreshToken)
+                && !TokenSaveOptions.HasFlag(OneIdAuthenticationTokenSave.IdToken))
+            {
+                throw new ArgumentException($"A '{nameof(TokenSaveOptions)}' option must be provided because they must be accessed in session.", nameof(TokenSaveOptions));
+            }
+
+            if (_environment != OneIdAuthenticationEnvironment.Production &&
+                string.IsNullOrEmpty(ClientSecret))
+            {
+                throw new ArgumentException($"The '{nameof(ClientSecret)}' option must be provided within this environment.", nameof(ClientSecret));
+            }
+
+            if (!CallbackPath.HasValue)
+            {
+                throw new ArgumentException($"The '{nameof(CallbackPath)}' option must be provided.", nameof(CallbackPath));
+            }
+
+            if (ConfigurationManager == null)
+            {
+                throw new InvalidOperationException($"Provide {nameof(Authority)}, {nameof(MetadataEndpoint)}, or {nameof(ConfigurationManager)} to {nameof(OneIdAuthenticationOptions)}.");
+            }
         }
 
 #endif

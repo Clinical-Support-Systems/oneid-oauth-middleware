@@ -31,17 +31,23 @@ using AspNet.Security.OAuth.OneID.Provider;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -66,12 +72,27 @@ namespace AspNet.Security.OAuth.OneID
         /// <param name="tokenHandler">The security token handler</param>
         public OneIdAuthenticationHandler(IOptionsMonitor<OneIdAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, JwtSecurityTokenHandler tokenHandler) : base(options, logger, encoder, clock)
         {
-            Contract.Requires(options != null);
-            Contract.Requires(logger != null);
-            Contract.Requires(encoder != null);
-            Contract.Requires(clock != null);
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
 
-            _tokenHandler = tokenHandler;
+            if (logger is null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
+            if (encoder is null)
+            {
+                throw new ArgumentNullException(nameof(encoder));
+            }
+
+            if (clock is null)
+            {
+                throw new ArgumentNullException(nameof(clock));
+            }
+
+            _tokenHandler = tokenHandler ?? throw new ArgumentNullException(nameof(tokenHandler));
         }
 
         /// <inheritdoc />
@@ -123,6 +144,19 @@ namespace AspNet.Security.OAuth.OneID
             return challengeUrl;
         }
 
+        /// <summary>
+        /// The handler calls methods on the events which give the application control at certain points where processing is occurring.
+        /// If it is not provided a default instance is supplied which does nothing when the methods are called.
+        /// </summary>
+        protected new OneIdAuthenticationEvents Events
+        {
+            get { return (OneIdAuthenticationEvents)base.Events; }
+            set { base.Events = value; }
+        }
+
+        /// <inheritdoc />
+        protected override Task<object> CreateEventsAsync() => Task.FromResult<object>(new OneIdAuthenticationEvents());
+
         /// <inheritdoc />
         protected override async Task<AuthenticationTicket> CreateTicketAsync(ClaimsIdentity identity, AuthenticationProperties properties, OAuthTokenResponse tokens)
         {
@@ -141,9 +175,30 @@ namespace AspNet.Security.OAuth.OneID
                 throw new ArgumentNullException(nameof(tokens));
             }
 
-            var contextId = ProcessIdTokenAndGetContactIdentifier(tokens, properties);
+            // TODO: UserInfo content is empty.
+            //string address = QueryHelpers.AddQueryString(Options.UserInfo, "access_token", tokens.AccessToken!);
+
+            //using var request = new HttpRequestMessage(HttpMethod.Get, address);
+            //request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            //using var userInfoResponse = await Backchannel.SendAsync(request, HttpCompletionOption.ResponseContentRead, Context.RequestAborted);
+            //if (!userInfoResponse.IsSuccessStatusCode)
+            //{
+            //    Logger.LogUserInfoFailure(userInfoResponse.StatusCode, userInfoResponse.Headers.ToString(), await userInfoResponse.Content.ReadAsStringAsync(Context.RequestAborted));
+            //    throw new HttpRequestException("An error occurred while retrieving the user profile.");
+            //}
+
+            //var payloadString = await userInfoResponse.Content.ReadAsStringAsync(Context.RequestAborted);
+            //using var payload = JsonDocument.Parse(payloadString);
+
+            _ = ProcessIdTokenAndGetContactIdentifier(tokens, properties);
 
             var idToken = tokens.Response!.RootElement.GetString("id_token");
+
+            if (string.IsNullOrWhiteSpace(idToken))
+            {
+                throw new InvalidOperationException("No OneID ID token was returned in the OAuth token response.");
+            }
 
             if (Logger.IsEnabled(LogLevel.Trace))
             {
@@ -155,11 +210,6 @@ namespace AspNet.Security.OAuth.OneID
                 Logger.LogTokenResponse(tokens.Response?.RootElement);
             }
 
-            if (string.IsNullOrWhiteSpace(idToken))
-            {
-                throw new InvalidOperationException("No OneID ID token was returned in the OAuth token response.");
-            }
-
             //if (string.IsNullOrEmpty(contextId))
             //{
             //    throw new InvalidOperationException("An error occurred trying to obtain the context identifier from the current user's identity claims.");
@@ -168,7 +218,7 @@ namespace AspNet.Security.OAuth.OneID
             if (Options.ValidateTokens)
             {
                 var validateIdContext = new OneIdValidateIdTokenContext(Context, Scheme, Options, idToken);
-                //await Options.Events.ValidateIdToken(validateIdContext);
+                await Events.ValidateIdToken(validateIdContext);
             }
 
             foreach (var claim in ExtractClaimsFromToken(idToken))
@@ -180,26 +230,20 @@ namespace AspNet.Security.OAuth.OneID
 
             var context = new OAuthCreatingTicketContext(principal, properties, Context, Scheme, Options, Backchannel, tokens, tokens.Response!.RootElement);
 
-            List<AuthenticationToken> exactTokens = context.Properties.GetTokens().ToList();
+            //List<AuthenticationToken> exactTokens = context.Properties.GetTokens().ToList();
 
-            if (!string.IsNullOrEmpty(principal.Identity?.Name))
-                context.HttpContext.Session.SetString("original_username", principal.Identity.Name);
+            if (Context.Features.Get<ISessionFeature>() != null)
+            {
+                if (!string.IsNullOrEmpty(principal.Identity?.Name))
+                    context.HttpContext.Session.SetString("original_username", principal.Identity.Name);
 
-            // Store the received tokens somewhere, if we should
-            if (!string.IsNullOrEmpty(context.AccessToken))
-                context.HttpContext.Session.SetString("access_token", context.AccessToken);
+                // Store the received tokens somewhere, if we should
+                if (!string.IsNullOrEmpty(context.AccessToken) && ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.AccessToken) == OneIdAuthenticationTokenSave.AccessToken))
+                    context.HttpContext.Session.SetString("access_token", context.AccessToken);
 
-            if (!string.IsNullOrEmpty(context.RefreshToken))
-                context.HttpContext.Session.SetString("refresh_token", context.RefreshToken);
-
-            //if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.AccessToken) == OneIdAuthenticationTokenSave.AccessToken)
-            //{
-            // context.HttpContext.Session.SetString("access_token", context.AccessToken);
-            //}
-            //if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.RefreshToken) == OneIdAuthenticationTokenSave.RefreshToken)
-            //{
-            // context.HttpContext.Session.SetString("refresh_token", context.RefreshToken);
-            //}
+                if (!string.IsNullOrEmpty(context.RefreshToken) && ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.RefreshToken) == OneIdAuthenticationTokenSave.RefreshToken))
+                    context.HttpContext.Session.SetString("refresh_token", context.RefreshToken);
+            }
 
             context.RunClaimActions();
 
@@ -242,7 +286,7 @@ namespace AspNet.Security.OAuth.OneID
                 string errorBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 Logger.LogBackchannelFailure(response.StatusCode, response.Headers.ToString(), errorBody);
 
-                return OAuthTokenResponse.Failed(new OneIdAuthenticationException($"An error occurred while retrieving an access token. The remote server returned a {response.StatusCode} response with the following payload: {response.Headers.ToString()} {errorBody}"));
+                return OAuthTokenResponse.Failed(new OneIdAuthenticationException($"An error occurred while retrieving an access token. The remote server returned a {response.StatusCode} response with the following payload: {response.Headers} {errorBody}"));
             }
 
             var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
@@ -264,49 +308,57 @@ namespace AspNet.Security.OAuth.OneID
 
             try
             {
-                var securityToken = _tokenHandler.ReadJwtToken(token);
+                var retVal = new List<Claim>();
 
-                if (securityToken == null || securityToken.Claims == null)
+                if (_tokenHandler.CanReadToken(token))
                 {
-                    throw new InvalidOperationException($"'{nameof(securityToken)}' cannot be null or have no claims.");
+                    var securityToken = _tokenHandler.ReadJwtToken(token);
+
+                    if (securityToken == null || securityToken.Claims == null)
+                    {
+                        throw new InvalidOperationException($"'{nameof(securityToken)}' cannot be null or have no claims.");
+                    }
+
+                    retVal = new(securityToken.Claims)
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, securityToken.Subject, ClaimValueTypes.String, ClaimsIssuer),
+                    };
+
+                    var address = securityToken.Claims.FirstOrDefault(x => x.Type == "email")?.Value;
+                    if (!string.IsNullOrEmpty(address))
+                    {
+                        retVal.Add(new Claim(ClaimTypes.Email, address, ClaimValueTypes.String, Options.ClaimsIssuer));
+                    }
+
+                    var givenName = securityToken.Claims.FirstOrDefault(x => x.Type == "given_name")?.Value;
+                    if (!string.IsNullOrEmpty(givenName))
+                    {
+                        retVal.Add(new Claim(ClaimTypes.GivenName, givenName, ClaimValueTypes.String, Options.ClaimsIssuer));
+                    }
+
+                    var familyName = securityToken.Claims.FirstOrDefault(x => x.Type == "family_name")?.Value;
+                    if (!string.IsNullOrEmpty(familyName))
+                    {
+                        retVal.Add(new Claim(ClaimTypes.Name, familyName, ClaimValueTypes.String, Options.ClaimsIssuer));
+                    }
+
+                    var phoneNumber = securityToken.Claims.FirstOrDefault(x => x.Type == "phoneNumber")?.Value;
+                    if (!string.IsNullOrEmpty(phoneNumber))
+                    {
+                        retVal.Add(new Claim(ClaimTypes.HomePhone, phoneNumber, ClaimValueTypes.String, Options.ClaimsIssuer));
+                    }
                 }
 
-                var retVal = new List<Claim>(securityToken.Claims)
-                {
-                    new Claim(ClaimTypes.NameIdentifier, securityToken.Subject, ClaimValueTypes.String, ClaimsIssuer),
-                };
-
-                var address = securityToken.Claims.FirstOrDefault(x => x.Type == "email")?.Value;
-                if (!string.IsNullOrEmpty(address))
-                {
-                    retVal.Add(new Claim(ClaimTypes.Email, address, ClaimValueTypes.String, Options.ClaimsIssuer));
-                }
-
-                var givenName = securityToken.Claims.FirstOrDefault(x => x.Type == "given_name")?.Value;
-                if (!string.IsNullOrEmpty(givenName))
-                {
-                    retVal.Add(new Claim(ClaimTypes.GivenName, givenName, ClaimValueTypes.String, Options.ClaimsIssuer));
-                }
-
-                var familyName = securityToken.Claims.FirstOrDefault(x => x.Type == "family_name")?.Value;
-                if (!string.IsNullOrEmpty(familyName))
-                {
-                    retVal.Add(new Claim(ClaimTypes.Name, familyName, ClaimValueTypes.String, Options.ClaimsIssuer));
-                }
-
-                var phoneNumber = securityToken.Claims.FirstOrDefault(x => x.Type == "phoneNumber")?.Value;
-                if (!string.IsNullOrEmpty(phoneNumber))
-                {
-                    retVal.Add(new Claim(ClaimTypes.HomePhone, phoneNumber, ClaimValueTypes.String, Options.ClaimsIssuer));
-                }
 
                 return retVal;
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("Failed to parse JWT for claims from Apple ID token.", ex);
+                throw new InvalidOperationException("Failed to parse JWT for claims from OneID token.", ex);
             }
         }
+
+
 
         private static void SaveIdToken(AuthenticationProperties properties, string idToken)
         {
@@ -347,10 +399,10 @@ namespace AspNet.Security.OAuth.OneID
                 throw new ArgumentNullException(nameof(tokens));
             }
 
-            var idToken = tokens.Response!.RootElement.GetString("id_token");
-
             if (Options.SaveTokens)
             {
+                var idToken = tokens.Response!.RootElement.GetString("id_token");
+
                 // Save id_token as well.
                 if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.IdToken) == OneIdAuthenticationTokenSave.IdToken && !string.IsNullOrEmpty(idToken))
                 {
@@ -358,52 +410,19 @@ namespace AspNet.Security.OAuth.OneID
                 }
             }
 
-            //var tokenValidationResult = await ValidateAsync(idToken, Options.TokenValidationParameters);
+            //if (tokens.Response != null)
+            //{
+            //    using var stream = new MemoryStream();
+            //    using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
+            //    tokens.Response.WriteTo(writer);
+            //    writer.Flush();
+            //    string json = Encoding.UTF8.GetString(stream.ToArray());
 
-            return tokens.Response.RootElement.GetString("contextSessionId");
+            //    // Hmm, do we need to do something with serviceEntitlements here?
+            //}
+
+            return "";
         }
-
-        //private async Task<TokenValidationResult> ValidateAsync(
-        //    string idToken,
-        //    TokenValidationParameters validationParameters)
-        //{
-        //    Contract.Requires(idToken != null);
-        //    Contract.Requires(validationParameters != null);
-
-        //    if (Options.SecurityTokenHandler == null)
-        //    {
-        //        throw new InvalidOperationException("The options SecurityTokenHandler is null.");
-        //    }
-
-        //    if (!Options.SecurityTokenHandler.CanValidateToken)
-        //    {
-        //        throw new NotSupportedException($"The configured {nameof(JsonWebTokenHandler)} cannot validate tokens.");
-        //    }
-
-        //    if (Options.ConfigurationManager == null)
-        //    {
-        //        throw new InvalidOperationException($"An OpenID Connect configuration manager has not been set on the {nameof(SuperOfficeAuthenticationOptions)} instance.");
-        //    }
-
-        //    var openIdConnectConfiguration = await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted);
-        //    validationParameters.IssuerSigningKeys = openIdConnectConfiguration.JsonWebKeySet.Keys;
-
-        //    try
-        //    {
-        //        var result = Options.SecurityTokenHandler.ValidateToken(idToken, validationParameters);
-
-        //        if (result.Exception != null || !result.IsValid)
-        //        {
-        //            throw new SecurityTokenValidationException("SuperOffice ID token validation failed.", result.Exception);
-        //        }
-
-        //        return result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new SecurityTokenValidationException("SuperOffice ID token validation failed.", ex);
-        //    }
-        //}
     }
 }
 #endif

@@ -1,0 +1,42 @@
+﻿{
+  "$schema": "https://raw.githubusercontent.com/justeat/httpclient-interception/master/src/HttpClientInterception/Bundles/http-request-bundle-schema.json",
+  "items": [
+    {
+      "comment": "",
+      "uri": "https://login.pst.oneidfederation.ehealthontario.ca/oidc/access_token",
+      "method": "POST",
+      "contentFormat": "json",
+      "contentJson": {
+        "access_token": "secret-access-token",
+        "id_token": "secret-id-token",
+        "refresh_token": "secret-refresh-token",
+        "token_type": "bearer",
+        "scope": "openid user/MedicationDispense.read user/DiagnosticReport.read"
+      }
+    },
+    {
+      "comment": "",
+      "uri": "https://login.pst.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaaspstoidc/userinfo?access_token=secret-access-token",
+      "method": "GET",
+      "contentFormat": "json",
+      "contentJson": {}
+    },
+    {
+      "comment": "config",
+      "uri": "https://login.pst.oneidfederation.ehealthontario.ca/oidc/.well-known/openid-configuration",
+      "method": "GET",
+      "contentFormat": "json",
+      "contentJson": {
+      }
+    },
+    {
+      "comment": "",
+      "uri": "https://login.pst.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaaspstoidc/connect/jwk_uri",
+      "method": "GET",
+      "contentFormat": "json",
+      "contentJson": {
+      }
+
+    }
+  ]
+}

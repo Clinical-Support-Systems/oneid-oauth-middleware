@@ -197,7 +197,12 @@ namespace AspNet.Security.OAuth.OneID
             /// <summary>
             /// A format string used to populate OAuth end session endpoint.
             /// </summary>
-            public const string EndSessionEndpoint = "https://login.{0}.oneidfederation.ehealthontario.ca/oidc/logout";
+            public const string EndSessionEndpoint = "https://login.{0}.oneidfederation.ehealthontario.ca/oidc/connect/endSession";
+
+            /// <summary>
+            /// returnurl
+            /// </summary>
+            public const string LogoutEndpoint = "https://login.{0}.oneidfederation.ehealthontario.ca/oidc/logout";
 
             /// <summary>
             /// A format string used to construct the claims issuer
@@ -209,10 +214,17 @@ namespace AspNet.Security.OAuth.OneID
             /// </summary>
             public const string TokenEndpoint = "https://login.{0}.oneidfederation.ehealthontario.ca/oidc/access_token";
 
+            public const string MetadataEndpoint = "https://login.{0}.oneidfederation.ehealthontario.ca/oidc/.well-known/openid-configuration";
+
             /// <summary>
             /// The audience
             /// </summary>
             public const string Audience = "https://login.{0}.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaas{0}oidc/access_token";
+
+            /// <summary>
+            /// The userinfo endpoint
+            /// </summary>
+            public const string UserInfoEndpoint = "https://login.{0}.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaas{0}oidc/userinfo";
         }
     }
 }
