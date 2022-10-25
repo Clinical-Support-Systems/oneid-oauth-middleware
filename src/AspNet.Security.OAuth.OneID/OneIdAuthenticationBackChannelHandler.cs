@@ -71,11 +71,9 @@ namespace AspNet.Security.OAuth.OneID
 
             try
             {
-
-
                 if (!string.IsNullOrEmpty(_options.CertificateThumbprint))
                 {
-                    cert = CertificateUtility.FindCertificateByThumbprint(_options.CertificateStoreName, _options.CertificateStoreLocation, _options.CertificateThumbprint, false);
+                    cert = OneIdCertificateUtility.FindCertificateByThumbprint(_options.CertificateStoreName, _options.CertificateStoreLocation, _options.CertificateThumbprint, false);
                 }
                 if (!string.IsNullOrEmpty(_options.CertificateFilename))
                 {
@@ -179,7 +177,7 @@ namespace AspNet.Security.OAuth.OneID
     /// <summary>
     /// utility class to find certs and export them into byte arrays
     /// </summary>
-    internal static class CertificateUtility
+    public static class OneIdCertificateUtility
     {
         /// <summary>
         /// Finds the cert having thumbprint supplied from store location supplied
