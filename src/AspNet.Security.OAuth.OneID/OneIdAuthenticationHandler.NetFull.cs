@@ -284,6 +284,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>The log error result.</summary>
         /// <param name="error">The error.</param>
         /// <param name="errorDescription">The error description.</param>
+        /// <param name="ex">The exception</param>
         private void LogErrorResult(string error, string errorDescription, Exception ex)
         {
             _logger.WriteError(string.Format(CultureInfo.InvariantCulture, "OneId error occurred. error: {0} description: {1}", error, errorDescription), ex);

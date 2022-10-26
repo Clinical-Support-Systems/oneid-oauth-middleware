@@ -390,7 +390,6 @@ namespace AspNet.Security.OAuth.OneID
         /// </summary>
         /// <param name="tokens">The tokens</param>
         /// <param name="properties">The authentication properties.</param>
-        /// <param name="identity">The claims identity</param>
         /// <returns></returns>
         private string? ProcessIdTokenAndGetContactIdentifier(OAuthTokenResponse tokens, AuthenticationProperties properties)
         {

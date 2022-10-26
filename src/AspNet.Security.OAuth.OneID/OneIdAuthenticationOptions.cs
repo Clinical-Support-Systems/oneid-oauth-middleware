@@ -384,7 +384,7 @@ namespace AspNet.Security.OAuth.OneID
         }
 
         /// <summary>
-        /// Gets or sets the <see cref="AppleAuthenticationEvents"/> used to handle authentication events.
+        /// Gets or sets the <see cref="OneIdAuthenticationEvents"/> used to handle authentication events.
         /// </summary>
         public new OneIdAuthenticationEvents Events
         {
@@ -394,7 +394,7 @@ namespace AspNet.Security.OAuth.OneID
 
         /// <summary>
         /// Gets or sets the configuration manager responsible for retrieving, caching, and refreshing the
-        /// OpenId configuration from metadata. If not provided, then one will be created using the <see cref="MetadataAddress"/>
+        /// OpenId configuration from metadata. If not provided, then one will be created using the <see cref="MetadataEndpoint"/>
         /// and <see cref="RemoteAuthenticationOptions.Backchannel"/> properties.
         /// </summary>
         public IConfigurationManager<OpenIdConnectConfiguration>? ConfigurationManager { get; set; }

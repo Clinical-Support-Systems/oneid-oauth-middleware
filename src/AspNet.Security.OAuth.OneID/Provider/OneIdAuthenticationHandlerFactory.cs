@@ -62,6 +62,7 @@ namespace AspNet.Security.OAuth.OneID.Provider
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OneIdAuthenticationHandlerFactory"/> class.
+        /// </summary>
         /// <param name="httpClient">The http Client.</param>
         /// <param name="logger">The logger.</param>
         public OneIdAuthenticationHandlerFactory(HttpClient httpClient, ILogger logger)

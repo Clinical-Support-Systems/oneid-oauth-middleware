@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>net48;net5.0;net6.0</TargetFrameworks>
 		<LangVersion>latest</LangVersion>
+		<Features>strict</Features>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Kori Francis</Authors>
 		<Company>Clinical Support Systems</Company>
@@ -21,6 +22,10 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<NoWarn>$(NoWarn);CS1591;CA1014</NoWarn>
 		<Nullable>enable</Nullable>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PackageTags>oneid;ontariohealth;oauth;oag;oneidaccessgateway;mendmd</PackageTags>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -101,7 +106,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net48|AnyCPU'">
-		<DebugType>full</DebugType>
+		<DebugType>embedded</DebugType>
 		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
 
