@@ -1,5 +1,5 @@
 ﻿//
-// OneIdAuthenticationHandler.cs
+// OneIdAuthenticationHandler.NetCore.cs
 //
 // Authors: Kori Francis <twitter.com/korifrancis>
 // Copyright (C) 2020 Clinical Support Systems, Inc. All rights reserved.

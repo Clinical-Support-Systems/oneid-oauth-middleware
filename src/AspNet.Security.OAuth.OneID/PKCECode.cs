@@ -31,7 +31,7 @@
 
 using System;
 
-#if NETFULL
+#if !NETCORE
 
 namespace AspNet.Security.OAuth.OneID
 {

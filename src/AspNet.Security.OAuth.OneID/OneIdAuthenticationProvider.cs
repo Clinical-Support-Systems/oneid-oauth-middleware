@@ -29,7 +29,7 @@
 
 #endregion License, Terms and Conditions
 
-#if NETFULL
+#if !NETCORE
 using AspNet.Security.OAuth.OneID.Provider;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;

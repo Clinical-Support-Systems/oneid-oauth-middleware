@@ -42,7 +42,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 
-#elif NETFULL
+#elif !NETCORE
 
 using Owin;
 
@@ -165,7 +165,7 @@ namespace AspNet.Security.OAuth.OneID
             return builder.AddOAuth<OneIdAuthenticationOptions, OneIdAuthenticationHandler>(scheme, caption, configuration);
         }
 
-#elif NETFULL
+#elif !NETCORE
 
         /// <summary>The to query string.</summary>
         /// <param name="parameters">The parameters.</param>

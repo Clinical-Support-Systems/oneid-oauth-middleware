@@ -29,7 +29,7 @@
 
 #endregion License, Terms and Conditions
 
-#if NETFULL
+#if !NETCORE
 
 using AspNet.Security.OAuth.OneID.Properties;
 using AspNet.Security.OAuth.OneID.Provider;

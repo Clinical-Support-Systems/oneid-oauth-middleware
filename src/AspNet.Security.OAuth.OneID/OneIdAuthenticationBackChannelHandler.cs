@@ -99,7 +99,7 @@ namespace AspNet.Security.OAuth.OneID
                 new Claim("aud", _options.Audience),
                 new Claim("iat", now.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
                 new Claim("exp", expire.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
-#if NET5_0_OR_GREATER
+#if NETCORE
                 new Claim("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-","", StringComparison.InvariantCulture)}")
 #else
                 new Claim("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-","")}")
@@ -121,16 +121,16 @@ namespace AspNet.Security.OAuth.OneID
                 else
                 {
                     if (request.Content == null) return new HttpResponseMessage { StatusCode = HttpStatusCode.NoContent };
-#if NET5_0_OR_GREATER
+#if NETCORE
                     var oldContent = await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 #else
-                var oldContent = await request.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var oldContent = await request.Content.ReadAsStringAsync().ConfigureAwait(false);
 #endif
 
-#if NET5_0_OR_GREATER
+#if NETCORE
                     var data = oldContent.Replace("?", string.Empty, StringComparison.InvariantCulture).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
 #else
-                var data = oldContent.Replace("?", string.Empty).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
+                    var data = oldContent.Replace("?", string.Empty).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
 #endif
 
 
@@ -208,7 +208,7 @@ namespace AspNet.Security.OAuth.OneID
             }
             finally
             {
-#if NET451
+#if !NETCORE
                 // IDisposable not implemented in NET451
                 store.Close();
 #else

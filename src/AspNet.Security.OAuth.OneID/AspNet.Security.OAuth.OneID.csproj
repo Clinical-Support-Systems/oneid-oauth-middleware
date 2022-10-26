@@ -6,7 +6,7 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Kori Francis</Authors>
 		<Company>Clinical Support Systems</Company>
-		<Description>Middleware that enables an application to support Ontario Health's OneID Accesss Gateway OAuth 2.0 authentication workflow</Description>
+		<Description>Middleware that enables an application to support Ontario Health's OneID Accesss Gateway (OAG) OAuth 2.0 authentication workflow</Description>
 		<PackageProjectUrl>https://github.com/Clinical-Support-Systems/oneid-oauth-middleware</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Clinical-Support-Systems/oneid-oauth-middleware</RepositoryUrl>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -18,8 +18,9 @@
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<!--<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>-->
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<NoWarn>$(NoWarn);CS1591;CA1014</NoWarn>
-		<nullable>enable</nullable>
+		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
 	<ItemGroup>

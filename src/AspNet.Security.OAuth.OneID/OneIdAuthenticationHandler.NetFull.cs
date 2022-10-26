@@ -1,7 +1,7 @@
 ﻿#region License, Terms and Conditions
 
 //
-// OneIdAuthenticationHandler.cs
+// OneIdAuthenticationHandler.NetFull.cs
 //
 // Authors: Kori Francis <twitter.com/korifrancis>
 // Copyright (C) 2020 Clinical Support Systems, Inc. All rights reserved.
@@ -29,7 +29,7 @@
 
 #endregion License, Terms and Conditions
 
-#if NETFULL
+#if !NETCORE
 
 using AspNet.Security.OAuth.OneID.Provider;
 using Microsoft.Owin;

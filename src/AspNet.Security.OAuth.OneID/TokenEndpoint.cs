@@ -31,7 +31,7 @@
 
 namespace AspNet.Security.OAuth.OneID
 {
-#if NETFULL
+#if !NETCORE
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
 #else
@@ -53,7 +53,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// The access token
         /// </summary>
-#if NETFULL
+#if !NETCORE
         [JsonProperty("access_token")]
 #else
 
@@ -64,7 +64,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// The refresh token
         /// </summary>
-#if NETFULL
+#if !NETCORE
         [JsonProperty("refresh_token")]
 #else
 
@@ -75,7 +75,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// The oauth scope
         /// </summary>
-#if NETFULL
+#if !NETCORE
         [JsonProperty("scope")]
 #else
 
@@ -86,7 +86,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// The returned context session id
         /// </summary>
-#if NETFULL
+#if !NETCORE
         [JsonProperty("contextSessionId")]
 #else
 
@@ -97,7 +97,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// The id token
         /// </summary>
-#if NETFULL
+#if !NETCORE
         [JsonProperty("id_token")]
 #else
 
@@ -108,7 +108,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// The token type
         /// </summary>
-#if NETFULL
+#if !NETCORE
         [JsonProperty("token_type")]
 #else
 
@@ -119,7 +119,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// How many seconds until the access_token expires
         /// </summary>
-#if NETFULL
+#if !NETCORE
         [JsonProperty("expires_in")]
 #else
 
@@ -130,7 +130,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Nonce
         /// </summary>
-#if NETFULL
+#if !NETCORE
         [JsonProperty("nonce")]
 #else
 
@@ -141,7 +141,7 @@ namespace AspNet.Security.OAuth.OneID
 
     public partial class TokenEndpoint
     {
-#if NETFULL
+#if !NETCORE
         public static TokenEndpoint? FromJson(string json) => JsonConvert.DeserializeObject<TokenEndpoint>(json, Converter.Settings);
 #else
 
@@ -199,7 +199,7 @@ namespace AspNet.Security.OAuth.OneID
     /// </summary>
     public static class Serialize
     {
-#if NETFULL
+#if !NETCORE
         public static string ToJson(this TokenEndpoint self) => JsonConvert.SerializeObject(self, Converter.Settings);
 #else
 
@@ -213,7 +213,7 @@ namespace AspNet.Security.OAuth.OneID
 #endif
     }
 
-#if NETFULL
+#if !NETCORE
     internal static class Converter
     {
         public static readonly JsonSerializerSettings Settings = new()

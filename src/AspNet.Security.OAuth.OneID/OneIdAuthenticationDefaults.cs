@@ -33,14 +33,30 @@ using System;
 
 namespace AspNet.Security.OAuth.OneID
 {
+    /// <summary>
+    /// The Supported (by this library) Ontario Health (OH) Clinical Data Repositories
+    /// </summary>
     [Flags]
     public enum OneIdAuthenticationServiceProfiles
     {
         None = 0,
+
+        /// <summary>
+        /// Ontario Laboratories Information System
+        /// </summary>
+        /// <seealso href="https://ehealthontario.on.ca/en/standards/ontario-laboratories-information-system-standard"/>
         OLIS = 1,
+
+        /// <summary>
+        /// Digital Health Drug Repository
+        /// </summary>
+        /// <seealso href="https://ehealthontario.on.ca/en/standards/digital-health-drug-repository-specification-fhir-release-3"/>
         DHDR = 2
     }
 
+    /// <summary>
+    /// Which tokens you would like saved, regardless of the location (cookies, session)
+    /// </summary>
     [Flags]
     public enum OneIdAuthenticationTokenSave
     {
@@ -51,7 +67,7 @@ namespace AspNet.Security.OAuth.OneID
     }
 
     /// <summary>
-    /// Default values used by the OneId authentication middleware.
+    /// Default values used by the OneId authentication middleware
     /// </summary>
     public static class OneIdAuthenticationDefaults
     {
@@ -81,13 +97,13 @@ namespace AspNet.Security.OAuth.OneID
         public const string Issuer = "OneID";
 
         /// <summary>
-        /// Since there's no way to tell what service you might be using this with, none is the default.
+        /// Since there's no way to tell what service you might be using this with, none is the default
         /// You must pick one before you can get a token.
         /// </summary>
         public const OneIdAuthenticationServiceProfiles ServiceProfiles = OneIdAuthenticationServiceProfiles.None;
 
         /// <summary>
-        /// Don't store the access_token because it's large, by default.
+        /// Don't store the access_token in cookie by default, because it's VERY large
         /// </summary>
         public const OneIdAuthenticationTokenSave TokenSave = OneIdAuthenticationTokenSave.IdToken | OneIdAuthenticationTokenSave.RefreshToken;
 

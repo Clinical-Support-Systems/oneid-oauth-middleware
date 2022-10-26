@@ -51,7 +51,7 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-#elif NETFULL
+#elif !NETCORE
 
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
@@ -67,7 +67,7 @@ namespace AspNet.Security.OAuth.OneID
     public class OneIdAuthenticationOptions :
 #if NETCORE
         OAuthOptions
-#elif NETFULL
+#elif !NETCORE
         AuthenticationOptions
 #endif
     {
@@ -80,7 +80,7 @@ namespace AspNet.Security.OAuth.OneID
         /// Constructor
         /// </summary>
         public OneIdAuthenticationOptions()
-#if NETFULL
+#if !NETCORE
              : base(OneIdAuthenticationDefaults.DisplayName)
 #endif
         {
@@ -135,7 +135,7 @@ namespace AspNet.Security.OAuth.OneID
             // it was not otherwise provided in the user endpoint response.
             ClaimActions.Add(new OneIdAuthenticationClaimAction(this));
 
-#elif NETFULL
+#elif !NETCORE
             AuthenticationType = OneIdAuthenticationDefaults.DisplayName;
             Caption = OneIdAuthenticationDefaults.DisplayName;
             AuthenticationMode = AuthenticationMode.Passive;
@@ -321,7 +321,7 @@ namespace AspNet.Security.OAuth.OneID
 
 
 
-#if NETFULL
+#if !NETCORE
         public string AuthorizationEndpoint { get; private set; } = string.Empty;
         public string TokenEndpoint { get; private set; } = string.Empty;
         public string ClaimsIssuer { get; private set; } = string.Empty;
@@ -461,7 +461,7 @@ namespace AspNet.Security.OAuth.OneID
             {
                 // unlike all other environments, prod simply removes the domain
                 // ie. you won't see login.prod.oneidfederation.ehealthontario.ca, just login.oneidfederation.ehealthontario.ca
-#if NET5_0_OR_GREATER
+#if NETCORE
                 AuthorizationEndpoint = AuthorizationEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
                 TokenEndpoint = TokenEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
                 ClaimsIssuer = ClaimsIssuer.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
