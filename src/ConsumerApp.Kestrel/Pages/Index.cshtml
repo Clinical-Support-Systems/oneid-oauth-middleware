@@ -32,4 +32,8 @@
         <h2>Refresh Token</h2>
         <pre>@Model.RefreshToken</pre>
     }
+
+    <form method="post">
+        <button type="submit" class="btn btn-primary" asp-page-handler="Submit">Refresh</button>
+    </form>
 }

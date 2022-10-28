@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace ConsumerApp.Kestrel.Pages
@@ -38,6 +40,12 @@ namespace ConsumerApp.Kestrel.Pages
                     RefreshToken = HttpContext.Session.GetString("refresh_token");
                 }
             }
+        }
+
+        public async Task OnPostSubmit()
+        {
+
+            string t = "";
         }
     }
 }
