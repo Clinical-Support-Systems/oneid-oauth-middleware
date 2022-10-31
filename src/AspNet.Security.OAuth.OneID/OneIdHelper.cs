@@ -38,8 +38,7 @@ namespace AspNet.Security.OAuth.OneID
 {
     public static class OneIdHelper
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible", Justification = "<Pending>")]
-        public static string EndSessionUrl = "https://login.pst.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaaspstoidc/connect/endSession";
+        internal static string EndSessionUrl = "https://login.pst.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaaspstoidc/connect/endSession";
 
         /// <summary>
         /// Retrieves the constructed endSession url that the user should be redirected to, to end their OAG session.
@@ -54,7 +53,7 @@ namespace AspNet.Security.OAuth.OneID
             var queryValues = new Dictionary<string, string?>
             {
                 {"id_token_hint", idToken},
-                //{ "IsES", "y" }
+                //{ "IsES", "y" } // Don't know what this is, but it's on the spec example (but not documented)
             };
             if (!string.IsNullOrEmpty(clientId))
                 queryValues.Add("client_id", HttpUtility.UrlEncode(clientId));
