@@ -35,7 +35,7 @@ using System.Globalization;
 using System.Linq;
 
 #if NETCORE
-
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -56,7 +56,6 @@ namespace AspNet.Security.OAuth.OneID
     public static class OneIdAuthenticationExtensions
     {
 #if NETCORE
-
         /// <summary>
         /// Adds <see cref="OneIdAuthenticationHandler"/> to the specified
         /// <see cref="AuthenticationBuilder"/>, which enables OneId authentication capabilities.

@@ -88,6 +88,9 @@ namespace AspNet.Security.OAuth.OneID
 
             var configuration = await context.Options.ConfigurationManager.GetConfigurationAsync(context.HttpContext.RequestAborted);
 
+            // Update with value from discovery
+            OneIdHelper.EndSessionUrl = configuration.EndSessionEndpoint;
+
             var validationParameters = context.Options.TokenValidationParameters.Clone();
             validationParameters.IssuerSigningKeys = configuration.JsonWebKeySet.Keys;
 

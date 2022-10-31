@@ -92,11 +92,8 @@ namespace AspNet.Security.OAuth.OneID
             //                options.Backchannel.MaxResponseContentBufferSize = 1024 * 1024 * 10; // 10 MB
             //            }
 
-            if (options.TokenValidator is null)
-            {
-                options.TokenValidator = new DefaultOneIdTokenValidator(
+            options.TokenValidator ??= new DefaultOneIdTokenValidator(
                     _loggerFactory.CreateLogger<DefaultOneIdTokenValidator>());
-            }
 
             if (options.ConfigurationManager == null)
             {
@@ -115,10 +112,7 @@ namespace AspNet.Security.OAuth.OneID
                 };
             }
 
-            if (options.SecurityTokenHandler == null)
-            {
-                options.SecurityTokenHandler = new JsonWebTokenHandler();
-            }
+            options.SecurityTokenHandler ??= new JsonWebTokenHandler();
         }
     }
 }

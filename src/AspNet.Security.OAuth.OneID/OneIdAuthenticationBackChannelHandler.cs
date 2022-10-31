@@ -100,9 +100,9 @@ namespace AspNet.Security.OAuth.OneID
                 new Claim("iat", now.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
                 new Claim("exp", expire.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
 #if NETCORE
-                new Claim("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-","", StringComparison.InvariantCulture)}")
+                new Claim("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-", string.Empty, StringComparison.InvariantCulture)}")
 #else
-                new Claim("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-","")}")
+                new Claim("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-", string.Empty)}")
 #endif
                 
             };

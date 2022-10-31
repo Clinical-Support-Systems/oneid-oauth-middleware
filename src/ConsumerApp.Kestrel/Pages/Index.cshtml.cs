@@ -15,6 +15,7 @@ namespace ConsumerApp.Kestrel.Pages
     public class IndexModel : PageModel
     {
         private readonly ILogger<IndexModel> _logger;
+        public static string? IdToken { get; set; }
 
         public string? AccessToken { get; set; }
         public string? RefreshToken { get; set; }
@@ -28,6 +29,12 @@ namespace ConsumerApp.Kestrel.Pages
         {
             if (User.Identity.IsAuthenticated)
             {
+                IdToken = await HttpContext.GetTokenAsync("id_token");
+                if (string.IsNullOrEmpty(IdToken) && HttpContext.Session.Keys.Contains("id_token"))
+                {
+                    IdToken = HttpContext.Session.GetString("id_token");
+                }
+
                 AccessToken = await HttpContext.GetTokenAsync("access_token");
                 if (string.IsNullOrEmpty(AccessToken) && HttpContext.Session.Keys.Contains("access_token"))
                 {

@@ -21,6 +21,12 @@
         }
     </dl>
 
+    @if (!string.IsNullOrEmpty(IndexModel.IdToken))
+    {
+        <h2>Id Token</h2>
+        <pre>@IndexModel.IdToken</pre>
+    }
+
     @if (!string.IsNullOrEmpty(Model.AccessToken))
     {
         <h2>Access Token</h2>

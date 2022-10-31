@@ -175,21 +175,39 @@ namespace AspNet.Security.OAuth.OneID
                 throw new ArgumentNullException(nameof(tokens));
             }
 
-            // TODO: UserInfo content is empty.
-            //string address = QueryHelpers.AddQueryString(Options.UserInfo, "access_token", tokens.AccessToken!);
-
-            //using var request = new HttpRequestMessage(HttpMethod.Get, address);
-            //request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            //using var userInfoResponse = await Backchannel.SendAsync(request, HttpCompletionOption.ResponseContentRead, Context.RequestAborted);
-            //if (!userInfoResponse.IsSuccessStatusCode)
+            //if (Options.ConfigurationManager != null)
             //{
-            //    Logger.LogUserInfoFailure(userInfoResponse.StatusCode, userInfoResponse.Headers.ToString(), await userInfoResponse.Content.ReadAsStringAsync(Context.RequestAborted));
-            //    throw new HttpRequestException("An error occurred while retrieving the user profile.");
+            //    var configuration = await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted);
+
+            //    if (configuration != null && Options.UserInfo != configuration.UserInfoEndpoint)
+            //    {
+            //        Options.UserInfo = configuration.UserInfoEndpoint;
+            //    }
             //}
 
-            //var payloadString = await userInfoResponse.Content.ReadAsStringAsync(Context.RequestAborted);
-            //using var payload = JsonDocument.Parse(payloadString);
+            //// TODO: UserInfo content is empty.
+            //if (!string.IsNullOrEmpty(Options.UserInfo))
+            //{
+            //    using var request = new HttpRequestMessage(HttpMethod.Get, Options.UserInfo);
+            //    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken!);
+            //    request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            //    using var userInfoResponse = await Backchannel.SendAsync(request, HttpCompletionOption.ResponseContentRead, Context.RequestAborted);
+            //    if (!userInfoResponse.IsSuccessStatusCode)
+            //    {
+            //        Logger.LogUserInfoFailure(userInfoResponse.StatusCode, userInfoResponse.Headers.ToString(), await userInfoResponse.Content.ReadAsStringAsync(Context.RequestAborted));
+            //        throw new HttpRequestException("An error occurred while retrieving the user profile.");
+            //    }
+            //    else
+            //    {
+            //        var userInfoPayloadString = await userInfoResponse.Content.ReadAsStringAsync(Context.RequestAborted);
+            //        if (!string.IsNullOrEmpty(userInfoPayloadString))
+            //        {
+            //            using var userInfoPayload = JsonDocument.Parse(userInfoPayloadString);
+            //            // TODO: Something here with the userInfoPayload
+            //        }
+            //    }
+            //}
 
             _ = ProcessIdTokenAndGetContactIdentifier(tokens, properties);
 
@@ -237,6 +255,9 @@ namespace AspNet.Security.OAuth.OneID
                 if (!string.IsNullOrEmpty(principal.Identity?.Name))
                     context.HttpContext.Session.SetString("original_username", principal.Identity.Name);
 
+                if (!string.IsNullOrEmpty(idToken) && ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.IdToken) == OneIdAuthenticationTokenSave.IdToken))
+                    context.HttpContext.Session.SetString("id_token", idToken);
+
                 // Store the received tokens somewhere, if we should
                 if (!string.IsNullOrEmpty(context.AccessToken) && ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.AccessToken) == OneIdAuthenticationTokenSave.AccessToken))
                     context.HttpContext.Session.SetString("access_token", context.AccessToken);
@@ -274,7 +295,7 @@ namespace AspNet.Security.OAuth.OneID
                 ["grant_type"] = "authorization_code",
                 ["client_id"] = Options.ClientId,
                 ["code"] = context.Code,
-                ["code_verifier"] = context.Properties.Items["code_verifier"] ?? ""
+                ["code_verifier"] = context.Properties.Items["code_verifier"] ?? string.Empty
             };
 
             request.Content = new FormUrlEncodedContent(parameters.AsEnumerable() as IEnumerable<KeyValuePair<string?, string?>>);
@@ -420,7 +441,7 @@ namespace AspNet.Security.OAuth.OneID
             //    // Hmm, do we need to do something with serviceEntitlements here?
             //}
 
-            return "";
+            return string.Empty;
         }
     }
 }
