@@ -14,20 +14,20 @@ namespace ConsumerApp.Kestrel.Pages
 {
     public class IndexModel : PageModel
     {
-        private readonly ILogger<IndexModel> _logger;
         public static string? IdToken { get; set; }
 
         public string? AccessToken { get; set; }
         public string? RefreshToken { get; set; }
 
-        public IndexModel(ILogger<IndexModel> logger)
+        public IndexModel()
         {
-            _logger = logger;
         }
 
         public async Task OnGet()
         {
-            if (User.Identity.IsAuthenticated)
+            if (User == null || User.Identity == null) return;
+
+            if (User.Identity.IsAuthenticated!)
             {
                 IdToken = await HttpContext.GetTokenAsync("id_token");
                 if (string.IsNullOrEmpty(IdToken) && HttpContext.Session.Keys.Contains("id_token"))
@@ -49,10 +49,9 @@ namespace ConsumerApp.Kestrel.Pages
             }
         }
 
-        public async Task OnPostSubmit()
+        public Task OnPostSubmit()
         {
-
-            string t = "";
+            return Task.CompletedTask;
         }
     }
 }

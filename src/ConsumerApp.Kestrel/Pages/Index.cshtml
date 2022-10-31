@@ -10,7 +10,7 @@
 </div>
 
 
-@if (User.Identity.IsAuthenticated)
+@if (User.Identity != null && User.Identity.IsAuthenticated)
 {
     <h2>Claims</h2>
     <dl>

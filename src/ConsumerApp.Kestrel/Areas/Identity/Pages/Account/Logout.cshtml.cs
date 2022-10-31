@@ -19,25 +19,23 @@ namespace ConsumerApp.Kestrel.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly ILogger<LogoutModel> _logger;
-        private readonly IHttpClientFactory _httpClientFactory;
 
-        public LogoutModel(SignInManager<IdentityUser> signInManager, ILogger<LogoutModel> logger, IHttpClientFactory httpClientFactory)
+        public LogoutModel(SignInManager<IdentityUser> signInManager, ILogger<LogoutModel> logger)
         {
             _signInManager = signInManager;
             _logger = logger;
-            _httpClientFactory = httpClientFactory;
         }
 
         public void OnGet()
         {
         }
 
-        public async Task<IActionResult> OnPost(string returnUrl = null)
+        public async Task<IActionResult> OnPost(string? returnUrl = null, bool useRedirect = false)
         {
             await _signInManager.SignOutAsync();
 
             _logger.LogInformation("User logged out.");
-            if (!string.IsNullOrEmpty(IndexModel.IdToken))
+            if (useRedirect && !string.IsNullOrEmpty(IndexModel.IdToken))
             {
                 if (returnUrl != null)
                 {
