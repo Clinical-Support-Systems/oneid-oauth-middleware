@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net48;net5.0;net6.0</TargetFrameworks>
+		<TargetFrameworks>net48;net6.0</TargetFrameworks>
 		<LangVersion>latest</LangVersion>
 		<Features>strict</Features>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -42,10 +42,6 @@
 		</PackageReference>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.25.0" />
-	</ItemGroup>
-
-	<ItemGroup Condition=" '$(TargetFramework)' == 'net5.0' ">
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="6.0.*" />
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
