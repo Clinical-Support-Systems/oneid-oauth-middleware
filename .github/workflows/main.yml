@@ -23,17 +23,17 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: 🛒 Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
 
       - name: ⚙️ Setup dotnet 6.0.x
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: ⚙️ Setup GIT versioning
-        uses: dotnet/nbgv@v0.4.0
+        uses: dotnet/nbgv@master
         env: 
           ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
         id: nbgv
