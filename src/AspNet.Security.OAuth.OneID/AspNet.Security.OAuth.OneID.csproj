@@ -90,20 +90,27 @@
 		<DefineConstants>NET48;NETFULL</DefineConstants>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<Optimize>true</Optimize>
+		<DebugType>portable</DebugType>
+		<Deterministic>true</Deterministic>
+		<DeterministicSourcePaths>true</DeterministicSourcePaths>
+	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
-		<DebugType>embedded</DebugType>
+		<DebugType>portable</DebugType>
 		<DebugSymbols>true</DebugSymbols>
 		<DocumentationFile></DocumentationFile>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net5.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
-		<DebugType>embedded</DebugType>
+		<DebugType>portable</DebugType>
 		<DebugSymbols>true</DebugSymbols>
 		<DocumentationFile></DocumentationFile>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net48|AnyCPU'">
-		<DebugType>embedded</DebugType>
+		<DebugType>portable</DebugType>
 		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
 
