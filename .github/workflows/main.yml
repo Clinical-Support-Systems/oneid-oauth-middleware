@@ -49,13 +49,14 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       # pack and publish the nuget package
-      - name: Publish NuGet
-        uses: brandedoutcast/publish-nuget@v2.5.5
-        env: 
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+      - name: Pack nuget packages
+        run: dotnet pack src/AspNet.Security.OAuth.OneID/AspNet.Security.OAuth.OneID.csproj --configuration Release --no-build --output nupkgs --include-symbols --include-source -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -p:PackageVersion=${{env.NBGV_SemVer1}}
+
+      - name: Get NuGet
+        uses: nuget/setup-nuget@v1.1.1
         with:
-          # Filepath of the project to be packaged, relative to root of repository
-          PROJECT_FILE_PATH: src/AspNet.Security.OAuth.OneID/AspNet.Security.OAuth.OneID.csproj
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_STATIC: ${{env.NBGV_SemVer1}}
-          TAG_COMMIT: false
+          nuget-api-key: ${{secrets.NUGET_API_KEY}}
+          
+      - name: Release artifacts to NuGet
+        run : |
+          nuget push nupkgs/*.nupkg -Source https://api.nuget.org/v3/index.json --skip-duplicate
