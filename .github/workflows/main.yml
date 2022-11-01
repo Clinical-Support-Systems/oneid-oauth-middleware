@@ -51,12 +51,12 @@ jobs:
       - name: unit tests and report
         uses: zyborg/dotnet-tests-report@v1
         with:
-          project_path: tests/AspNet.Security.OAuth.OneID.Tests/AspNet.Security.OAuth.OneID.Tests.csproj
-          report_name: SerapisMedicalAPI_Tests
+          project_path: tests/AspNet.Security.OAuth.OneID.Tests/AspNet.Security.OAuth.Providers.Tests.csproj
+          report_name: OneID_Middleware_Tests
           report_title: OneID oAuth Middleware Tests
           github_token: ${{ secrets.GITHUB_TOKEN }}
           gist_name: middleware_tests.md
-          gist_badge_label: 'oneID Middleware: %Counters_passed%/%Counters_total%'
+          gist_badge_label: 'OneID Middleware: %Counters_passed%/%Counters_total%'
           gist_token: ${{ secrets.GIST_TOKEN }}
 
       # pack and publish the nuget package
@@ -70,4 +70,4 @@ jobs:
           
       - name: Release artifacts to NuGet
         run : |
-          nuget push nupkgs/*.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate
+          nuget push **/*.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate
