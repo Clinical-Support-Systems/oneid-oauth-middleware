@@ -92,7 +92,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <returns>The new access token if successful, empty string otherwise.</returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        public static async Task<string> RefreshToken(this HttpClient client, OneIdAuthenticationOptions options, string refreshToken, CancellationToken ct = default)
+        public static async Task<string> RefreshToken(HttpClient client, OneIdAuthenticationOptions options, string refreshToken, CancellationToken ct = default)
         {
             if (client is null)
             {

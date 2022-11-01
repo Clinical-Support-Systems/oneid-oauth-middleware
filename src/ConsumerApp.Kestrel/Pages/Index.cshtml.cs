@@ -81,7 +81,7 @@ namespace ConsumerApp.Kestrel.Pages
                     TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken | OneIdAuthenticationTokenSave.IdToken,
                     ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS | OneIdAuthenticationServiceProfiles.DHDR
                 };
-                var accessToken = await client.RefreshToken(options, RefreshToken, ct);
+                var accessToken = await OneIdHelper.RefreshToken(client, options, RefreshToken, ct);
                 RefreshToken = RefreshToken;
                 AccessToken = accessToken;
                 HttpContext.Session.SetString("refresh_token", RefreshToken);
