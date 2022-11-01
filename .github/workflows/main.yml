@@ -55,7 +55,7 @@ jobs:
           report_title: OneID oAuth Middleware Tests
           github_token: ${{ secrets.GITHUB_TOKEN }}
           gist_name: oneid_middleware_tests.md
-          gist_badge_label: 'OneID Middleware: %Counters_passed%/%Counters_total%'
+          gist_badge_label: 'OneID Middleware Tests: %Counters_passed%/%Counters_total%'
           gist_token: ${{ secrets.GIST_TOKEN }}
 
       # pack and publish the nuget package

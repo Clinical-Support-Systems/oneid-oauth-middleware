@@ -2,7 +2,7 @@
 
 - An easy to use library that makes connecting with eHealth Ontario easy for .NET Kestrel/Owin/Katana applications.
 
- [![CI](https://github.com/Clinical-Support-Systems/oneid-oauth-middleware/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/Clinical-Support-Systems/oneid-oauth-middleware/actions/workflows/main.yml) [![Nuget](https://img.shields.io/nuget/v/AspNet.Security.OAuth.OneID)](https://www.nuget.org/packages/AspNet.Security.OAuth.OneID) [![Nuget](https://img.shields.io/nuget/dt/AspNet.Security.OAuth.OneID)](#)
+ [![CI](https://github.com/Clinical-Support-Systems/oneid-oauth-middleware/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/Clinical-Support-Systems/oneid-oauth-middleware/actions/workflows/main.yml) [![Nuget](https://img.shields.io/nuget/v/AspNet.Security.OAuth.OneID)](https://www.nuget.org/packages/AspNet.Security.OAuth.OneID) [![Nuget](https://img.shields.io/nuget/dt/AspNet.Security.OAuth.OneID)](#) [![Tests](https://gist.githubusercontent.com/kfrancis/65229774df094982ad195fe336f6b4c2/raw/63321843226df7596eed98e96391eedc8cb02c14/oneid_middleware_tests.md_badge.svg)](https://gist.github.com/kfrancis/65229774df094982ad195fe336f6b4c2)
 
 [About](#beginner-about) | [Usage](#sunny-usage) | [Development](#wrench-development) | [Gallery](#camera-gallery) | [Acknowledgement](#star2-creditacknowledgment) | [License](#lock-license)
 
