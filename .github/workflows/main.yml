@@ -70,4 +70,4 @@ jobs:
           
       - name: Release artifacts to NuGet
         run : |
-          nuget push **/*.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate
+          nuget push *.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate
