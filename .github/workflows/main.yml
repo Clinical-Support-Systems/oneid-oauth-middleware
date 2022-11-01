@@ -48,6 +48,17 @@ jobs:
       - name: 🛠️ Building library in release mode
         run: dotnet build --no-restore --configuration Release
 
+      - name: unit tests and report
+        uses: zyborg/dotnet-tests-report@v1
+        with:
+          project_path: tests/AspNet.Security.OAuth.OneID.Tests/AspNet.Security.OAuth.OneID.Tests.csproj
+          report_name: SerapisMedicalAPI_Tests
+          report_title: OneID oAuth Middleware Tests
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          gist_name: middleware_tests.md
+          gist_badge_label: 'oneID Middleware: %Counters_passed%/%Counters_total%'
+          gist_token: ${{ secrets.GIST_TOKEN }}
+
       # pack and publish the nuget package
       - name: Pack nuget packages
         run: dotnet pack src/AspNet.Security.OAuth.OneID/AspNet.Security.OAuth.OneID.csproj --configuration Release --no-build --output nupkgs --include-symbols --include-source -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -p:PackageVersion=${{env.NBGV_SemVer1}}
@@ -59,4 +70,4 @@ jobs:
           
       - name: Release artifacts to NuGet
         run : |
-          nuget push nupkgs/*.nupkg -Source https://api.nuget.org/v3/index.json --skip-duplicate
+          nuget push nupkgs/*.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate
