@@ -35,7 +35,23 @@ namespace ConsumerApp.Kestrel
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddSession();
-            services.AddHttpClient();
+            var options = new OneIdAuthenticationOptions()
+            {
+                ClientId = Configuration["EHS:ClientId"],
+                CertificateThumbprint = Configuration["EHS:CertificateThumbprint"],
+                ClientSecret = Configuration["EHS:ClientSecret"],
+                Environment = OneIdAuthenticationEnvironment.PartnerSelfTest,
+                CallbackPath = new PathString("/oneid-signin"),
+                CertificateStoreName = StoreName.My,
+                CertificateStoreLocation = StoreLocation.CurrentUser,
+                TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken | OneIdAuthenticationTokenSave.IdToken,
+                ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS | OneIdAuthenticationServiceProfiles.DHDR
+            };
+            services.AddHttpClient(OneIdAuthenticationDefaults.DisplayName, client =>
+            {
+                client.DefaultRequestHeaders.Add("User-Agent", OneIdAuthenticationDefaults.UserAgent);
+            }).ConfigurePrimaryHttpMessageHandler(handler => new OneIdAuthenticationBackChannelHandler(options));
+
             services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.

@@ -135,7 +135,8 @@ namespace AspNet.Security.OAuth.OneID
 
 
                     // Helen reported we were double encoding this, so let's set it again
-                    data["redirect_uri"] = WebUtility.UrlDecode(data["redirect_uri"]);
+                    if (data.ContainsKey("redirect_uri"))
+                        data["redirect_uri"] = WebUtility.UrlDecode(data["redirect_uri"]);
 
                     // Make sure the client_assertion_type is what is expected.
                     if (data.ContainsKey("client_assertion_type"))

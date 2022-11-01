@@ -62,6 +62,9 @@ namespace AspNet.Security.OAuth.OneID
             /// </summary>
             public const string ClientId = "client_id";
 
+            public const string PostLogoutRedirectUri = "post_logout_redirect_uri";
+            public const string IdTokenHint = "id_token_hint";
+
             /// <summary>
             /// The PKCE code
             /// </summary>

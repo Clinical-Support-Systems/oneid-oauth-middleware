@@ -29,16 +29,24 @@
 
 #endregion License, Terms and Conditions
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
+using static AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants;
 
 namespace AspNet.Security.OAuth.OneID
 {
     public static class OneIdHelper
     {
         internal static string EndSessionUrl = "https://login.pst.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaaspstoidc/connect/endSession";
+        internal static string TokenEndpoint = "https://login.pst.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaaspstoidc/access_token";
 
         /// <summary>
         /// Retrieves the constructed endSession url that the user should be redirected to, to end their OAG session.
@@ -52,14 +60,14 @@ namespace AspNet.Security.OAuth.OneID
         {
             var queryValues = new Dictionary<string, string?>
             {
-                {"id_token_hint", idToken},
+                {OAuth2Constants.IdTokenHint, idToken},
                 //{ "IsES", "y" } // Don't know what this is, but it's on the spec example (but not documented)
             };
             if (!string.IsNullOrEmpty(clientId))
-                queryValues.Add("client_id", HttpUtility.UrlEncode(clientId));
+                queryValues.Add(OAuth2Constants.ClientId, HttpUtility.UrlEncode(clientId));
 
             if (postLogoutUri != null)
-                queryValues.Add("post_logout_redirect_uri", HttpUtility.UrlEncode(postLogoutUri.ToString()));
+                queryValues.Add(OAuth2Constants.PostLogoutRedirectUri, HttpUtility.UrlEncode(postLogoutUri.ToString()));
 
             if (isProduction)
             {
@@ -72,6 +80,68 @@ namespace AspNet.Security.OAuth.OneID
             uri = EndSessionUrl + "?" + string.Join("&", array);
 
             return uri;
+        }
+
+        /// <summary>
+        /// Obtain a new access token
+        /// </summary>
+        /// <param name="client">An http client that uses <see cref="OneIdAuthenticationBackChannelHandler"/> as it's backing http handler</param>
+        /// <param name="options">The same set of <see cref="OneIdAuthenticationOptions"/> that was used when setting up authentication</param>
+        /// <param name="refreshToken">The refresh token</param>
+        /// <param name="ct">(optional) The cancellation token</param>
+        /// <returns>The new access token if successful, empty string otherwise.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        public static async Task<string> RefreshToken(this HttpClient client, OneIdAuthenticationOptions options, string refreshToken, CancellationToken ct = default)
+        {
+            if (client is null)
+            {
+                throw new ArgumentNullException(nameof(client));
+            }
+
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                throw new ArgumentException($"'{nameof(refreshToken)}' cannot be null or empty.", nameof(refreshToken));
+            }
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, TokenEndpoint);
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
+            request.Headers.UserAgent.ParseAdd(OneIdAuthenticationDefaults.UserAgent);
+
+            var parameters = new Dictionary<string, string?>
+            {
+                [OAuth2Constants.GrantType] = OAuth2Constants.RefreshToken,
+                [OAuth2Constants.RefreshToken] = refreshToken,
+            };
+
+            request.Content = new FormUrlEncodedContent((IEnumerable<KeyValuePair<string?, string?>>)parameters);
+            using var response = await client.SendAsync(request, cancellationToken: ct);
+
+            Task<string>? readTask = null;
+#if NETCORE
+            readTask = response.Content.ReadAsStringAsync(ct);
+#else
+            readTask = response.Content.ReadAsStringAsync();
+#endif
+
+            if (response.IsSuccessStatusCode)
+            {
+                var tokenJson = JsonConvert.DeserializeObject<JObject>(await readTask);
+
+                return tokenJson?[OAuth2Constants.AccessToken]?.ToObject<string>() ?? "";
+            }
+            else
+            {
+                var responseContent = await readTask;
+                _ = response.EnsureSuccessStatusCode();
+
+                return string.Empty;
+            }
         }
     }
 }

@@ -21,6 +21,16 @@ To make integration simple, there's support in this middlewear to adjust the sco
 
 This will allow you to perform authentication once but retrieve an `access_token` that can access multiple services.
 
+## Supported oAuth/OIDC Features
+
+- :heavy_check_mark: Authenticate    
+- :heavy_check_mark: Discovery   
+- :heavy_check_mark: User Info   
+- :heavy_check_mark: Validation (use JSON Web Key Set)
+- :heavy_check_mark: Manual refresh
+- :x: End Session
+- :x: Logout
+
 # :sunny: Usage
 Here is how to use this library in your project.
 

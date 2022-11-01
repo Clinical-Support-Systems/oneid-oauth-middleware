@@ -41,5 +41,8 @@
 
     <form method="post">
         <button type="submit" class="btn btn-primary" asp-page-handler="Submit">Refresh</button>
+        @Html.HiddenFor(m => m.AccessToken)
+        @Html.HiddenFor(m => m.RefreshToken)
+        @Html.HiddenFor(m => IndexModel.IdToken)
     </form>
 }
