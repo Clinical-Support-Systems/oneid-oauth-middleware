@@ -86,7 +86,7 @@ namespace AspNet.Security.OAuth.OneID
                 throw new InvalidOperationException($"Token validation parameters have not been set on the {nameof(OneIdAuthenticationOptions)} instance.");
             }
 
-            var configuration = await context.Options.ConfigurationManager.GetConfigurationAsync(context.HttpContext.RequestAborted);
+            var configuration = await context.Options.ConfigurationManager.GetConfigurationAsync(context.HttpContext.RequestAborted).ConfigureAwait(false);
 
             // Update with value from discovery
             OneIdHelper.EndSessionUrl = configuration.EndSessionEndpoint;

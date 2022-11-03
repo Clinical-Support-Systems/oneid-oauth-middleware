@@ -120,7 +120,7 @@ namespace AspNet.Security.OAuth.OneID
             };
 
             request.Content = new FormUrlEncodedContent((IEnumerable<KeyValuePair<string?, string?>>)parameters);
-            using var response = await client.SendAsync(request, cancellationToken: ct);
+            using var response = await client.SendAsync(request, cancellationToken: ct).ConfigureAwait(false);
 
             Task<string>? readTask = null;
 #if NETCORE
@@ -131,13 +131,13 @@ namespace AspNet.Security.OAuth.OneID
 
             if (response.IsSuccessStatusCode)
             {
-                var tokenJson = JsonConvert.DeserializeObject<JObject>(await readTask);
+                var tokenJson = JsonConvert.DeserializeObject<JObject>(await readTask.ConfigureAwait(false));
 
                 return tokenJson?[OAuth2Constants.AccessToken]?.ToObject<string>() ?? "";
             }
             else
             {
-                var responseContent = await readTask;
+                var responseContent = await readTask.ConfigureAwait(false);
                 _ = response.EnsureSuccessStatusCode();
 
                 return string.Empty;

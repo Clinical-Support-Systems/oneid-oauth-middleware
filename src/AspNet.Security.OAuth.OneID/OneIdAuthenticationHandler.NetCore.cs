@@ -177,7 +177,7 @@ namespace AspNet.Security.OAuth.OneID
 
             //if (Options.ConfigurationManager != null)
             //{
-            //    var configuration = await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted);
+            //    var configuration = await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted).ConfigureAwait(false);
 
             //    if (configuration != null && Options.UserInfo != configuration.UserInfoEndpoint)
             //    {
@@ -192,15 +192,15 @@ namespace AspNet.Security.OAuth.OneID
             //    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken!);
             //    request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            //    using var userInfoResponse = await Backchannel.SendAsync(request, HttpCompletionOption.ResponseContentRead, Context.RequestAborted);
+            //    using var userInfoResponse = await Backchannel.SendAsync(request, HttpCompletionOption.ResponseContentRead, Context.RequestAborted).ConfigureAwait(false);
             //    if (!userInfoResponse.IsSuccessStatusCode)
             //    {
-            //        Logger.LogUserInfoFailure(userInfoResponse.StatusCode, userInfoResponse.Headers.ToString(), await userInfoResponse.Content.ReadAsStringAsync(Context.RequestAborted));
+            //        Logger.LogUserInfoFailure(userInfoResponse.StatusCode, userInfoResponse.Headers.ToString(), await userInfoResponse.Content.ReadAsStringAsync(Context.RequestAborted).ConfigureAwait(false));
             //        throw new HttpRequestException("An error occurred while retrieving the user profile.");
             //    }
             //    else
             //    {
-            //        var userInfoPayloadString = await userInfoResponse.Content.ReadAsStringAsync(Context.RequestAborted);
+            //        var userInfoPayloadString = await userInfoResponse.Content.ReadAsStringAsync(Context.RequestAborted).ConfigureAwait(false);
             //        if (!string.IsNullOrEmpty(userInfoPayloadString))
             //        {
             //            using var userInfoPayload = JsonDocument.Parse(userInfoPayloadString);
@@ -236,7 +236,7 @@ namespace AspNet.Security.OAuth.OneID
             if (Options.ValidateTokens)
             {
                 var validateIdContext = new OneIdValidateIdTokenContext(Context, Scheme, Options, idToken);
-                await Events.ValidateIdToken(validateIdContext);
+                await Events.ValidateIdToken(validateIdContext).ConfigureAwait(false);
             }
 
             foreach (var claim in ExtractClaimsFromToken(idToken))
