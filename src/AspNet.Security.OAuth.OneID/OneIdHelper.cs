@@ -45,7 +45,14 @@ namespace AspNet.Security.OAuth.OneID
 {
     public static class OneIdHelper
     {
-        internal static string EndSessionUrl = "https://login.pst.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaaspstoidc/connect/endSession";
+        /// <summary>
+        /// This value should be updated by the discovery endpoint content, but won't be because it might not be correct.
+        /// </summary>
+        internal static string EndSessionUrl = "https://login.pst.oneidfederation.ehealthontario.ca/oidc/connect/endSession";
+
+        /// <summary>
+        /// Access token endpoint
+        /// </summary>
         internal static string TokenEndpoint = "https://login.pst.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaaspstoidc/access_token";
 
         /// <summary>
@@ -60,18 +67,17 @@ namespace AspNet.Security.OAuth.OneID
         {
             var queryValues = new Dictionary<string, string?>
             {
-                {OAuth2Constants.IdTokenHint, idToken},
-                //{ "IsES", "y" } // Don't know what this is, but it's on the spec example (but not documented)
+                {OAuth2Constants.IdTokenHint, idToken}
             };
             if (!string.IsNullOrEmpty(clientId))
                 queryValues.Add(OAuth2Constants.ClientId, HttpUtility.UrlEncode(clientId));
 
             if (postLogoutUri != null)
-                queryValues.Add(OAuth2Constants.PostLogoutRedirectUri, HttpUtility.UrlEncode(postLogoutUri.ToString()));
+                queryValues.Add(OAuth2Constants.PostLogoutRedirectUri, HttpUtility.UrlDecode(postLogoutUri.ToString()));
 
             if (isProduction)
             {
-                EndSessionUrl = "https://login.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasoidc/connect/endSession";
+                EndSessionUrl = "https://login.oneidfederation.ehealthontario.ca/oidc/connect/endSession";
             }
 
             string uri;

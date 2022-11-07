@@ -19,11 +19,15 @@ namespace ConsumerApp.Kestrel.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly ILogger<LogoutModel> _logger;
+        private readonly IConfiguration _configuration;
 
-        public LogoutModel(SignInManager<IdentityUser> signInManager, ILogger<LogoutModel> logger)
+        public LogoutModel(SignInManager<IdentityUser> signInManager,
+                           ILogger<LogoutModel> logger,
+                           IConfiguration configuration)
         {
             _signInManager = signInManager;
             _logger = logger;
+            _configuration = configuration;
         }
 
         public void OnGet()
@@ -44,7 +48,7 @@ namespace ConsumerApp.Kestrel.Areas.Identity.Pages.Account
                 }
                 else
                 {
-                    var url = OneIdHelper.GetEndSessionUrl(IndexModel.IdToken);
+                    var url = OneIdHelper.GetEndSessionUrl(IndexModel.IdToken, clientId: _configuration["EHS:ClientId"]);
                     return Redirect(url);
                 }
             }
