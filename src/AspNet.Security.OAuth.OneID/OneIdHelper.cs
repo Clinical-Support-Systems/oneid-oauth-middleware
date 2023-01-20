@@ -115,7 +115,17 @@ namespace AspNet.Security.OAuth.OneID
                 throw new ArgumentException($"'{nameof(refreshToken)}' cannot be null or empty.", nameof(refreshToken));
             }
 
-            using var request = new HttpRequestMessage(HttpMethod.Post, TokenEndpoint);
+            var tokenEndpoint = TokenEndpoint;
+            if (options.Environment == OneIdAuthenticationEnvironment.Production)
+            {
+                tokenEndpoint = tokenEndpoint.Replace(".prod", string.Empty).Replace("idaasprodoidc", "idaasoidc");
+            }
+            else if(options.Environment != OneIdAuthenticationEnvironment.PartnerSelfTest)
+            {
+                throw new NotSupportedException($"Environment {Enum.GetName(typeof(OneIdAuthenticationEnvironment), options.Environment)} isn't supported for refresh token.");
+            }
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, tokenEndpoint);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
             request.Headers.UserAgent.ParseAdd(OneIdAuthenticationDefaults.UserAgent);
 
