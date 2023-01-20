@@ -39,7 +39,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Collections.ObjectModel;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using System.Security.Policy;
 
 #if NETCORE
 using Microsoft.IdentityModel.Protocols;
@@ -168,7 +167,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         ///     Gets or sets additional values set in this property will be appended to the authorization request.
         /// </summary>
-        public Dictionary<string, string> AdditionalParameters { get; private set; } = new();
+        public Dictionary<string, string> AdditionalParameters { get; } = new();
 
         /// <summary>
         /// For the purposes of removing subdomains from the request and restoring them for the redirect once complete
@@ -268,9 +267,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Response type
         /// </summary>
-        public string ResponseType { get; private set; } = string.Empty;
-
-
+        public string ResponseType { get; } = string.Empty;
 
         /// <summary>
         /// Validate tokens?
@@ -317,9 +314,6 @@ namespace AspNet.Security.OAuth.OneID
 
         public string EndSessionEndpoint { get; private set; } = string.Empty;
         public string MetadataEndpoint { get; private set; } = string.Empty;
-
-
-
 
 #if !NETCORE
         public string AuthorizationEndpoint { get; private set; } = string.Empty;
@@ -487,7 +481,7 @@ namespace AspNet.Security.OAuth.OneID
         {
             var old = ClientSecret;
             // base.Validate is checking to see that ClientSecret isn't empty. Ron Popeil this (set and then forget).
-            if (string.IsNullOrEmpty(old)) ClientSecret = Guid.NewGuid().ToString(); 
+            if (string.IsNullOrEmpty(old)) ClientSecret = Guid.NewGuid().ToString();
             base.Validate();
             ClientSecret = old;
 
@@ -512,7 +506,7 @@ namespace AspNet.Security.OAuth.OneID
                 throw new ArgumentException($"A '{nameof(ServiceProfileOptions)}' option must be provided.", nameof(ServiceProfileOptions));
             }
 
-            if (!TokenSaveOptions.HasFlag(OneIdAuthenticationTokenSave.AccessToken) 
+            if (!TokenSaveOptions.HasFlag(OneIdAuthenticationTokenSave.AccessToken)
                 && !TokenSaveOptions.HasFlag(OneIdAuthenticationTokenSave.RefreshToken)
                 && !TokenSaveOptions.HasFlag(OneIdAuthenticationTokenSave.IdToken))
             {

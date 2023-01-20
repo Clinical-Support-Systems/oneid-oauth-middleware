@@ -370,7 +370,6 @@ namespace AspNet.Security.OAuth.OneID
                     }
                 }
 
-
                 return retVal;
             }
             catch (Exception ex)
@@ -378,8 +377,6 @@ namespace AspNet.Security.OAuth.OneID
                 throw new InvalidOperationException("Failed to parse JWT for claims from OneID token.", ex);
             }
         }
-
-
 
         private static void SaveIdToken(AuthenticationProperties properties, string idToken)
         {

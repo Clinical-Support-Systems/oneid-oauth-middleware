@@ -104,7 +104,6 @@ namespace AspNet.Security.OAuth.OneID
 #else
                 new Claim("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-", string.Empty)}")
 #endif
-                
             };
 
                 // Create Security Token object by giving required parameters. Since we're specifically setting the iss/sub/aud/exp above, don't include them below
@@ -133,29 +132,19 @@ namespace AspNet.Security.OAuth.OneID
                     var data = oldContent.Replace("?", string.Empty).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
 #endif
 
-
                     // Helen reported we were double encoding this, so let's set it again
-                    if (data.ContainsKey("redirect_uri"))
-                        data["redirect_uri"] = WebUtility.UrlDecode(data["redirect_uri"]);
+                    if (data.TryGetValue("redirect_uri", out string? redirectUri))
+                        data["redirect_uri"] = WebUtility.UrlDecode(redirectUri);
 
                     // Make sure the client_assertion_type is what is expected.
-                    if (data.ContainsKey("client_assertion_type"))
-                    {
-                        data.Remove("client_assertion_type");
-                    }
+                    data.Remove("client_assertion_type");
                     data.Add("client_assertion_type", ClaimNames.JwtBearerAssertion); // must include this non-encoded as the process will re-encode it
 
                     // Make sure the client_assertion is what is expected.
-                    if (data.ContainsKey("client_assertion"))
-                    {
-                        data.Remove("client_assertion");
-                    }
+                    data.Remove("client_assertion");
                     data.Add("client_assertion", jwt_token);
 
-                    if (data.ContainsKey("aud"))
-                    {
-                        data.Remove("aud");
-                    }
+                    data.Remove("aud");
                     data.Add("aud", ClaimNames.ApiAudience); // Is this value ever changing?
 
                     // Now put it back ibnto the request
@@ -167,10 +156,7 @@ namespace AspNet.Security.OAuth.OneID
             }
             finally
             {
-                if (cert != null)
-                {
-                    cert.Dispose();
-                }
+                cert?.Dispose();
             }
         }
     }

@@ -80,11 +80,11 @@ namespace AspNet.Security.OAuth.OneID
     {
         public OneIdAuthenticationProvider()
         {
-            this.OnAuthenticating = context => Task.CompletedTask;
-            this.OnAuthenticated = context => Task.CompletedTask;
-            this.OnReturnEndpoint = context => Task.CompletedTask;
+            this.OnAuthenticating = _ => Task.CompletedTask;
+            this.OnAuthenticated = _ => Task.CompletedTask;
+            this.OnReturnEndpoint = _ => Task.CompletedTask;
             this.OnApplyRedirect = context => context.Response.Redirect(context.RedirectUri.AbsoluteUri);
-            this.OnTokenRequest = context => Task.FromResult<object?>(null);
+            this.OnTokenRequest = _ => Task.FromResult<object?>(null);
         }
 
         /// <summary>

@@ -90,11 +90,11 @@ namespace AspNet.Security.OAuth.OneID
                 var query = Request.Query;
 
                 var values = query.GetValues(nameof(code));
-                if (values != null && values.Count == 1)
+                if (values?.Count == 1)
                     code = values[0];
 
                 values = query.GetValues(nameof(state));
-                if (values != null && values.Count == 1)
+                if (values?.Count == 1)
                     state = values[0];
 
                 state = Request.Cookies[StateCookie];
@@ -474,7 +474,7 @@ namespace AspNet.Security.OAuth.OneID
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            string correlationKey = StateCookie;
+            const string correlationKey = StateCookie;
 
             var nonceBytes = new byte[32];
             CryptoRandom.GetBytes(nonceBytes);

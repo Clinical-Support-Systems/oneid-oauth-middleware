@@ -56,7 +56,7 @@ namespace AspNet.Security.OAuth.OneID
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
-        public void PostConfigure(string name, OneIdAuthenticationOptions options)
+        public void PostConfigure(string? name, OneIdAuthenticationOptions options)
         {
             if (string.IsNullOrEmpty(name))
             {

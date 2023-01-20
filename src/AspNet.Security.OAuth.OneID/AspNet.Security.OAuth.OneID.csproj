@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net48;net6.0</TargetFrameworks>
+		<TargetFrameworks>net48;net6.0;net7.0</TargetFrameworks>
 		<LangVersion>latest</LangVersion>
 		<Features>strict</Features>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -35,17 +35,28 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.25.0" />
+		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.26.0" />
 		<PackageReference Include="Nerdbank.GitVersioning" Version="3.5.119">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.25.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.26.0" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<PackageReference Include="Roslynator.Analyzers" Version="4.2.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="6.0.*" />
+	</ItemGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="7.0.*" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net48'">
@@ -78,7 +89,7 @@
 		</EmbeddedResource>
 	</ItemGroup>
 
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net5.0' or '$(TargetFramework)' == 'net6.0'">
+	<PropertyGroup Condition="'$(TargetFramework)' != 'net48'">
 		<DefineConstants>NETCORE</DefineConstants>
 	</PropertyGroup>
 
@@ -92,14 +103,20 @@
 		<DeterministicSourcePaths>true</DeterministicSourcePaths>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0|AnyCPU'">
 		<DebugType>portable</DebugType>
 		<DebugSymbols>true</DebugSymbols>
 		<DocumentationFile></DocumentationFile>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net5.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0|AnyCPU'">
 		<Optimize>true</Optimize>
+		<DebugType>portable</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<DocumentationFile></DocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net48|AnyCPU'">
 		<DebugType>portable</DebugType>
 		<DebugSymbols>true</DebugSymbols>
 		<DocumentationFile></DocumentationFile>
@@ -109,6 +126,7 @@
 		<Optimize>true</Optimize>
 		<DebugType>portable</DebugType>
 		<DebugSymbols>true</DebugSymbols>
+		<DocumentationFile></DocumentationFile>
 	</PropertyGroup>
 
 </Project>

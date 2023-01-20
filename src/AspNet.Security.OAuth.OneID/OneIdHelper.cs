@@ -129,6 +129,7 @@ namespace AspNet.Security.OAuth.OneID
             using var response = await client.SendAsync(request, cancellationToken: ct).ConfigureAwait(false);
 
             Task<string>? readTask = null;
+
 #if NETCORE
             readTask = response.Content.ReadAsStringAsync(ct);
 #else
@@ -144,9 +145,8 @@ namespace AspNet.Security.OAuth.OneID
             else
             {
                 var responseContent = await readTask.ConfigureAwait(false);
-                _ = response.EnsureSuccessStatusCode();
 
-                return string.Empty;
+                throw new OneIdAuthException(request.RequestUri, response.StatusCode, responseContent);
             }
         }
     }

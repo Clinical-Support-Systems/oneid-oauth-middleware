@@ -28,14 +28,15 @@
 //
 
 #endregion License, Terms and Conditions
+
 #if NETCORE
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using System.Diagnostics.CodeAnalysis;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
 
 namespace AspNet.Security.OAuth.OneID
 {
@@ -113,6 +114,5 @@ namespace AspNet.Security.OAuth.OneID
             }
         }
     }
-
 }
 #endif

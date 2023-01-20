@@ -28,6 +28,7 @@
 //
 
 #endregion License, Terms and Conditions
+
 #if NETCORE
 using Microsoft.Extensions.Logging;
 using System;
@@ -85,8 +86,8 @@ namespace AspNet.Security.OAuth.OneID
                                 "returned a {Status} response with the following payload: {Headers} {Body}.");
 
         private static readonly Action<ILogger, string, string, Exception?> _tokenValidationFailed = LoggerMessage.Define<string, string>(
-            logLevel: LogLevel.Error, 
-            eventId: 8, 
+            logLevel: LogLevel.Error,
+            eventId: 8,
             formatString: "OneID token validation failed for issuer {TokenIssuer} and audience {TokenAudience}.");
 
         private static readonly Action<ILogger, string, Exception?> _tokenInvalid = LoggerMessage.Define<string>(
