@@ -118,7 +118,9 @@ namespace AspNet.Security.OAuth.OneID
             var tokenEndpoint = TokenEndpoint;
             if (options.Environment == OneIdAuthenticationEnvironment.Production)
             {
+#pragma warning disable CA1307 // Specify StringComparison for clarity
                 tokenEndpoint = tokenEndpoint.Replace(".prod", string.Empty).Replace("idaasprodoidc", "idaasoidc");
+#pragma warning restore CA1307 // Specify StringComparison for clarity
             }
             else if(options.Environment != OneIdAuthenticationEnvironment.PartnerSelfTest)
             {
