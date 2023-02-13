@@ -51,11 +51,6 @@ namespace AspNet.Security.OAuth.OneID
         internal static string EndSessionUrl = "https://login.pst.oneidfederation.ehealthontario.ca/oidc/connect/endSession";
 
         /// <summary>
-        /// Access token endpoint
-        /// </summary>
-        internal static string TokenEndpoint = "https://login.pst.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaaspstoidc/access_token";
-
-        /// <summary>
         /// Retrieves the constructed endSession url that the user should be redirected to, to end their OAG session.
         /// </summary>
         /// <param name="idToken">The id token</param>
@@ -80,12 +75,8 @@ namespace AspNet.Security.OAuth.OneID
                 EndSessionUrl = "https://login.oneidfederation.ehealthontario.ca/oidc/connect/endSession";
             }
 
-            string uri;
-
             var array = queryValues.Where(x => !string.IsNullOrEmpty(x.Value)).Select(x => $"{HttpUtility.UrlEncode(x.Key)}={HttpUtility.UrlEncode(x.Value)}").ToArray();
-            uri = EndSessionUrl + "?" + string.Join("&", array);
-
-            return uri;
+            return EndSessionUrl + "?" + string.Join("&", array);
         }
 
         /// <summary>
@@ -115,17 +106,14 @@ namespace AspNet.Security.OAuth.OneID
                 throw new ArgumentException($"'{nameof(refreshToken)}' cannot be null or empty.", nameof(refreshToken));
             }
 
-            var tokenEndpoint = TokenEndpoint;
-            if (options.Environment == OneIdAuthenticationEnvironment.Production)
+            var tokenEndpoint = options.Environment switch
             {
-#pragma warning disable CA1307 // Specify StringComparison for clarity
-                tokenEndpoint = tokenEndpoint.Replace(".prod", string.Empty).Replace("idaasprodoidc", "idaasoidc");
-#pragma warning restore CA1307 // Specify StringComparison for clarity
-            }
-            else if(options.Environment != OneIdAuthenticationEnvironment.PartnerSelfTest)
-            {
-                throw new NotSupportedException($"Environment {Enum.GetName(typeof(OneIdAuthenticationEnvironment), options.Environment)} isn't supported for refresh token.");
-            }
+                OneIdAuthenticationEnvironment.Production =>        "https://login.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasoidc/access_token",
+                OneIdAuthenticationEnvironment.PartnerSelfTest =>   "https://login.pst.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaaspstoidc/access_token",
+                OneIdAuthenticationEnvironment.Development =>       "https://login.dev.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasdevoidc/access_token",
+                OneIdAuthenticationEnvironment.QualityAssurance =>  "https://login.qa.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasqaoidc/access_token",
+                _ => throw new NotSupportedException(),
+            };
 
             using var request = new HttpRequestMessage(HttpMethod.Post, tokenEndpoint);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
@@ -152,7 +140,7 @@ namespace AspNet.Security.OAuth.OneID
             {
                 var tokenJson = JsonConvert.DeserializeObject<JObject>(await readTask.ConfigureAwait(false));
 
-                return tokenJson?[OAuth2Constants.AccessToken]?.ToObject<string>() ?? "";
+                return tokenJson?[OAuth2Constants.AccessToken]?.ToObject<string>() ?? string.Empty;
             }
             else
             {
