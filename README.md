@@ -130,3 +130,5 @@ After this, changes will be merged.
 #  :lock: License
 
 [License](https://raw.githubusercontent.com/Clinical-Support-Systems/oneid-oauth-middleware/master/LICENSE)
+
+https://login.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasoidc/.well-known/openid-configuration
