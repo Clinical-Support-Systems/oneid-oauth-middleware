@@ -71,15 +71,32 @@ namespace AspNet.Security.OAuth.OneID
 
             try
             {
+                if (!string.IsNullOrEmpty(_options.CertificateThumbprint) && !string.IsNullOrEmpty(_options.CertificateFilename))
+                {
+                    throw new InvalidOperationException("Cannot specify both CertificateThumbprint and CertificateFilename.");
+                }
+
                 if (!string.IsNullOrEmpty(_options.CertificateThumbprint))
                 {
-                    cert = OneIdCertificateUtility.FindCertificateByThumbprint(_options.CertificateStoreName, _options.CertificateStoreLocation, _options.CertificateThumbprint, false);
+                    cert = OneIdCertificateUtility.FindCertificateByThumbprint(
+                        _options.CertificateStoreName,
+                        _options.CertificateStoreLocation,
+                        _options.CertificateThumbprint,
+                        false);
                 }
-                if (!string.IsNullOrEmpty(_options.CertificateFilename))
+                else if (!string.IsNullOrEmpty(_options.CertificateFilename))
                 {
+#if NETCORE
+                    var certBytes = await File.ReadAllBytesAsync(_options.CertificateFilename, cancellationToken);
+#else
                     var certBytes = File.ReadAllBytes(_options.CertificateFilename);
-                    cert = new X509Certificate2(certBytes, _options.CertificatePassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
+#endif
+                    cert = new X509Certificate2(
+                        certBytes,
+                        _options.CertificatePassword,
+                        X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
                 }
+
                 if (cert == null)
                 {
                     throw new InvalidOperationException("Must specify CertificateThumbprint or CertificateFilename (with CertificatePassword if applicable).");
@@ -94,15 +111,15 @@ namespace AspNet.Security.OAuth.OneID
                 // we now need to create a JWT that we include in the response as the claim_assertion
                 var permClaims = new List<Claim>
             {
-                new Claim("iss", _options.ClientId),
-                new Claim("sub", _options.ClientId),
-                new Claim("aud", _options.Audience),
-                new Claim("iat", now.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
-                new Claim("exp", expire.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
+                new("iss", _options.ClientId),
+                new("sub", _options.ClientId),
+                new("aud", _options.Audience),
+                new("iat", now.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
+                new("exp", expire.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
 #if NETCORE
-                new Claim("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-", string.Empty, StringComparison.InvariantCulture)}")
+                new("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-", string.Empty, StringComparison.InvariantCulture)}")
 #else
-                new Claim("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-", string.Empty)}")
+                new("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-", string.Empty)}")
 #endif
             };
 
@@ -148,8 +165,7 @@ namespace AspNet.Security.OAuth.OneID
                     data.Add("aud", ClaimNames.ApiAudience); // Is this value ever changing?
 
                     // Now put it back ibnto the request
-                    var content = new FormUrlEncodedContent(data.AsEnumerable() as IEnumerable<KeyValuePair<string?, string?>>);
-                    request.Content = content;
+                    request.Content = new FormUrlEncodedContent(data.AsEnumerable());
 
                     return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
                 }
@@ -224,10 +240,14 @@ namespace AspNet.Security.OAuth.OneID
         /// <returns></returns>
         public static byte[] ExportCertificateWithPrivateKey(X509Certificate2 cert, out string password)
         {
+#if NETCORE
+            ArgumentNullException.ThrowIfNull(cert);
+#else
             if (cert is null)
             {
                 throw new ArgumentNullException(nameof(cert));
             }
+#endif
 
             password = Convert.ToBase64String(Encoding.Unicode.GetBytes(Guid.NewGuid().ToString("N")));
             return cert.Export(X509ContentType.Pkcs12, password);

@@ -184,10 +184,11 @@ namespace AspNet.Security.OAuth.OneID
         /// <param name="document">The json document</param>
         /// <param name="options">Serializer options</param>
         /// <returns>The object</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="document"/> is <c>null</c>.</exception>
         public static T? ToObject<T>(this JsonDocument document, JsonSerializerOptions? options = null)
         {
-            if (document == null)
-                throw new ArgumentNullException(nameof(document));
+            ArgumentNullException.ThrowIfNull(document);
+
             return document.RootElement.ToObject<T>(options);
         }
     }
@@ -208,7 +209,10 @@ namespace AspNet.Security.OAuth.OneID
         /// </summary>
         /// <param name="self">The object to serialize</param>
         /// <returns>The json string</returns>
-        public static string ToJson(this TokenEndpoint self) => self.ToJson();
+        public static string ToJson(this TokenEndpoint self)
+        {
+            return JsonSerializer.Serialize(self);
+        }
 
 #endif
     }

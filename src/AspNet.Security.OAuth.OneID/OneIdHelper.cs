@@ -48,7 +48,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// This value should be updated by the discovery endpoint content, but won't be because it might not be correct.
         /// </summary>
-        internal static string EndSessionUrl = "https://login.pst.oneidfederation.ehealthontario.ca/oidc/connect/endSession";
+        private static string EndSessionUrl = "https://login.pst.oneidfederation.ehealthontario.ca/oidc/connect/endSession";
 
         /// <summary>
         /// Retrieves the constructed endSession url that the user should be redirected to, to end their OAG session.
@@ -91,6 +91,10 @@ namespace AspNet.Security.OAuth.OneID
         /// <exception cref="ArgumentException"></exception>
         public static async Task<string> RefreshToken(HttpClient client, OneIdAuthenticationOptions options, string refreshToken, CancellationToken ct = default)
         {
+#if NETCORE
+            ArgumentNullException.ThrowIfNull(client);
+            ArgumentNullException.ThrowIfNull(options);
+#else
             if (client is null)
             {
                 throw new ArgumentNullException(nameof(client));
@@ -100,6 +104,7 @@ namespace AspNet.Security.OAuth.OneID
             {
                 throw new ArgumentNullException(nameof(options));
             }
+#endif
 
             if (string.IsNullOrEmpty(refreshToken))
             {
@@ -108,10 +113,10 @@ namespace AspNet.Security.OAuth.OneID
 
             var tokenEndpoint = options.Environment switch
             {
-                OneIdAuthenticationEnvironment.Production =>        "https://login.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasoidc/access_token",
-                OneIdAuthenticationEnvironment.PartnerSelfTest =>   "https://login.pst.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaaspstoidc/access_token",
-                OneIdAuthenticationEnvironment.Development =>       "https://login.dev.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasdevoidc/access_token",
-                OneIdAuthenticationEnvironment.QualityAssurance =>  "https://login.qa.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasqaoidc/access_token",
+                OneIdAuthenticationEnvironment.Production => "https://login.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasoidc/access_token",
+                OneIdAuthenticationEnvironment.PartnerSelfTest => "https://login.pst.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaaspstoidc/access_token",
+                OneIdAuthenticationEnvironment.Development => "https://login.dev.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasdevoidc/access_token",
+                OneIdAuthenticationEnvironment.QualityAssurance => "https://login.qa.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasqaoidc/access_token",
                 _ => throw new NotSupportedException(),
             };
 

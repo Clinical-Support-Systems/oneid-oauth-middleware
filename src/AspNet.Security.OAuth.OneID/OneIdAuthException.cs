@@ -29,8 +29,19 @@ namespace AspNet.Security.OAuth.OneID
         }
 
         protected OneIdAuthException(SerializationInfo serializationInfo, StreamingContext streamingContext)
+#if !NET8_0_OR_GREATER
             : base(serializationInfo, streamingContext)
+#endif
         {
+#if NETCORE
+            ArgumentNullException.ThrowIfNull(serializationInfo);
+#else
+            if (serializationInfo is null)
+            {
+                throw new ArgumentNullException(nameof(serializationInfo));
+            }
+#endif
+
             Url = (Uri)serializationInfo.GetValue(nameof(Url), typeof(Uri))!;
             StatusCode = (HttpStatusCode)serializationInfo.GetValue(nameof(StatusCode), typeof(HttpStatusCode))!;
             ResponseContent = (string)serializationInfo.GetValue(nameof(ResponseContent), typeof(string))!;
@@ -40,6 +51,7 @@ namespace AspNet.Security.OAuth.OneID
         public HttpStatusCode StatusCode { get; }
         public Uri? Url { get; }
 
+#if !NET8_0_OR_GREATER
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
@@ -48,5 +60,6 @@ namespace AspNet.Security.OAuth.OneID
             info.AddValue(nameof(StatusCode), StatusCode, typeof(HttpStatusCode));
             info.AddValue(nameof(ResponseContent), ResponseContent, typeof(string));
         }
+#endif
     }
 }

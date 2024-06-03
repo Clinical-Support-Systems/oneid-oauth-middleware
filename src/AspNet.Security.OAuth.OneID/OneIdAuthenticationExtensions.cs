@@ -64,10 +64,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <returns>A reference to this instance after the operation has completed.</returns>
         public static AuthenticationBuilder AddOneId(this AuthenticationBuilder builder)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+            ArgumentNullException.ThrowIfNull(builder);
 
             return builder.AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, options => { });
         }
@@ -83,15 +80,8 @@ namespace AspNet.Security.OAuth.OneID
             this AuthenticationBuilder builder,
             Action<OneIdAuthenticationOptions> configuration)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (configuration is null)
-            {
-                throw new ArgumentNullException(nameof(configuration));
-            }
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentNullException.ThrowIfNull(configuration);
 
             return builder.AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, configuration);
         }
@@ -109,19 +99,12 @@ namespace AspNet.Security.OAuth.OneID
             string scheme,
             Action<OneIdAuthenticationOptions> configuration)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentNullException.ThrowIfNull(configuration);
 
             if (string.IsNullOrEmpty(scheme))
             {
                 throw new ArgumentException($"'{nameof(scheme)}' cannot be null or empty.", nameof(scheme));
-            }
-
-            if (configuration is null)
-            {
-                throw new ArgumentNullException(nameof(configuration));
             }
 
             return builder.AddOneId(scheme, OneIdAuthenticationDefaults.DisplayName, configuration);
@@ -142,20 +125,9 @@ namespace AspNet.Security.OAuth.OneID
             string caption,
             Action<OneIdAuthenticationOptions> configuration)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (scheme is null)
-            {
-                throw new ArgumentNullException(nameof(scheme));
-            }
-
-            if (configuration is null)
-            {
-                throw new ArgumentNullException(nameof(configuration));
-            }
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentNullException.ThrowIfNull(scheme);
+            ArgumentNullException.ThrowIfNull(configuration);
 
             builder.Services.AddHttpClient();
             builder.Services.TryAddSingleton<JwtSecurityTokenHandler>();

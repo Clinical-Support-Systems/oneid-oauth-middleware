@@ -29,17 +29,17 @@
 
 #endregion License, Terms and Conditions
 #if NETCORE
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
 namespace AspNet.Security.OAuth.OneID
 {
@@ -63,10 +63,7 @@ namespace AspNet.Security.OAuth.OneID
                 throw new ArgumentException($"'{nameof(name)}' cannot be null or empty.", nameof(name));
             }
 
-            if (options is null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
+            ArgumentNullException.ThrowIfNull(options);
 
             if (string.IsNullOrEmpty(options.TokenValidationParameters.ValidAudience) && !string.IsNullOrEmpty(options.ClientId))
             {
@@ -78,19 +75,6 @@ namespace AspNet.Security.OAuth.OneID
 
                 options.TokenValidationParameters.ValidateIssuerSigningKey = true;
             }
-
-            //            // As seen in:
-            //            // github.com/dotnet/aspnetcore/blob/master/src/Security/Authentication/OpenIdConnect/src/OpenIdConnectPostConfigureOptions.cs#L71-L102
-            //            // need this now to successfully instantiate ConfigurationManager below.
-            //            if (options.Backchannel == null)
-            //            {
-            //#pragma warning disable CA2000 // Dispose objects before losing scope
-            //                options.Backchannel = new HttpClient(options.BackchannelHttpHandler ?? new HttpClientHandler());
-            //#pragma warning restore CA2000 // Dispose objects before losing scope
-            //                options.Backchannel.DefaultRequestHeaders.UserAgent.ParseAdd(OneIdAuthenticationDefaults.UserAgent);
-            //                options.Backchannel.Timeout = options.BackchannelTimeout;
-            //                options.Backchannel.MaxResponseContentBufferSize = 1024 * 1024 * 10; // 10 MB
-            //            }
 
             options.TokenValidator ??= new DefaultOneIdTokenValidator(
                     _loggerFactory.CreateLogger<DefaultOneIdTokenValidator>());

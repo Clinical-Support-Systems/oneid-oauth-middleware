@@ -49,7 +49,10 @@ namespace AspNet.Security.OAuth.OneID
         {
         }
 
-        protected OneIdAuthenticationException(SerializationInfo info, StreamingContext context) : base(info, context)
+        protected OneIdAuthenticationException(SerializationInfo info, StreamingContext context)
+#if !NET8_0_OR_GREATER
+            : base(info, context)
+#endif
         {
         }
     }

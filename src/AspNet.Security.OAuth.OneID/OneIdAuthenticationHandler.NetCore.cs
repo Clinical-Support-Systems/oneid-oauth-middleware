@@ -72,25 +72,10 @@ namespace AspNet.Security.OAuth.OneID
         /// <param name="tokenHandler">The security token handler</param>
         public OneIdAuthenticationHandler(IOptionsMonitor<OneIdAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, JwtSecurityTokenHandler tokenHandler) : base(options, logger, encoder, clock)
         {
-            if (options is null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            if (logger is null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            if (encoder is null)
-            {
-                throw new ArgumentNullException(nameof(encoder));
-            }
-
-            if (clock is null)
-            {
-                throw new ArgumentNullException(nameof(clock));
-            }
+            ArgumentNullException.ThrowIfNull(options);
+            ArgumentNullException.ThrowIfNull(logger);
+            ArgumentNullException.ThrowIfNull(encoder);
+            ArgumentNullException.ThrowIfNull(clock);
 
             _tokenHandler = tokenHandler ?? throw new ArgumentNullException(nameof(tokenHandler));
         }
@@ -98,45 +83,13 @@ namespace AspNet.Security.OAuth.OneID
         /// <inheritdoc />
         protected override string BuildChallengeUrl(AuthenticationProperties properties, string redirectUri)
         {
-            if (properties is null)
-            {
-                throw new ArgumentNullException(nameof(properties));
-            }
+            ArgumentNullException.ThrowIfNull(properties);
 
             if (string.IsNullOrEmpty(redirectUri))
             {
                 throw new ArgumentException($"'{nameof(redirectUri)}' cannot be null or empty.", nameof(redirectUri));
             }
 
-            //            var uri = new Uri(redirectUri);
-            //            string subdomain = null;
-
-            //            if (uri.HostNameType == UriHostNameType.Dns)
-            //            {
-            //                var host = uri.Host;
-            //                if (host.Count(f => f == '.') > 1)
-            //                {
-            //                    subdomain = host.Split('.')[0];
-            //                }
-            //            }
-
-            //            string challengeUrl = null;
-
-            //            if (!string.IsNullOrEmpty(subdomain))
-            //            {
-            //                properties.SetString("subdomain", subdomain);
-
-            //                // challenge without the subdomain
-            //#if NET5_0_OR_GREATER
-            //                challengeUrl = base.BuildChallengeUrl(properties, redirectUri.Replace(subdomain + ".", string.Empty, StringComparison.InvariantCulture));
-            //#else
-            //                challengeUrl = base.BuildChallengeUrl(properties, redirectUri.Replace(subdomain + ".", string.Empty));
-            //#endif
-            //            }
-            //            else
-            //            {
-            //                challengeUrl = base.BuildChallengeUrl(properties, redirectUri);
-            //            }
             var challengeUrl = base.BuildChallengeUrl(properties, redirectUri);
             challengeUrl = QueryHelpers.AddQueryString(challengeUrl, "aud", ClaimNames.ApiAudience);
             challengeUrl = QueryHelpers.AddQueryString(challengeUrl, "_profile", Options.GetServiceProfileOptionsString());
@@ -160,54 +113,9 @@ namespace AspNet.Security.OAuth.OneID
         /// <inheritdoc />
         protected override async Task<AuthenticationTicket> CreateTicketAsync(ClaimsIdentity identity, AuthenticationProperties properties, OAuthTokenResponse tokens)
         {
-            if (identity is null)
-            {
-                throw new ArgumentNullException(nameof(identity));
-            }
-
-            if (properties is null)
-            {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            if (tokens is null)
-            {
-                throw new ArgumentNullException(nameof(tokens));
-            }
-
-            //if (Options.ConfigurationManager != null)
-            //{
-            //    var configuration = await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted).ConfigureAwait(false);
-
-            //    if (configuration != null && Options.UserInfo != configuration.UserInfoEndpoint)
-            //    {
-            //        Options.UserInfo = configuration.UserInfoEndpoint;
-            //    }
-            //}
-
-            //// TODO: UserInfo content is empty.
-            //if (!string.IsNullOrEmpty(Options.UserInfo))
-            //{
-            //    using var request = new HttpRequestMessage(HttpMethod.Get, Options.UserInfo);
-            //    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken!);
-            //    request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            //    using var userInfoResponse = await Backchannel.SendAsync(request, HttpCompletionOption.ResponseContentRead, Context.RequestAborted).ConfigureAwait(false);
-            //    if (!userInfoResponse.IsSuccessStatusCode)
-            //    {
-            //        Logger.LogUserInfoFailure(userInfoResponse.StatusCode, userInfoResponse.Headers.ToString(), await userInfoResponse.Content.ReadAsStringAsync(Context.RequestAborted).ConfigureAwait(false));
-            //        throw new HttpRequestException("An error occurred while retrieving the user profile.");
-            //    }
-            //    else
-            //    {
-            //        var userInfoPayloadString = await userInfoResponse.Content.ReadAsStringAsync(Context.RequestAborted).ConfigureAwait(false);
-            //        if (!string.IsNullOrEmpty(userInfoPayloadString))
-            //        {
-            //            using var userInfoPayload = JsonDocument.Parse(userInfoPayloadString);
-            //            // TODO: Something here with the userInfoPayload
-            //        }
-            //    }
-            //}
+            ArgumentNullException.ThrowIfNull(identity);
+            ArgumentNullException.ThrowIfNull(properties);
+            ArgumentNullException.ThrowIfNull(tokens);
 
             _ = ProcessIdTokenAndGetContactIdentifier(tokens, properties);
 
@@ -228,11 +136,6 @@ namespace AspNet.Security.OAuth.OneID
                 Logger.LogTokenResponse(tokens.Response?.RootElement);
             }
 
-            //if (string.IsNullOrEmpty(contextId))
-            //{
-            //    throw new InvalidOperationException("An error occurred trying to obtain the context identifier from the current user's identity claims.");
-            //}
-
             if (Options.ValidateTokens)
             {
                 var validateIdContext = new OneIdValidateIdTokenContext(Context, Scheme, Options, idToken);
@@ -247,8 +150,6 @@ namespace AspNet.Security.OAuth.OneID
             var principal = new ClaimsPrincipal(identity);
 
             var context = new OAuthCreatingTicketContext(principal, properties, Context, Scheme, Options, Backchannel, tokens, tokens.Response!.RootElement);
-
-            //List<AuthenticationToken> exactTokens = context.Properties.GetTokens().ToList();
 
             if (Context.Features.Get<ISessionFeature>() != null)
             {
@@ -275,16 +176,13 @@ namespace AspNet.Security.OAuth.OneID
         /// <inheritdoc/>
         protected override async Task<OAuthTokenResponse> ExchangeCodeAsync(OAuthCodeExchangeContext context)
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
+            ArgumentNullException.ThrowIfNull(context);
 
             using var request = new HttpRequestMessage(HttpMethod.Post, Options.TokenEndpoint);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
             request.Headers.UserAgent.ParseAdd(OneIdAuthenticationDefaults.UserAgent);
 
-            if (!context.Properties.Items.ContainsKey("code_verifier"))
+            if (!context.Properties.Items.TryGetValue("code_verifier", out string? codeVerifierValue))
             {
                 throw new InvalidOperationException("code_verifier is missing");
             }
@@ -295,10 +193,10 @@ namespace AspNet.Security.OAuth.OneID
                 ["grant_type"] = "authorization_code",
                 ["client_id"] = Options.ClientId,
                 ["code"] = context.Code,
-                ["code_verifier"] = context.Properties.Items["code_verifier"] ?? string.Empty
+                ["code_verifier"] = codeVerifierValue ?? string.Empty
             };
 
-            request.Content = new FormUrlEncodedContent(parameters.AsEnumerable() as IEnumerable<KeyValuePair<string?, string?>>);
+            request.Content = new FormUrlEncodedContent(parameters.AsEnumerable());
 
             using var response = await Backchannel.SendAsync(request, Context.RequestAborted).ConfigureAwait(false);
 
@@ -380,10 +278,7 @@ namespace AspNet.Security.OAuth.OneID
 
         private static void SaveIdToken(AuthenticationProperties properties, string idToken)
         {
-            if (properties is null)
-            {
-                throw new ArgumentNullException(nameof(properties));
-            }
+            ArgumentNullException.ThrowIfNull(properties);
 
             if (string.IsNullOrEmpty(idToken))
             {
@@ -409,12 +304,10 @@ namespace AspNet.Security.OAuth.OneID
         /// <param name="tokens">The tokens</param>
         /// <param name="properties">The authentication properties.</param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
         private string? ProcessIdTokenAndGetContactIdentifier(OAuthTokenResponse tokens, AuthenticationProperties properties)
         {
-            if (tokens is null)
-            {
-                throw new ArgumentNullException(nameof(tokens));
-            }
+            ArgumentNullException.ThrowIfNull(tokens);
 
             if (Options.SaveTokens)
             {
@@ -426,17 +319,6 @@ namespace AspNet.Security.OAuth.OneID
                     SaveIdToken(properties, idToken);
                 }
             }
-
-            //if (tokens.Response != null)
-            //{
-            //    using var stream = new MemoryStream();
-            //    using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
-            //    tokens.Response.WriteTo(writer);
-            //    writer.Flush();
-            //    string json = Encoding.UTF8.GetString(stream.ToArray());
-
-            //    // Hmm, do we need to do something with serviceEntitlements here?
-            //}
 
             return string.Empty;
         }

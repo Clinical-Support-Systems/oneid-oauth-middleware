@@ -140,6 +140,7 @@ namespace AspNet.Security.OAuth.OneID
             AuthenticationMode = AuthenticationMode.Passive;
             CallbackPath = new PathString(OneIdAuthenticationDefaults.CallbackPath);
             BackchannelTimeout = TimeSpan.FromSeconds(60);
+            ResponseType = "code";
 
             Scope = new List<string>
             {
@@ -178,6 +179,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Authority, which depends on the environment
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1863:Use 'CompositeFormat'", Justification = "<Pending>")]
         public string Authority
         {
             get
@@ -267,7 +269,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Response type
         /// </summary>
-        public string ResponseType { get; } = string.Empty;
+        public string ResponseType { get; }
 
         /// <summary>
         /// Validate tokens?
@@ -295,6 +297,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Audience
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1863:Use 'CompositeFormat'", Justification = "<Pending>")]
         public string Audience
         {
             get
@@ -360,6 +363,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// UserInformationEndpoint, which depends on the environment
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1863:Use 'CompositeFormat'", Justification = "<Pending>")]
         public string UserInfo
         {
             get
@@ -422,6 +426,7 @@ namespace AspNet.Security.OAuth.OneID
             };
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1863:Use 'CompositeFormat'", Justification = "<Pending>")]
         private void UpdateEndpoints()
         {
             string env = GetEnvironment();
@@ -462,7 +467,7 @@ namespace AspNet.Security.OAuth.OneID
                 Audience = Audience.Replace(".prod", string.Empty, StringComparison.InvariantCulture).Replace("idaasprodoidc", "idaasoidc", StringComparison.InvariantCultureIgnoreCase); // Special case
                 EndSessionEndpoint = EndSessionEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
                 MetadataEndpoint = MetadataEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
-                UserInfo = UserInfo.Replace(".prod", string.Empty, StringComparison.InvariantCulture).Replace("idaasprodoidc", "idaasoidc", StringComparison.InvariantCultureIgnoreCase); // Special case;
+                UserInfo = UserInfo.Replace(".prod", string.Empty, StringComparison.InvariantCulture).Replace("idaasprodoidc", "idaasoidc", StringComparison.InvariantCultureIgnoreCase); // Special case
 #else
                 AuthorizationEndpoint = AuthorizationEndpoint.Replace(".prod", string.Empty);
                 TokenEndpoint = TokenEndpoint.Replace(".prod", string.Empty);
@@ -493,35 +498,35 @@ namespace AspNet.Security.OAuth.OneID
 
             if (string.IsNullOrEmpty(AuthorizationEndpoint))
             {
-                throw new ArgumentException($"The '{nameof(AuthorizationEndpoint)}' option must be provided.", nameof(AuthorizationEndpoint));
+                throw new InvalidOperationException($"The '{nameof(AuthorizationEndpoint)}' option must be provided.");
             }
 
             if (string.IsNullOrEmpty(TokenEndpoint))
             {
-                throw new ArgumentException($"The '{nameof(TokenEndpoint)}' option must be provided.", nameof(TokenEndpoint));
+                throw new InvalidOperationException($"The '{nameof(TokenEndpoint)}' option must be provided.");
             }
 
             if (!ServiceProfileOptions.HasFlag(OneIdAuthenticationServiceProfiles.OLIS) && !ServiceProfileOptions.HasFlag(OneIdAuthenticationServiceProfiles.DHDR))
             {
-                throw new ArgumentException($"A '{nameof(ServiceProfileOptions)}' option must be provided.", nameof(ServiceProfileOptions));
+                throw new InvalidOperationException($"A '{nameof(ServiceProfileOptions)}' option must be provided.");
             }
 
             if (!TokenSaveOptions.HasFlag(OneIdAuthenticationTokenSave.AccessToken)
                 && !TokenSaveOptions.HasFlag(OneIdAuthenticationTokenSave.RefreshToken)
                 && !TokenSaveOptions.HasFlag(OneIdAuthenticationTokenSave.IdToken))
             {
-                throw new ArgumentException($"A '{nameof(TokenSaveOptions)}' option must be provided because they must be accessed in session.", nameof(TokenSaveOptions));
+                throw new InvalidOperationException($"A '{nameof(TokenSaveOptions)}' option must be provided because they must be accessed in session.");
             }
 
             if (_environment != OneIdAuthenticationEnvironment.Production &&
                 string.IsNullOrEmpty(ClientSecret))
             {
-                throw new ArgumentException($"The '{nameof(ClientSecret)}' option must be provided within this environment.", nameof(ClientSecret));
+                throw new InvalidOperationException($"The '{nameof(ClientSecret)}' option must be provided within this environment.");
             }
 
             if (!CallbackPath.HasValue)
             {
-                throw new ArgumentException($"The '{nameof(CallbackPath)}' option must be provided.", nameof(CallbackPath));
+                throw new InvalidOperationException($"The '{nameof(CallbackPath)}' option must be provided.");
             }
 
             if (ConfigurationManager == null)

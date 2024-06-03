@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net48;net6.0;net7.0</TargetFrameworks>
+		<TargetFrameworks>net48;net7.0;net8.0</TargetFrameworks>
 		<LangVersion>latest</LangVersion>
 		<Features>strict</Features>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -35,13 +35,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.26.0" />
 		<PackageReference Include="Nerdbank.GitVersioning" Version="3.5.119">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.26.0" />
+		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="7.6.0" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -51,18 +50,19 @@
 		</PackageReference>
 	</ItemGroup>
 
-	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="6.0.*" />
-	</ItemGroup>
-
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="7.0.*" />
+	</ItemGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.*" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net48'">
 		<PackageReference Include="Microsoft.Owin" Version="4.2.2" />
 		<PackageReference Include="Microsoft.Owin.Security.OAuth" Version="4.2.2" />
 		<PackageReference Include="Microsoft.Net.Http" Version="2.2.29" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.35.0" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net48'">
