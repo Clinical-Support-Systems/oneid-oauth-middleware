@@ -62,6 +62,7 @@ namespace AspNet.Security.OAuth.OneID
     {
         private readonly JwtSecurityTokenHandler _tokenHandler;
 
+#if !NET8_0_OR_GREATER
         /// <summary>
         /// Constructor
         /// </summary>
@@ -79,6 +80,18 @@ namespace AspNet.Security.OAuth.OneID
 
             _tokenHandler = tokenHandler ?? throw new ArgumentNullException(nameof(tokenHandler));
         }
+#endif
+
+#if NET8_0_OR_GREATER
+        public OneIdAuthenticationHandler(IOptionsMonitor<OneIdAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, JwtSecurityTokenHandler tokenHandler) : base(options, logger, encoder)
+        {
+            ArgumentNullException.ThrowIfNull(options);
+            ArgumentNullException.ThrowIfNull(logger);
+            ArgumentNullException.ThrowIfNull(encoder);
+
+            _tokenHandler = tokenHandler ?? throw new ArgumentNullException(nameof(tokenHandler));
+        }
+#endif
 
         /// <inheritdoc />
         protected override string BuildChallengeUrl(AuthenticationProperties properties, string redirectUri)

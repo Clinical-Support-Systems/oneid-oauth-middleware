@@ -41,7 +41,7 @@ namespace ConsumerApp.Kestrel
                 CertificateThumbprint = Configuration["EHS:CertificateThumbprint"],
                 ClientSecret = Configuration["EHS:ClientSecret"],
                 Environment = OneIdAuthenticationEnvironment.PartnerSelfTest,
-                CallbackPath = new PathString("/oneid-signin"),
+                CallbackPath = new("/oneid-signin"),
                 CertificateStoreName = StoreName.My,
                 CertificateStoreLocation = StoreLocation.CurrentUser,
                 TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken | OneIdAuthenticationTokenSave.IdToken,

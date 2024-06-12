@@ -49,11 +49,11 @@ namespace AspNet.Security.OAuth.OneID.Provider
         public OneIdTokenRequestContext(IOwinContext context, OneIdAuthenticationOptions options, string state, string? code, AuthenticationProperties properties)
             : base(context)
         {
-            this.Context = context;
-            this.Options = options;
-            this.State = state;
-            this.Code = code;
-            this.Properties = properties;
+            Context = context;
+            Options = options;
+            State = state;
+            Code = code;
+            Properties = properties;
         }
 
         #endregion Constructors and Destructors

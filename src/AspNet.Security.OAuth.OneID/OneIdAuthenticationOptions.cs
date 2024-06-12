@@ -322,8 +322,8 @@ namespace AspNet.Security.OAuth.OneID
         public string AuthorizationEndpoint { get; private set; } = string.Empty;
         public string TokenEndpoint { get; private set; } = string.Empty;
         public string ClaimsIssuer { get; private set; } = string.Empty;
-
         public string ClientId { get; set; } = string.Empty;
+        public string ClientSecret { get; set; } = string.Empty;
 
         public ISecureDataFormat<AuthenticationProperties>? StateDataFormat { get; set; }
         public IOneIdAuthenticationProvider Provider { get; set; } = new OneIdAuthenticationProvider();

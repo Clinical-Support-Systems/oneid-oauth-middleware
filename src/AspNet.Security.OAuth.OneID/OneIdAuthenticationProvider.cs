@@ -80,11 +80,11 @@ namespace AspNet.Security.OAuth.OneID
     {
         public OneIdAuthenticationProvider()
         {
-            this.OnAuthenticating = _ => Task.CompletedTask;
-            this.OnAuthenticated = _ => Task.CompletedTask;
-            this.OnReturnEndpoint = _ => Task.CompletedTask;
-            this.OnApplyRedirect = context => context.Response.Redirect(context.RedirectUri.AbsoluteUri);
-            this.OnTokenRequest = _ => Task.FromResult<object?>(null);
+            OnAuthenticating = _ => Task.CompletedTask;
+            OnAuthenticated = _ => Task.CompletedTask;
+            OnReturnEndpoint = _ => Task.CompletedTask;
+            OnApplyRedirect = context => context.Response.Redirect(context.RedirectUri.AbsoluteUri);
+            OnTokenRequest = _ => Task.FromResult<object?>(null);
         }
 
         /// <summary>
@@ -112,22 +112,22 @@ namespace AspNet.Security.OAuth.OneID
 
         public virtual Task Authenticating(OneIdAuthenticatingContext context)
         {
-            return this.OnAuthenticating(context);
+            return OnAuthenticating(context);
         }
 
         public virtual Task Authenticated(OneIdAuthenticatedContext context)
         {
-            return this.OnAuthenticated(context);
+            return OnAuthenticated(context);
         }
 
         public virtual Task ReturnEndpoint(OneIdReturnEndpointContext context)
         {
-            return this.OnReturnEndpoint(context);
+            return OnReturnEndpoint(context);
         }
 
         public virtual void ApplyRedirect(OneIdApplyRedirectContext context)
         {
-            this.OnApplyRedirect(context);
+            OnApplyRedirect(context);
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <returns>A <see cref="Task"/> representing the completed operation.</returns>
         public virtual Task TokenRequest(OneIdTokenRequestContext context)
         {
-            return this.OnTokenRequest(context);
+            return OnTokenRequest(context);
         }
     }
 }

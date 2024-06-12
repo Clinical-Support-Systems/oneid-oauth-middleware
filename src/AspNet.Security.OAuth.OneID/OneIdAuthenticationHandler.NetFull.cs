@@ -113,7 +113,7 @@ namespace AspNet.Security.OAuth.OneID
                     return new AuthenticationTicket(null, properties);
                 }
 
-                var tokenRequestContext = new OneIdTokenRequestContext(this.Context, this.Options, state, code, properties);
+                var tokenRequestContext = new OneIdTokenRequestContext(Context, Options, state, code, properties);
                 await Options.Provider.TokenRequest(tokenRequestContext).ConfigureAwait(false);
 
                 string host = Request.Host.Value;
@@ -141,19 +141,19 @@ namespace AspNet.Security.OAuth.OneID
                         hostWithoutPrefix = match.Groups[0].Value;
                 }
 
-                var requestPrefix = Request.Scheme + Uri.SchemeDelimiter + hostWithoutPrefix + this.Request.PathBase;
+                var requestPrefix = Request.Scheme + Uri.SchemeDelimiter + hostWithoutPrefix + Request.PathBase;
                 var redirectUri = requestPrefix + Options.CallbackPath;
                 var body = new Dictionary<string, string>
                 {
                     { OneIdAuthenticationConstants.OAuth2Constants.RedirectUri, redirectUri },
                     { OneIdAuthenticationConstants.OAuth2Constants.GrantType, OneIdAuthenticationConstants.OAuth2Constants.AuthorizationCode },
-                    { OneIdAuthenticationConstants.OAuth2Constants.ClientId, Uri.EscapeDataString(this.Options.ClientId) },
+                    { OneIdAuthenticationConstants.OAuth2Constants.ClientId, Uri.EscapeDataString(Options.ClientId) },
                     { OneIdAuthenticationConstants.OAuth2Constants.Code, Uri.EscapeDataString(code) },
                     { OneIdAuthenticationConstants.OAuth2Constants.CodeVerifier, Uri.EscapeDataString(_pkceCode?.CodeVerifier) },
                 };
 
                 // Request the token
-                using var requestMessage = new HttpRequestMessage(HttpMethod.Post, this.Options.TokenEndpoint);
+                using var requestMessage = new HttpRequestMessage(HttpMethod.Post, Options.TokenEndpoint);
                 requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 requestMessage.Content = new FormUrlEncodedContent(body);
                 var tokenResponse = await _httpClient.SendAsync(requestMessage).ConfigureAwait(false);
@@ -196,27 +196,27 @@ namespace AspNet.Security.OAuth.OneID
 
                 if (!string.IsNullOrEmpty(context.Id))
                 {
-                    context.Identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, context.Id, XmlSchemaString, this.Options.AuthenticationType));
+                    context.Identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, context.Id, XmlSchemaString, Options.AuthenticationType));
                 }
 
                 if (!string.IsNullOrEmpty(context.Email))
                 {
-                    context.Identity.AddClaim(new Claim(ClaimTypes.Email, context.Email, XmlSchemaString, this.Options.AuthenticationType));
+                    context.Identity.AddClaim(new Claim(ClaimTypes.Email, context.Email, XmlSchemaString, Options.AuthenticationType));
                 }
 
                 if (!string.IsNullOrEmpty(context.PhoneNumber))
                 {
-                    context.Identity.AddClaim(new Claim(ClaimTypes.HomePhone, context.PhoneNumber, XmlSchemaString, this.Options.AuthenticationType));
+                    context.Identity.AddClaim(new Claim(ClaimTypes.HomePhone, context.PhoneNumber, XmlSchemaString, Options.AuthenticationType));
                 }
 
                 if (!string.IsNullOrEmpty(context.GivenName))
                 {
-                    context.Identity.AddClaim(new Claim(ClaimTypes.GivenName, context.GivenName, XmlSchemaString, this.Options.AuthenticationType));
+                    context.Identity.AddClaim(new Claim(ClaimTypes.GivenName, context.GivenName, XmlSchemaString, Options.AuthenticationType));
                 }
 
                 if (!string.IsNullOrEmpty(context.FamilyName))
                 {
-                    context.Identity.AddClaim(new Claim(ClaimTypes.Surname, context.FamilyName, XmlSchemaString, this.Options.AuthenticationType));
+                    context.Identity.AddClaim(new Claim(ClaimTypes.Surname, context.FamilyName, XmlSchemaString, Options.AuthenticationType));
                 }
 
                 context.Properties = properties;
@@ -417,7 +417,7 @@ namespace AspNet.Security.OAuth.OneID
             var explicitParameters = new Dictionary<string, string>
                 {
                     { OneIdAuthenticationConstants.OAuth2Constants.ResponseType, OneIdAuthenticationConstants.OAuth2Constants.Code },
-                    { OneIdAuthenticationConstants.OAuth2Constants.ClientId, Uri.EscapeDataString(this.Options.ClientId) },
+                    { OneIdAuthenticationConstants.OAuth2Constants.ClientId, Uri.EscapeDataString(Options.ClientId) },
                     { OneIdAuthenticationConstants.OAuth2Constants.RedirectUri, Uri.EscapeDataString(redirectUri) },
                     { OneIdAuthenticationConstants.OAuth2Constants.Scope, Uri.EscapeDataString(scope) },
                     { OneIdAuthenticationConstants.OAuth2Constants.State, Uri.EscapeDataString(state) },
@@ -428,8 +428,8 @@ namespace AspNet.Security.OAuth.OneID
                     { OneIdAuthenticationConstants.OAuth2Constants.Profile, Uri.EscapeDataString(Options.GetServiceProfileOptionsString()) },
                 };
 
-            var requestParameters = MergeAdditionalKeyValuePairsIntoExplicitKeyValuePairs(explicitParameters, this.Options.AdditionalParameters);
-            var authorizationEndpoint = this.Options.AuthorizationEndpoint + requestParameters.ToQueryString();
+            var requestParameters = MergeAdditionalKeyValuePairsIntoExplicitKeyValuePairs(explicitParameters, Options.AdditionalParameters);
+            var authorizationEndpoint = Options.AuthorizationEndpoint + requestParameters.ToQueryString();
 
             var cookieOptions = new CookieOptions
             {

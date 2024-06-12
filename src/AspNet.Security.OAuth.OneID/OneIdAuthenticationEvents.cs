@@ -45,10 +45,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Gets or sets the delegate that is invoked when the <see cref="ValidateIdToken"/> method is invoked.
         /// </summary>
-        public Func<OneIdValidateIdTokenContext, Task> OnValidateIdToken { get; set; } = async context =>
-        {
-            await context.Options.TokenValidator.ValidateAsync(context).ConfigureAwait(false);
-        };
+        public Func<OneIdValidateIdTokenContext, Task> OnValidateIdToken { get; set; } = async context => await context.Options.TokenValidator.ValidateAsync(context).ConfigureAwait(false);
 
         /// <summary>
         /// Invoked whenever the ID token needs to be validated.

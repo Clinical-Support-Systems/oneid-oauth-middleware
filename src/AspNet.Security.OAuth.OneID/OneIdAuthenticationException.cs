@@ -49,10 +49,11 @@ namespace AspNet.Security.OAuth.OneID
         {
         }
 
+
         protected OneIdAuthenticationException(SerializationInfo info, StreamingContext context)
-#if !NET8_0_OR_GREATER
+#pragma warning disable SYSLIB0051 // Type or member is obsolete
             : base(info, context)
-#endif
+#pragma warning restore SYSLIB0051 // Type or member is obsolete
         {
         }
     }

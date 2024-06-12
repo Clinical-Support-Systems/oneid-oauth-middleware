@@ -66,7 +66,7 @@ namespace AspNet.Security.OAuth.OneID
         {
             ArgumentNullException.ThrowIfNull(builder);
 
-            return builder.AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, options => { });
+            return builder.AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, _ => { });
         }
 
         /// <summary>
