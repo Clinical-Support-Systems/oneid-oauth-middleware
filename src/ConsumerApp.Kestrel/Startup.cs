@@ -76,6 +76,7 @@ namespace ConsumerApp.Kestrel
                 options.CorrelationCookie.SameSite = SameSiteMode.Lax;
                 options.CallbackPath = new PathString("/oneid-signin");
                 options.CertificateStoreName = StoreName.My;
+                options.SaveTokens = true;
                 options.CertificateStoreLocation = StoreLocation.CurrentUser;
                 options.TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken | OneIdAuthenticationTokenSave.IdToken;
                 options.ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS | OneIdAuthenticationServiceProfiles.DHDR;

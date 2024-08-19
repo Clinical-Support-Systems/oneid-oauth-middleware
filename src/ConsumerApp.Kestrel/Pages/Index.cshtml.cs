@@ -26,7 +26,7 @@ namespace ConsumerApp.Kestrel.Pages
         public static string? IdToken { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public string? AccessToken { get; set; }
+        public static string? AccessToken { get; set; }
 
         [BindProperty(SupportsGet = true)]
         public string? RefreshToken { get; set; }
