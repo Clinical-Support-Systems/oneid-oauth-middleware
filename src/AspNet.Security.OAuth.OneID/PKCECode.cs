@@ -35,13 +35,13 @@ using System;
 
 namespace AspNet.Security.OAuth.OneID
 {
-    public class PKCECode
+    public class PkceCode
     {
         public string? CodeChallenge { get; set; }
 
         public string? CodeVerifier { get; set; }
 
-        public static PKCECode GeneratePKCECodes()
+        public static PkceCode GeneratePKCECodes()
         {
             var bytes = new byte[32];
             using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
@@ -66,7 +66,7 @@ namespace AspNet.Security.OAuth.OneID
                     .Replace('/', '_');
             }
 
-            return new PKCECode()
+            return new PkceCode()
             {
                 CodeVerifier = code_verifier,
                 CodeChallenge = code_challenge,

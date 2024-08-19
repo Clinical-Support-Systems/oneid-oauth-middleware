@@ -404,9 +404,9 @@ namespace AspNet.Security.OAuth.OneID
         public TokenValidationParameters TokenValidationParameters { get; set; } = new TokenValidationParameters();
 
         /// <summary>
-        /// Gets or sets the <see cref="OneIdTokenValidator"/> to use.
+        /// Gets or sets the <see cref="IOneIdTokenValidator"/> to use.
         /// </summary>
-        public OneIdTokenValidator TokenValidator { get; set; } = default!;
+        public IOneIdTokenValidator TokenValidator { get; set; } = default!;
 
 #endif
 
