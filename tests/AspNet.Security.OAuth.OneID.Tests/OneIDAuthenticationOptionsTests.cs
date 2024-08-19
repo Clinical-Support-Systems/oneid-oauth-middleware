@@ -30,7 +30,7 @@ namespace AspNet.Security.OAuth.Providers.Tests
             };
 
             // Act and Assert
-            Assert.Throws<ArgumentException>("ClientSecret", () => options.Validate());
+            Assert.Throws<InvalidOperationException>(options.Validate);
         }
 
         [Fact]
@@ -43,7 +43,8 @@ namespace AspNet.Security.OAuth.Providers.Tests
             };
 
             // Act and Assert
-            Assert.Throws<ArgumentException>("ServiceProfileOptions", () => options.Validate());
+            Assert.Throws<InvalidOperationException>(options.Validate);
+            
         }
 
         [Fact]
@@ -58,7 +59,7 @@ namespace AspNet.Security.OAuth.Providers.Tests
             };
 
             // Act and Assert
-            Assert.Throws<ArgumentException>("TokenSaveOptions", () => options.Validate());
+            Assert.Throws<InvalidOperationException>(options.Validate);
         }
 
         [Fact]
