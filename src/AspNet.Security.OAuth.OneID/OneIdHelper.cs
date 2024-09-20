@@ -149,10 +149,10 @@ namespace AspNet.Security.OAuth.OneID
 
             var tokenEndpoint = options.Environment switch
             {
-                OneIdAuthenticationEnvironment.Production => "https://login.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasoidc/access_token",
-                OneIdAuthenticationEnvironment.PartnerSelfTest => "https://login.pst.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaaspstoidc/access_token",
-                OneIdAuthenticationEnvironment.Development => "https://login.dev.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasdevoidc/access_token",
-                OneIdAuthenticationEnvironment.QualityAssurance => "https://login.qa.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasqaoidc/access_token",
+                OneIdAuthenticationEnvironment.Production => "https://login.oneidfederation.ehealthontario.ca/oidc/access_token",
+                OneIdAuthenticationEnvironment.PartnerSelfTest => "https://login.pst.oneidfederation.ehealthontario.ca/oidc/access_token",
+                OneIdAuthenticationEnvironment.Development => "https://login.dev.oneidfederation.ehealthontario.ca/oidc/access_token",
+                OneIdAuthenticationEnvironment.QualityAssurance => "https://login.qa.oneidfederation.ehealthontario.ca/oidc/access_token",
                 _ => throw new NotSupportedException(),
             };
 
@@ -164,6 +164,7 @@ namespace AspNet.Security.OAuth.OneID
             {
                 [OAuth2Constants.GrantType] = OAuth2Constants.RefreshToken,
                 [OAuth2Constants.RefreshToken] = refreshToken,
+                [OAuth2Constants.ClientId] = options.ClientId
             };
 
             request.Content = new FormUrlEncodedContent((IEnumerable<KeyValuePair<string?, string?>>)parameters);
