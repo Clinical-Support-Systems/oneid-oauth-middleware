@@ -18,8 +18,8 @@
 		<PackageReference Include="MartinCostello.Logging.XUnit" Version="0.4.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.8" />
 		<PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.8" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
-		<PackageReference Include="Moq" Version="4.20.70" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+		<PackageReference Include="Moq" Version="4.20.72" />
 		<PackageReference Include="Shouldly" Version="4.2.1" />
 		<PackageReference Include="xunit" Version="2.9.0" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
@@ -50,10 +50,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="CABMD.CSS.PROD-combined.pfx" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
 			<_Parameter1>SolutionRoot</_Parameter1>
 			<_Parameter2>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../'))</_Parameter2>
@@ -61,13 +57,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="CABMD.CSS.PROD-combined.pfx">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <PackageReference Update="DotNet.ReproducibleBuilds" Version="1.2.4" />
+	  <PackageReference Update="DotNet.ReproducibleBuilds" Version="1.2.25" />
 	</ItemGroup>
 
 </Project>
