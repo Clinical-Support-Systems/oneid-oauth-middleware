@@ -110,18 +110,18 @@ namespace AspNet.Security.OAuth.OneID
 
                 // we now need to create a JWT that we include in the response as the claim_assertion
                 var permClaims = new List<Claim>
-            {
-                new("iss", _options.ClientId),
-                new("sub", _options.ClientId),
-                new("aud", _options.Audience),
-                new("iat", now.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
-                new("exp", expire.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
+                {
+                    new("iss", _options.ClientId ?? _options.AuthClientId),
+                    new("sub", _options.ClientId ?? _options.AuthClientId),
+                    new("aud", _options.Audience),
+                    new("iat", now.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
+                    new("exp", expire.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
 #if NETCORE
-                new("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-", string.Empty, StringComparison.InvariantCulture)}")
+                    new("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-", string.Empty, StringComparison.InvariantCulture)}")
 #else
-                new("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-", string.Empty)}")
+                    new("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-", string.Empty)}")
 #endif
-            };
+                };
 
                 // Create Security Token object by giving required parameters. Since we're specifically setting the iss/sub/aud/exp above, don't include them below
                 var token = new JwtSecurityToken(

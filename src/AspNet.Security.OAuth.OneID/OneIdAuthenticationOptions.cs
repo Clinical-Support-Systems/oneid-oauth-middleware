@@ -253,6 +253,8 @@ namespace AspNet.Security.OAuth.OneID
         /// </summary>
         public string? CertificateThumbprint { get; set; }
 
+        public string AuthClientId { get; set; } = string.Empty;
+
         public StoreLocation CertificateStoreLocation { get; set; }
         public StoreName CertificateStoreName { get; set; }
 

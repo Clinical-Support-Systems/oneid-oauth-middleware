@@ -164,7 +164,7 @@ namespace AspNet.Security.OAuth.OneID
             {
                 [OAuth2Constants.GrantType] = OAuth2Constants.RefreshToken,
                 [OAuth2Constants.RefreshToken] = refreshToken,
-                [OAuth2Constants.ClientId] = options.ClientId
+                [OAuth2Constants.ClientId] = options.AuthClientId ?? options.ClientId
             };
 
             request.Content = new FormUrlEncodedContent((IEnumerable<KeyValuePair<string?, string?>>)parameters);
