@@ -1,15 +1,10 @@
 ﻿using AspNet.Security.OAuth.OneID;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AspNet.Security.OAuth.Providers.Tests
 {
     public class TokenTests
     {
-        [Fact]
+        [Fact(Skip = "Only do this when verifying")]
         public async Task RefreshToken_Should_Return_New_AccessToken_Production()
         {
             var existingAccessToken = "";
