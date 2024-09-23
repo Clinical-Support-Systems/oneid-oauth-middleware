@@ -251,10 +251,12 @@ namespace AspNet.Security.OAuth.OneID
                         throw new InvalidOperationException($"'{nameof(securityToken)}' cannot be null or have no claims.");
                     }
 
-                    retVal = new(securityToken.Claims)
+                    retVal = new(securityToken.Claims);
+                    
+                    if (!string.IsNullOrEmpty(securityToken.Subject))
                     {
-                        new Claim(ClaimTypes.NameIdentifier, securityToken.Subject, ClaimValueTypes.String, ClaimsIssuer),
-                    };
+                        retVal.Add(new Claim(ClaimTypes.NameIdentifier, securityToken.Subject, ClaimValueTypes.String, ClaimsIssuer));
+                    }
 
                     var address = securityToken.Claims.FirstOrDefault(x => x.Type == "email")?.Value;
                     if (!string.IsNullOrEmpty(address))
