@@ -297,20 +297,20 @@ namespace AspNet.Security.OAuth.OneID
         private static void SaveToken(AuthenticationProperties properties, string token, string tokenName)
         {
             ArgumentNullException.ThrowIfNull(properties);
-
             if (string.IsNullOrEmpty(token))
             {
                 throw new ArgumentException($"'{nameof(token)}' cannot be null or empty.", nameof(token));
             }
 
-            // Get the currently available tokens
+            // Get the currently available tokens and check for the token existence more efficiently
             var tokens = properties.GetTokens().ToList();
 
-            // Add the extra token
-            if (!tokens.Exists(t => t.Value == token))
-                tokens.Add(new AuthenticationToken() { Name = tokenName, Value = token });
+            if (!tokens.Exists(t => t.Name == tokenName && t.Value == token))
+            {
+                tokens.Add(new AuthenticationToken { Name = tokenName, Value = token });
+            }
 
-            // Overwrite store with original tokens with the new additional token
+            // Store the updated tokens
             properties.StoreTokens(tokens);
         }
 
@@ -327,22 +327,40 @@ namespace AspNet.Security.OAuth.OneID
 
             if (Options.SaveTokens)
             {
-                // Save id_token as well, if needed
-                var idToken = tokens.Response!.RootElement.GetString("id_token");
-                if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.IdToken) == OneIdAuthenticationTokenSave.IdToken && !string.IsNullOrEmpty(idToken))
-                {
-                    SaveToken(properties, idToken, "id_token");
-                }
-
-                // Save id_token as well, if needed
-                var accessToken = tokens.Response!.RootElement.GetString("access_token");
-                if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.AccessToken) == OneIdAuthenticationTokenSave.AccessToken && !string.IsNullOrEmpty(accessToken))
-                {
-                    SaveToken(properties, accessToken, "access_token");
-                }
+                // Consolidate logic for token saving to avoid repetition
+                SaveTokenIfRequired(tokens, properties, "id_token", OneIdAuthenticationTokenSave.IdToken);
+                SaveTokenIfRequired(tokens, properties, "access_token", OneIdAuthenticationTokenSave.AccessToken);
             }
 
-            return string.Empty;
+            // If a contact identifier needs to be extracted, this is where the logic should go
+            return string.Empty; // This could be replaced with actual logic
+        }
+
+        /// <summary>
+        /// Check if the token is one we want to save 
+        /// </summary>
+        /// <param name="tokens">
+        /// The tokens
+        /// </param>
+        /// <param name="properties">
+        /// The authentication properties 
+        /// </param>
+        /// <param name="tokenKey">
+        /// The key we're looking to see if we want to save
+        /// </param>
+        /// <param name="tokenSaveOption">
+        /// The token save option we're looking to see if we want to save
+        /// </param>
+        private void SaveTokenIfRequired(OAuthTokenResponse tokens, AuthenticationProperties properties, string tokenKey, OneIdAuthenticationTokenSave tokenSaveOption)
+        {
+            if ((Options.TokenSaveOptions & tokenSaveOption) == tokenSaveOption)
+            {
+                var token = tokens.Response?.RootElement.GetString(tokenKey);
+                if (!string.IsNullOrEmpty(token))
+                {
+                    SaveToken(properties, token, tokenKey);
+                }
+            }
         }
     }
 }
