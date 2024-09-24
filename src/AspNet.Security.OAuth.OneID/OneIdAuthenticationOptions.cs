@@ -112,6 +112,7 @@ namespace AspNet.Security.OAuth.OneID
                 RoleClaimType = "groups"
             };
 
+            // Profile, email and offline_access scopes are not supported by OneID
             Scope.Clear();
             Scope.Add("openid");
 
