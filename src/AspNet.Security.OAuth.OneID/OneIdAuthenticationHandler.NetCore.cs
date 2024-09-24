@@ -247,7 +247,13 @@ namespace AspNet.Security.OAuth.OneID
                     _tokenHandler.InboundClaimTypeMap.Clear();
                     _tokenHandler.MapInboundClaims = false;
 
-                    var securityToken = _tokenHandler.ReadJwtToken(token);
+                    var sToken = _tokenHandler.ReadJwtToken(token);
+
+                    var tokenHandler = new JsonWebTokenHandler();
+
+                    // Parse and get the token
+                    var securityToken = tokenHandler.ReadJsonWebToken(token);
+
 
                     if (securityToken == null || securityToken.Claims == null)
                     {
