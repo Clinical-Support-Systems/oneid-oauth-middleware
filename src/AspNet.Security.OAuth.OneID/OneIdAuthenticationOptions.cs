@@ -430,6 +430,9 @@ namespace AspNet.Security.OAuth.OneID
         private void UpdateEndpoints()
         {
             string env = GetEnvironment();
+            
+            Audience = string.Format(CultureInfo.InvariantCulture, FormatStrings.Audience, env);
+            Authority = string.Format(CultureInfo.InvariantCulture, FormatStrings.Authority, env);
 
             AuthorizationEndpoint = string.Format(CultureInfo.InvariantCulture,
                FormatStrings.AuthorizeEndpoint,

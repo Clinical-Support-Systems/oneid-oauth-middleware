@@ -1,15 +1,11 @@
 ﻿using AspNet.Security.OAuth.OneID;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
@@ -19,24 +15,21 @@ namespace ConsumerApp.Kestrel.Pages
 {
     public class IndexModel : PageModel
     {
-        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
-
-        [BindProperty(SupportsGet = true)]
-        public static string? IdToken { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public static string? AccessToken { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public string? RefreshToken { get; set; }
-
+        private readonly IHttpClientFactory _httpClientFactory;
         public IndexModel(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
         }
 
+        [BindProperty(SupportsGet = true)]
+        public static string? AccessToken { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public static string? IdToken { get; set; }
+        [BindProperty(SupportsGet = true)]
+        public string? RefreshToken { get; set; }
         public async Task OnGet()
         {
             if (User == null || User.Identity == null) return;
@@ -65,27 +58,31 @@ namespace ConsumerApp.Kestrel.Pages
 
         public async Task OnPostSubmit(CancellationToken ct = default)
         {
-            using var client = _httpClientFactory.CreateClient(OneIdAuthenticationDefaults.DisplayName);
-
-            if (!string.IsNullOrEmpty(RefreshToken))
+            if (string.IsNullOrEmpty(RefreshToken))
             {
-                var options = new OneIdAuthenticationOptions()
-                {
-                    ClientId = _configuration["EHS:ClientId"],
-                    CertificateThumbprint = _configuration["EHS:CertificateThumbprint"],
-                    ClientSecret = _configuration["EHS:ClientSecret"],
-                    Environment = OneIdAuthenticationEnvironment.PartnerSelfTest,
-                    CallbackPath = new("/oneid-signin"),
-                    CertificateStoreName = StoreName.My,
-                    CertificateStoreLocation = StoreLocation.CurrentUser,
-                    TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken | OneIdAuthenticationTokenSave.IdToken,
-                    ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS | OneIdAuthenticationServiceProfiles.DHDR
-                };
-                var accessToken = await OneIdHelper.RefreshToken(client, options, RefreshToken, ct);
-                AccessToken = accessToken;
-                HttpContext.Session.SetString("refresh_token", RefreshToken);
-                HttpContext.Session.SetString("access_token", AccessToken);
+                return;
             }
+
+            var options = new OneIdAuthenticationOptions
+            {
+                ClientId = _configuration["EHS:AuthClientId"],
+                CertificateThumbprint = _configuration["EHS:CertificateThumbprint"],
+                ClientSecret = _configuration["EHS:ClientSecret"],
+                CallbackPath = new("/oneid-signin"),
+                CertificateStoreName = StoreName.My,
+                CertificateStoreLocation = StoreLocation.CurrentUser,
+                TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken | OneIdAuthenticationTokenSave.IdToken,
+                ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS | OneIdAuthenticationServiceProfiles.DHDR
+            };
+
+            options.Environment = OneIdAuthenticationEnvironment.PartnerSelfTest;
+
+            using var httpClient = new HttpClient(new OneIdAuthenticationBackChannelHandler(options));
+
+            var accessToken = await OneIdHelper.RefreshToken(httpClient, options, RefreshToken, ct);
+            AccessToken = accessToken;
+            HttpContext.Session.SetString("refresh_token", RefreshToken);
+            HttpContext.Session.SetString("access_token", AccessToken);
         }
     }
 }
