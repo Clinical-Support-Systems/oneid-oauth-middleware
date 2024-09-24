@@ -167,6 +167,8 @@ namespace AspNet.Security.OAuth.OneID
                 [OAuth2Constants.ClientId] = options.ClientId
             };
 
+            options.ValidateTokens = false;
+
             request.Content = new FormUrlEncodedContent((IEnumerable<KeyValuePair<string?, string?>>)parameters);
             using var response = await client.SendAsync(request, cancellationToken: ct).ConfigureAwait(false);
 
