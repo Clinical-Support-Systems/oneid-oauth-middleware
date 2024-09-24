@@ -45,7 +45,8 @@ namespace ConsumerApp.Kestrel
                 CertificateStoreName = StoreName.My,
                 CertificateStoreLocation = StoreLocation.CurrentUser,
                 TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken | OneIdAuthenticationTokenSave.IdToken,
-                ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS | OneIdAuthenticationServiceProfiles.DHDR
+                ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS | OneIdAuthenticationServiceProfiles.DHDR,
+                SaveTokens = false
             };
             services.AddHttpClient(OneIdAuthenticationDefaults.DisplayName, client =>
             {

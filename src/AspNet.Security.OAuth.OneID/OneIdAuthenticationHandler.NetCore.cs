@@ -242,50 +242,44 @@ namespace AspNet.Security.OAuth.OneID
             {
                 var retVal = new List<Claim>();
 
-                if (_tokenHandler.CanReadToken(token))
+                Options.SecurityTokenHandler ??= new JsonWebTokenHandler();
+
+                if (Options.SecurityTokenHandler.CanReadToken(token))
                 {
-                    _tokenHandler.InboundClaimTypeMap.Clear();
-                    _tokenHandler.MapInboundClaims = false;
-
-                    var sToken = _tokenHandler.ReadJwtToken(token);
-
-                    var tokenHandler = new JsonWebTokenHandler();
-
                     // Parse and get the token
-                    var securityToken = tokenHandler.ReadJsonWebToken(token);
+                    var parsedToken = Options.SecurityTokenHandler.ReadJsonWebToken(token);
 
-
-                    if (securityToken == null || securityToken.Claims == null)
+                    if (parsedToken == null || parsedToken.Claims == null)
                     {
-                        throw new InvalidOperationException($"'{nameof(securityToken)}' cannot be null or have no claims.");
+                        throw new InvalidOperationException($"'{nameof(parsedToken)}' cannot be null or have no claims.");
                     }
 
-                    retVal = new(securityToken.Claims);
+                    retVal = new(parsedToken.Claims);
                     
-                    if (!string.IsNullOrEmpty(securityToken.Subject))
+                    if (!string.IsNullOrEmpty(parsedToken.Subject))
                     {
-                        retVal.Add(new Claim(ClaimTypes.NameIdentifier, securityToken.Subject, ClaimValueTypes.String, ClaimsIssuer));
+                        retVal.Add(new Claim(ClaimTypes.NameIdentifier, parsedToken.Subject, ClaimValueTypes.String, ClaimsIssuer));
                     }
 
-                    var address = securityToken.Claims.FirstOrDefault(x => x.Type == "email")?.Value;
+                    var address = parsedToken.Claims.FirstOrDefault(x => x.Type == "email")?.Value;
                     if (!string.IsNullOrEmpty(address))
                     {
                         retVal.Add(new Claim(ClaimTypes.Email, address, ClaimValueTypes.String, Options.ClaimsIssuer));
                     }
 
-                    var givenName = securityToken.Claims.FirstOrDefault(x => x.Type == "given_name")?.Value;
+                    var givenName = parsedToken.Claims.FirstOrDefault(x => x.Type == "given_name")?.Value;
                     if (!string.IsNullOrEmpty(givenName))
                     {
                         retVal.Add(new Claim(ClaimTypes.GivenName, givenName, ClaimValueTypes.String, Options.ClaimsIssuer));
                     }
 
-                    var familyName = securityToken.Claims.FirstOrDefault(x => x.Type == "family_name")?.Value;
+                    var familyName = parsedToken.Claims.FirstOrDefault(x => x.Type == "family_name")?.Value;
                     if (!string.IsNullOrEmpty(familyName))
                     {
                         retVal.Add(new Claim(ClaimTypes.Name, familyName, ClaimValueTypes.String, Options.ClaimsIssuer));
                     }
 
-                    var phoneNumber = securityToken.Claims.FirstOrDefault(x => x.Type == "phoneNumber")?.Value;
+                    var phoneNumber = parsedToken.Claims.FirstOrDefault(x => x.Type == "phoneNumber")?.Value;
                     if (!string.IsNullOrEmpty(phoneNumber))
                     {
                         retVal.Add(new Claim(ClaimTypes.HomePhone, phoneNumber, ClaimValueTypes.String, Options.ClaimsIssuer));
