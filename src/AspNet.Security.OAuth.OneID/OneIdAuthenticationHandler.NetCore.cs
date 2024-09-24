@@ -37,6 +37,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -47,6 +48,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -60,7 +62,6 @@ namespace AspNet.Security.OAuth.OneID
     /// </summary>
     public class OneIdAuthenticationHandler : OAuthHandler<OneIdAuthenticationOptions>
     {
-        private readonly JwtSecurityTokenHandler _tokenHandler;
 
 #if !NET8_0_OR_GREATER
         /// <summary>
@@ -71,25 +72,21 @@ namespace AspNet.Security.OAuth.OneID
         /// <param name="encoder">The encoder</param>
         /// <param name="clock">The clock skew</param>
         /// <param name="tokenHandler">The security token handler</param>
-        public OneIdAuthenticationHandler(IOptionsMonitor<OneIdAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, JwtSecurityTokenHandler tokenHandler) : base(options, logger, encoder, clock)
+        public OneIdAuthenticationHandler(IOptionsMonitor<OneIdAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
         {
             ArgumentNullException.ThrowIfNull(options);
             ArgumentNullException.ThrowIfNull(logger);
             ArgumentNullException.ThrowIfNull(encoder);
             ArgumentNullException.ThrowIfNull(clock);
-
-            _tokenHandler = tokenHandler ?? throw new ArgumentNullException(nameof(tokenHandler));
         }
 #endif
 
 #if NET8_0_OR_GREATER
-        public OneIdAuthenticationHandler(IOptionsMonitor<OneIdAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, JwtSecurityTokenHandler tokenHandler) : base(options, logger, encoder)
+        public OneIdAuthenticationHandler(IOptionsMonitor<OneIdAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
         {
             ArgumentNullException.ThrowIfNull(options);
             ArgumentNullException.ThrowIfNull(logger);
             ArgumentNullException.ThrowIfNull(encoder);
-
-            _tokenHandler = tokenHandler ?? throw new ArgumentNullException(nameof(tokenHandler));
         }
 #endif
 
@@ -164,6 +161,7 @@ namespace AspNet.Security.OAuth.OneID
 
             var context = new OAuthCreatingTicketContext(principal, properties, Context, Scheme, Options, Backchannel, tokens, tokens.Response!.RootElement);
 
+            // Store the received tokens somewhere, if we should
             if (Context.Features.Get<ISessionFeature>() != null)
             {
                 if (!string.IsNullOrEmpty(principal.Identity?.Name))
@@ -172,7 +170,6 @@ namespace AspNet.Security.OAuth.OneID
                 if (!string.IsNullOrEmpty(idToken) && ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.IdToken) == OneIdAuthenticationTokenSave.IdToken))
                     context.HttpContext.Session.SetString("id_token", idToken);
 
-                // Store the received tokens somewhere, if we should
                 if (!string.IsNullOrEmpty(context.AccessToken) && ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.AccessToken) == OneIdAuthenticationTokenSave.AccessToken))
                     context.HttpContext.Session.SetString("access_token", context.AccessToken);
 
@@ -330,10 +327,48 @@ namespace AspNet.Security.OAuth.OneID
                 // Consolidate logic for token saving to avoid repetition
                 SaveTokenIfRequired(tokens, properties, "id_token", OneIdAuthenticationTokenSave.IdToken);
                 SaveTokenIfRequired(tokens, properties, "access_token", OneIdAuthenticationTokenSave.AccessToken);
+                SaveTokenIfRequired(tokens, properties, "refresh_token", OneIdAuthenticationTokenSave.RefreshToken);
             }
 
-            // If a contact identifier needs to be extracted, this is where the logic should go
-            return string.Empty; // This could be replaced with actual logic
+            // If specific identifiers need to be extracted, this is where the logic should go
+            // From https://github.com/aspnet-contrib/AspNet.Security.OAuth.Providers/blob/21b3e95f0210b2fba336b0ea06c67bb74d635369/src/AspNet.Security.OAuth.SuperOffice/SuperOfficeAuthenticationHandler.cs#L80
+
+            //var tokenValidationResult = await ValidateAsync(idToken, Options.TokenValidationParameters.Clone());
+
+            //var contextIdentifier = string.Empty;
+            //var webApiUrl = string.Empty;
+
+            //foreach (var claim in tokenValidationResult.ClaimsIdentity.Claims)
+            //{
+            //    if (claim.Type == SuperOfficeAuthenticationConstants.ClaimNames.ContextIdentifier)
+            //    {
+            //        contextIdentifier = claim.Value;
+            //    }
+
+            //    if (claim.Type == SuperOfficeAuthenticationConstants.ClaimNames.WebApiUrl)
+            //    {
+            //        webApiUrl = claim.Value;
+            //    }
+
+            //    if (claim.Type == SuperOfficeAuthenticationConstants.ClaimNames.SubjectIdentifier)
+            //    {
+            //        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, claim.Value));
+            //        continue;
+            //    }
+
+            //    if (Options.IncludeIdTokenAsClaims)
+            //    {
+            //        // May be possible same claim names from UserInformationEndpoint and IdToken.
+            //        if (!identity.HasClaim(c => c.Type == claim.Type))
+            //        {
+            //            identity.AddClaim(claim);
+            //        }
+            //    }
+            //}
+
+            //return (contextIdentifier, webApiUrl);
+
+            return string.Empty;
         }
 
         /// <summary>
