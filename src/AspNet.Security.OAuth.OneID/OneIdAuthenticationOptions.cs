@@ -129,6 +129,7 @@ namespace AspNet.Security.OAuth.OneID
             ClaimActions.MapJsonKey(ClaimTypes.GivenName, "given_name");
             ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "sub");
             ClaimActions.MapJsonKey(ClaimTypes.Surname, "family_name");
+            ClaimActions.MapJsonKey(ClaimTypes.Actor, "username");
 
             // Add a custom claim action that maps the email claim from the ID token if
             // it was not otherwise provided in the user endpoint response.

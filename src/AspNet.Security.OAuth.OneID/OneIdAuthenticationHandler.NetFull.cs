@@ -218,6 +218,11 @@ namespace AspNet.Security.OAuth.OneID
                 {
                     context.Identity.AddClaim(new Claim(ClaimTypes.Surname, context.FamilyName, XmlSchemaString, Options.AuthenticationType));
                 }
+                
+                if (!string.IsNullOrEmpty(context.UserName))
+                {
+                    context.Identity.AddClaim(new Claim(ClaimTypes.Actor, context.UserName, XmlSchemaString, Options.AuthenticationType));
+                }
 
                 context.Properties = properties;
 
