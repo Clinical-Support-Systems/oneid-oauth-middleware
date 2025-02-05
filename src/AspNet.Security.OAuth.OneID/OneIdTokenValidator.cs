@@ -43,7 +43,7 @@ namespace AspNet.Security.OAuth.OneID
     /// <summary>
     /// Represents the base class for validating Apple ID tokens.
     /// </summary>
-    public abstract class OneIdTokenValidator
+    public interface IOneIdTokenValidator
     {
         /// <summary>
         /// Validates the OneID token associated with the specified context as an asynchronous operation.
@@ -52,10 +52,10 @@ namespace AspNet.Security.OAuth.OneID
         /// <returns>
         /// A <see cref="Task"/> representing the asynchronous operation to validate the ID token.
         /// </returns>
-        public abstract Task ValidateAsync(OneIdValidateIdTokenContext context);
+        Task ValidateAsync(OneIdValidateIdTokenContext context);
     }
-
-    internal sealed class DefaultOneIdTokenValidator : OneIdTokenValidator
+    
+    internal sealed partial class DefaultOneIdTokenValidator : IOneIdTokenValidator
     {
         private readonly ILogger _logger;
 
@@ -65,7 +65,7 @@ namespace AspNet.Security.OAuth.OneID
             _logger = logger;
         }
 
-        public override async Task ValidateAsync([NotNull] OneIdValidateIdTokenContext context)
+        public async Task ValidateAsync([NotNull] OneIdValidateIdTokenContext context)
         {
             if (context.Options.SecurityTokenHandler is null)
             {
@@ -89,15 +89,11 @@ namespace AspNet.Security.OAuth.OneID
 
             var configuration = await context.Options.ConfigurationManager.GetConfigurationAsync(context.HttpContext.RequestAborted).ConfigureAwait(false);
 
-            // TODO: Update with value from discovery? Value might be incorrect
-            //OneIdHelper.EndSessionUrl = configuration.EndSessionEndpoint;
-
             var validationParameters = context.Options.TokenValidationParameters.Clone();
             validationParameters.IssuerSigningKeys = configuration.JsonWebKeySet.Keys;
 
             try
             {
-                var old = validationParameters.ValidIssuer;
                 validationParameters.ValidIssuer = context.Options.Audience.Replace("/access_token", string.Empty, StringComparison.OrdinalIgnoreCase);
                 var result = await context.Options.SecurityTokenHandler.ValidateTokenAsync(context.IdToken, validationParameters).ConfigureAwait(false);
 

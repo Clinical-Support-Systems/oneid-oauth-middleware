@@ -37,6 +37,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -47,6 +48,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -60,7 +62,6 @@ namespace AspNet.Security.OAuth.OneID
     /// </summary>
     public class OneIdAuthenticationHandler : OAuthHandler<OneIdAuthenticationOptions>
     {
-        private readonly JwtSecurityTokenHandler _tokenHandler;
 
 #if !NET8_0_OR_GREATER
         /// <summary>
@@ -71,25 +72,21 @@ namespace AspNet.Security.OAuth.OneID
         /// <param name="encoder">The encoder</param>
         /// <param name="clock">The clock skew</param>
         /// <param name="tokenHandler">The security token handler</param>
-        public OneIdAuthenticationHandler(IOptionsMonitor<OneIdAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, JwtSecurityTokenHandler tokenHandler) : base(options, logger, encoder, clock)
+        public OneIdAuthenticationHandler(IOptionsMonitor<OneIdAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
         {
             ArgumentNullException.ThrowIfNull(options);
             ArgumentNullException.ThrowIfNull(logger);
             ArgumentNullException.ThrowIfNull(encoder);
             ArgumentNullException.ThrowIfNull(clock);
-
-            _tokenHandler = tokenHandler ?? throw new ArgumentNullException(nameof(tokenHandler));
         }
 #endif
 
 #if NET8_0_OR_GREATER
-        public OneIdAuthenticationHandler(IOptionsMonitor<OneIdAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, JwtSecurityTokenHandler tokenHandler) : base(options, logger, encoder)
+        public OneIdAuthenticationHandler(IOptionsMonitor<OneIdAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
         {
             ArgumentNullException.ThrowIfNull(options);
             ArgumentNullException.ThrowIfNull(logger);
             ArgumentNullException.ThrowIfNull(encoder);
-
-            _tokenHandler = tokenHandler ?? throw new ArgumentNullException(nameof(tokenHandler));
         }
 #endif
 
@@ -164,6 +161,7 @@ namespace AspNet.Security.OAuth.OneID
 
             var context = new OAuthCreatingTicketContext(principal, properties, Context, Scheme, Options, Backchannel, tokens, tokens.Response!.RootElement);
 
+            // Store the received tokens somewhere, if we should
             if (Context.Features.Get<ISessionFeature>() != null)
             {
                 if (!string.IsNullOrEmpty(principal.Identity?.Name))
@@ -172,7 +170,6 @@ namespace AspNet.Security.OAuth.OneID
                 if (!string.IsNullOrEmpty(idToken) && ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.IdToken) == OneIdAuthenticationTokenSave.IdToken))
                     context.HttpContext.Session.SetString("id_token", idToken);
 
-                // Store the received tokens somewhere, if we should
                 if (!string.IsNullOrEmpty(context.AccessToken) && ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.AccessToken) == OneIdAuthenticationTokenSave.AccessToken))
                     context.HttpContext.Session.SetString("access_token", context.AccessToken);
 
@@ -242,42 +239,53 @@ namespace AspNet.Security.OAuth.OneID
             {
                 var retVal = new List<Claim>();
 
-                if (_tokenHandler.CanReadToken(token))
-                {
-                    var securityToken = _tokenHandler.ReadJwtToken(token);
+                Options.SecurityTokenHandler ??= new JsonWebTokenHandler();
 
-                    if (securityToken == null || securityToken.Claims == null)
+                if (Options.SecurityTokenHandler.CanReadToken(token))
+                {
+                    // Parse and get the token
+                    var parsedToken = Options.SecurityTokenHandler.ReadJsonWebToken(token);
+
+                    if (parsedToken == null || parsedToken.Claims == null)
                     {
-                        throw new InvalidOperationException($"'{nameof(securityToken)}' cannot be null or have no claims.");
+                        throw new InvalidOperationException($"'{nameof(parsedToken)}' cannot be null or have no claims.");
                     }
 
-                    retVal = new(securityToken.Claims)
+                    retVal = new(parsedToken.Claims);
+                    
+                    if (!string.IsNullOrEmpty(parsedToken.Subject))
                     {
-                        new Claim(ClaimTypes.NameIdentifier, securityToken.Subject, ClaimValueTypes.String, ClaimsIssuer),
-                    };
+                        retVal.Add(new Claim(ClaimTypes.NameIdentifier, parsedToken.Subject, ClaimValueTypes.String, ClaimsIssuer));
+                    }
 
-                    var address = securityToken.Claims.FirstOrDefault(x => x.Type == "email")?.Value;
+                    var address = parsedToken.Claims.FirstOrDefault(x => x.Type == "email")?.Value;
                     if (!string.IsNullOrEmpty(address))
                     {
                         retVal.Add(new Claim(ClaimTypes.Email, address, ClaimValueTypes.String, Options.ClaimsIssuer));
                     }
 
-                    var givenName = securityToken.Claims.FirstOrDefault(x => x.Type == "given_name")?.Value;
+                    var givenName = parsedToken.Claims.FirstOrDefault(x => x.Type == "given_name")?.Value;
                     if (!string.IsNullOrEmpty(givenName))
                     {
                         retVal.Add(new Claim(ClaimTypes.GivenName, givenName, ClaimValueTypes.String, Options.ClaimsIssuer));
                     }
 
-                    var familyName = securityToken.Claims.FirstOrDefault(x => x.Type == "family_name")?.Value;
+                    var familyName = parsedToken.Claims.FirstOrDefault(x => x.Type == "family_name")?.Value;
                     if (!string.IsNullOrEmpty(familyName))
                     {
                         retVal.Add(new Claim(ClaimTypes.Name, familyName, ClaimValueTypes.String, Options.ClaimsIssuer));
                     }
 
-                    var phoneNumber = securityToken.Claims.FirstOrDefault(x => x.Type == "phoneNumber")?.Value;
+                    var phoneNumber = parsedToken.Claims.FirstOrDefault(x => x.Type == "phoneNumber")?.Value;
                     if (!string.IsNullOrEmpty(phoneNumber))
                     {
                         retVal.Add(new Claim(ClaimTypes.HomePhone, phoneNumber, ClaimValueTypes.String, Options.ClaimsIssuer));
+                    }
+
+                    var actor = parsedToken.Claims.FirstOrDefault(x => x.Type == "username")?.Value;
+                    if (!string.IsNullOrEmpty(actor))
+                    {
+                        retVal.Add(new Claim(ClaimTypes.Actor, actor, ClaimValueTypes.String, Options.ClaimsIssuer));
                     }
                 }
 
@@ -289,26 +297,24 @@ namespace AspNet.Security.OAuth.OneID
             }
         }
 
-        private static void SaveIdToken(AuthenticationProperties properties, string idToken)
+        private static void SaveToken(AuthenticationProperties properties, string token, string tokenName)
         {
             ArgumentNullException.ThrowIfNull(properties);
-
-            if (string.IsNullOrEmpty(idToken))
+            if (string.IsNullOrEmpty(token))
             {
-                throw new ArgumentException($"'{nameof(idToken)}' cannot be null or empty.", nameof(idToken));
+                throw new ArgumentException($"'{nameof(token)}' cannot be null or empty.", nameof(token));
             }
 
-            if (!string.IsNullOrWhiteSpace(idToken))
+            // Get the currently available tokens and check for the token existence more efficiently
+            var tokens = properties.GetTokens().ToList();
+
+            if (!tokens.Exists(t => t.Name == tokenName && t.Value == token))
             {
-                // Get the currently available tokens
-                var tokens = properties.GetTokens().ToList();
-
-                // Add the extra token
-                tokens.Add(new AuthenticationToken() { Name = "id_token", Value = idToken });
-
-                // Overwrite store with original tokens with the new additional token
-                properties.StoreTokens(tokens);
+                tokens.Add(new AuthenticationToken { Name = tokenName, Value = token });
             }
+
+            // Store the updated tokens
+            properties.StoreTokens(tokens);
         }
 
         /// <summary>
@@ -324,16 +330,78 @@ namespace AspNet.Security.OAuth.OneID
 
             if (Options.SaveTokens)
             {
-                var idToken = tokens.Response!.RootElement.GetString("id_token");
-
-                // Save id_token as well.
-                if ((Options.TokenSaveOptions & OneIdAuthenticationTokenSave.IdToken) == OneIdAuthenticationTokenSave.IdToken && !string.IsNullOrEmpty(idToken))
-                {
-                    SaveIdToken(properties, idToken);
-                }
+                // Consolidate logic for token saving to avoid repetition
+                SaveTokenIfRequired(tokens, properties, "id_token", OneIdAuthenticationTokenSave.IdToken);
+                SaveTokenIfRequired(tokens, properties, "access_token", OneIdAuthenticationTokenSave.AccessToken);
+                SaveTokenIfRequired(tokens, properties, "refresh_token", OneIdAuthenticationTokenSave.RefreshToken);
             }
 
+            // If specific identifiers need to be extracted, this is where the logic should go
+            // From https://github.com/aspnet-contrib/AspNet.Security.OAuth.Providers/blob/21b3e95f0210b2fba336b0ea06c67bb74d635369/src/AspNet.Security.OAuth.SuperOffice/SuperOfficeAuthenticationHandler.cs#L80
+
+            //var tokenValidationResult = await ValidateAsync(idToken, Options.TokenValidationParameters.Clone());
+
+            //var contextIdentifier = string.Empty;
+            //var webApiUrl = string.Empty;
+
+            //foreach (var claim in tokenValidationResult.ClaimsIdentity.Claims)
+            //{
+            //    if (claim.Type == SuperOfficeAuthenticationConstants.ClaimNames.ContextIdentifier)
+            //    {
+            //        contextIdentifier = claim.Value;
+            //    }
+
+            //    if (claim.Type == SuperOfficeAuthenticationConstants.ClaimNames.WebApiUrl)
+            //    {
+            //        webApiUrl = claim.Value;
+            //    }
+
+            //    if (claim.Type == SuperOfficeAuthenticationConstants.ClaimNames.SubjectIdentifier)
+            //    {
+            //        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, claim.Value));
+            //        continue;
+            //    }
+
+            //    if (Options.IncludeIdTokenAsClaims)
+            //    {
+            //        // May be possible same claim names from UserInformationEndpoint and IdToken.
+            //        if (!identity.HasClaim(c => c.Type == claim.Type))
+            //        {
+            //            identity.AddClaim(claim);
+            //        }
+            //    }
+            //}
+
+            //return (contextIdentifier, webApiUrl);
+
             return string.Empty;
+        }
+
+        /// <summary>
+        /// Check if the token is one we want to save 
+        /// </summary>
+        /// <param name="tokens">
+        /// The tokens
+        /// </param>
+        /// <param name="properties">
+        /// The authentication properties 
+        /// </param>
+        /// <param name="tokenKey">
+        /// The key we're looking to see if we want to save
+        /// </param>
+        /// <param name="tokenSaveOption">
+        /// The token save option we're looking to see if we want to save
+        /// </param>
+        private void SaveTokenIfRequired(OAuthTokenResponse tokens, AuthenticationProperties properties, string tokenKey, OneIdAuthenticationTokenSave tokenSaveOption)
+        {
+            if ((Options.TokenSaveOptions & tokenSaveOption) == tokenSaveOption)
+            {
+                var token = tokens.Response?.RootElement.GetString(tokenKey);
+                if (!string.IsNullOrEmpty(token))
+                {
+                    SaveToken(properties, token, tokenKey);
+                }
+            }
         }
     }
 }

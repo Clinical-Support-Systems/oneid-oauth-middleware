@@ -10,7 +10,7 @@ on:
     branches: [ master ]
 
 env:
-  DOTNET_VERSION: '6.0.101'
+  DOTNET_VERSION: '8.0.401'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -27,8 +27,8 @@ jobs:
         with:
           fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
 
-      - name: ⚙️ Setup dotnet 6.0.x
-        uses: actions/setup-dotnet@v3
+      - name: ⚙️ Setup dotnet 8.0.x
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -63,7 +63,7 @@ jobs:
         run: dotnet pack src/AspNet.Security.OAuth.OneID/AspNet.Security.OAuth.OneID.csproj --configuration Release --no-build --output nupkgs -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -p:PackageVersion=${{env.NBGV_SemVer1}}
 
       - name: Get NuGet
-        uses: nuget/setup-nuget@v1.1.1
+        uses: nuget/setup-nuget@v2
         with:
           nuget-api-key: ${{secrets.NUGET_API_KEY}}
           

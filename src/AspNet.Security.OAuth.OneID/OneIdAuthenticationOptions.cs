@@ -115,6 +115,7 @@ namespace AspNet.Security.OAuth.OneID
                 RoleClaimType = "groups"
             };
 
+            // Profile, email and offline_access scopes are not supported by OneID
             Scope.Clear();
             Scope.Add("openid");
 
@@ -132,6 +133,7 @@ namespace AspNet.Security.OAuth.OneID
             ClaimActions.MapJsonKey(ClaimTypes.GivenName, "given_name");
             ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "sub");
             ClaimActions.MapJsonKey(ClaimTypes.Surname, "family_name");
+            ClaimActions.MapJsonKey(ClaimTypes.Actor, "username");
 
             // Add a custom claim action that maps the email claim from the ID token if
             // it was not otherwise provided in the user endpoint response.
@@ -407,9 +409,9 @@ namespace AspNet.Security.OAuth.OneID
         public TokenValidationParameters TokenValidationParameters { get; }
 
         /// <summary>
-        /// Gets or sets the <see cref="OneIdTokenValidator"/> to use.
+        /// Gets or sets the <see cref="IOneIdTokenValidator"/> to use.
         /// </summary>
-        public OneIdTokenValidator TokenValidator { get; set; } = default!;
+        public IOneIdTokenValidator TokenValidator { get; set; } = default!;
 
 #endif
 
@@ -433,6 +435,9 @@ namespace AspNet.Security.OAuth.OneID
         private void UpdateEndpoints()
         {
             string env = GetEnvironment();
+            
+            Audience = string.Format(CultureInfo.InvariantCulture, FormatStrings.Audience, env);
+            Authority = string.Format(CultureInfo.InvariantCulture, FormatStrings.Authority, env);
 
             AuthorizationEndpoint = string.Format(CultureInfo.InvariantCulture,
                FormatStrings.AuthorizeEndpoint,

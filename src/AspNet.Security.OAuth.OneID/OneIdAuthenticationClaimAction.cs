@@ -31,6 +31,7 @@
 #endregion License, Terms and Conditions
 
 #if NETCORE
+
 using Microsoft.AspNetCore.Authentication.OAuth.Claims;
 using System;
 using System.Security.Claims;

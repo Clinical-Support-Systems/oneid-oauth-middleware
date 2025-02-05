@@ -64,7 +64,7 @@ namespace AspNet.Security.OAuth.OneID
         private const string StateCookie = ".AspNet.Correlation.OneID";
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;
-        private static PKCECode? _pkceCode;
+        private static PkceCode? _pkceCode;
         private static readonly RandomNumberGenerator CryptoRandom = RandomNumberGenerator.Create();
         private const string CorrelationPrefix = ".AspNetCore.Correlation.";
         private const string CorrelationProperty = ".xsrf";
@@ -217,6 +217,11 @@ namespace AspNet.Security.OAuth.OneID
                 if (!string.IsNullOrEmpty(context.FamilyName))
                 {
                     context.Identity.AddClaim(new Claim(ClaimTypes.Surname, context.FamilyName, XmlSchemaString, Options.AuthenticationType));
+                }
+                
+                if (!string.IsNullOrEmpty(context.UserName))
+                {
+                    context.Identity.AddClaim(new Claim(ClaimTypes.Actor, context.UserName, XmlSchemaString, Options.AuthenticationType));
                 }
 
                 context.Properties = properties;
@@ -409,7 +414,7 @@ namespace AspNet.Security.OAuth.OneID
             string state = Options.StateDataFormat!.Protect(properties);
 
             // First generate the PKCE verifier and challenge
-            _pkceCode = PKCECode.GeneratePKCECodes();
+            _pkceCode = PkceCode.GeneratePKCECodes();
 
             // Add nonce
             var nonce = Guid.NewGuid().ToString();

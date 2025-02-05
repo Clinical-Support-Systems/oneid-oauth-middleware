@@ -24,25 +24,41 @@
     @if (!string.IsNullOrEmpty(IndexModel.IdToken))
     {
         <h2>Id Token</h2>
-        <pre>@IndexModel.IdToken</pre>
+        <pre id="idToken">@IndexModel.IdToken</pre>
+        <button class="btn btn-secondary" onclick="copyToClipboard('idToken')">Copy ID Token</button>
     }
 
-    @if (!string.IsNullOrEmpty(Model.AccessToken))
+    @if (!string.IsNullOrEmpty(IndexModel.AccessToken))
     {
         <h2>Access Token</h2>
-        <pre>@Model.AccessToken</pre>
+        <pre id="accessToken">@IndexModel.AccessToken</pre>
+        <button class="btn btn-secondary" onclick="copyToClipboard('accessToken')">Copy Access Token</button>
     }
 
     @if (!string.IsNullOrEmpty(Model.RefreshToken))
     {
         <h2>Refresh Token</h2>
-        <pre>@Model.RefreshToken</pre>
+        <pre id="refreshToken">@Model.RefreshToken</pre>
+        <button class="btn btn-secondary" onclick="copyToClipboard('refreshToken')">Copy Refresh Token</button>
     }
 
     <form method="post">
         <button type="submit" class="btn btn-primary" asp-page-handler="Submit">Refresh</button>
-        @Html.HiddenFor(m => m.AccessToken)
+        @Html.HiddenFor(m => IndexModel.AccessToken)
         @Html.HiddenFor(m => m.RefreshToken)
         @Html.HiddenFor(m => IndexModel.IdToken)
     </form>
+}
+
+@section Scripts {
+    <script type="text/javascript">
+        function copyToClipboard(elementId) {
+            var textToCopy = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(textToCopy).then(function() {
+                alert('Copied to clipboard');
+            }).catch(function(err) {
+                console.error('Failed to copy: ', err);
+            });
+        }
+    </script>
 }

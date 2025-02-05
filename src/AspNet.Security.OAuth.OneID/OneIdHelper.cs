@@ -33,6 +33,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -49,6 +50,41 @@ namespace AspNet.Security.OAuth.OneID
         /// This value should be updated by the discovery endpoint content, but won't be because it might not be correct.
         /// </summary>
         private static string EndSessionUrl = "https://login.pst.oneidfederation.ehealthontario.ca/oidc/connect/endSession";
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "CA1510:Use ArgumentNullException throw helper", Justification = "<Pending>")]
+        public static async Task RevokeToken(string accessToken, string clientId, HttpClient oneIdClient)
+        {
+            if (oneIdClient is null)
+            {
+                throw new ArgumentNullException(nameof(oneIdClient));
+            }
+
+            var revokeUrl = "https://login.pst.oneidfederation.ehealthontario.ca/oidc/oauth2/token/revoke";
+
+            var parameters = new Dictionary<string, string?>
+            {
+                ["token"] = accessToken,
+                [OAuth2Constants.ClientId] = clientId,
+                ["client_assertion_type"] = ClaimNames.JwtBearerAssertion,
+                [OAuth2Constants.Assertion] = "123"
+            };
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, revokeUrl)
+            {
+                Content = new FormUrlEncodedContent(parameters)
+            };
+
+            var response = await oneIdClient.SendAsync(request);
+
+            // get the response body if not successful
+            if (!response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine(responseContent);
+            }
+
+            Debug.WriteLine("test");
+        }
 
         /// <summary>
         /// Retrieves the constructed endSession url that the user should be redirected to, to end their OAG session.
@@ -113,10 +149,10 @@ namespace AspNet.Security.OAuth.OneID
 
             var tokenEndpoint = options.Environment switch
             {
-                OneIdAuthenticationEnvironment.Production => "https://login.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasoidc/access_token",
-                OneIdAuthenticationEnvironment.PartnerSelfTest => "https://login.pst.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaaspstoidc/access_token",
-                OneIdAuthenticationEnvironment.Development => "https://login.dev.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasdevoidc/access_token",
-                OneIdAuthenticationEnvironment.QualityAssurance => "https://login.qa.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasqaoidc/access_token",
+                OneIdAuthenticationEnvironment.Production => "https://login.oneidfederation.ehealthontario.ca/oidc/access_token",
+                OneIdAuthenticationEnvironment.PartnerSelfTest => "https://login.pst.oneidfederation.ehealthontario.ca/oidc/access_token",
+                OneIdAuthenticationEnvironment.Development => "https://login.dev.oneidfederation.ehealthontario.ca/oidc/access_token",
+                OneIdAuthenticationEnvironment.QualityAssurance => "https://login.qa.oneidfederation.ehealthontario.ca/oidc/access_token",
                 _ => throw new NotSupportedException(),
             };
 
@@ -128,7 +164,10 @@ namespace AspNet.Security.OAuth.OneID
             {
                 [OAuth2Constants.GrantType] = OAuth2Constants.RefreshToken,
                 [OAuth2Constants.RefreshToken] = refreshToken,
+                [OAuth2Constants.ClientId] = options.ClientId
             };
+
+            options.ValidateTokens = false;
 
             request.Content = new FormUrlEncodedContent((IEnumerable<KeyValuePair<string?, string?>>)parameters);
             using var response = await client.SendAsync(request, cancellationToken: ct).ConfigureAwait(false);

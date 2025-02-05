@@ -66,6 +66,15 @@ namespace AspNet.Security.OAuth.OneID
         /// <inheritdoc/>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+#if NETCORE
+            ArgumentNullException.ThrowIfNull(request);
+#else
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+#endif
+
             // Get the certificate
             X509Certificate2? cert = null;
 
@@ -117,9 +126,9 @@ namespace AspNet.Security.OAuth.OneID
                 new("iat", now.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
                 new("exp", expire.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
 #if NETCORE
-                new("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-", string.Empty, StringComparison.InvariantCulture)}")
+                new("jti", $"{Guid.NewGuid().ToString().Replace("-", string.Empty, StringComparison.InvariantCulture)}")
 #else
-                new("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-", string.Empty)}")
+                new("jti", $"{Guid.NewGuid().ToString().Replace("-", string.Empty)}")
 #endif
             };
 
@@ -130,45 +139,41 @@ namespace AspNet.Security.OAuth.OneID
 
                 token.Header.Remove("kid");
 
-                var jwt_token = new JwtSecurityTokenHandler().WriteToken(token);
+                var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
 
                 // Now we need to redo the form params so we can add/modify. Let's first take the values out and put them into a mutable dictionary
-                if (request == null) return new HttpResponseMessage { StatusCode = HttpStatusCode.NoContent };
-                else
-                {
-                    if (request.Content == null) return new HttpResponseMessage { StatusCode = HttpStatusCode.NoContent };
+                if (request.Content == null) return new HttpResponseMessage { StatusCode = HttpStatusCode.NoContent };
 #if NETCORE
-                    var oldContent = await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                var oldContent = await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 #else
-                    var oldContent = await request.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var oldContent = await request.Content.ReadAsStringAsync().ConfigureAwait(false);
 #endif
 
 #if NETCORE
-                    var data = oldContent.Replace("?", string.Empty, StringComparison.InvariantCulture).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
+                var data = oldContent.Replace("?", string.Empty, StringComparison.InvariantCulture).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
 #else
                     var data = oldContent.Replace("?", string.Empty).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
 #endif
 
-                    // Helen reported we were double encoding this, so let's set it again
-                    if (data.TryGetValue("redirect_uri", out string? redirectUri))
-                        data["redirect_uri"] = WebUtility.UrlDecode(redirectUri);
+                // Helen reported we were double encoding this, so let's set it again
+                if (data.TryGetValue("redirect_uri", out string? redirectUri))
+                    data["redirect_uri"] = WebUtility.UrlDecode(redirectUri);
 
-                    // Make sure the client_assertion_type is what is expected.
-                    data.Remove("client_assertion_type");
-                    data.Add("client_assertion_type", ClaimNames.JwtBearerAssertion); // must include this non-encoded as the process will re-encode it
+                // Make sure the client_assertion_type is what is expected.
+                data.Remove("client_assertion_type");
+                data.Add("client_assertion_type", ClaimNames.JwtBearerAssertion); // must include this non-encoded as the process will re-encode it
 
-                    // Make sure the client_assertion is what is expected.
-                    data.Remove("client_assertion");
-                    data.Add("client_assertion", jwt_token);
+                // Make sure the client_assertion is what is expected.
+                data.Remove("client_assertion");
+                data.Add("client_assertion", jwtToken);
 
-                    data.Remove("aud");
-                    data.Add("aud", ClaimNames.ApiAudience); // Is this value ever changing?
+                data.Remove("aud");
+                data.Add("aud", ClaimNames.ApiAudience); // Is this value ever-changing?
 
-                    // Now put it back ibnto the request
-                    request.Content = new FormUrlEncodedContent(data.AsEnumerable());
+                // Now put it back ibnto the request
+                request.Content = new FormUrlEncodedContent(data.AsEnumerable());
 
-                    return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
-                }
+                return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -229,7 +234,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <returns>X509Certificate2</returns>
         public static X509Certificate2 FindCertificateByThumbprint(string thumbprint, bool validateCertificate)
         {
-            return FindCertificateByThumbprint(StoreName.My, StoreLocation.LocalMachine, thumbprint, validateCertificate);
+            return FindCertificateByThumbprint(StoreName.My, StoreLocation.CurrentUser, thumbprint, validateCertificate);
         }
 
         /// <summary>
