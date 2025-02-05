@@ -55,7 +55,7 @@ namespace AspNet.Security.OAuth.OneID
         public abstract Task ValidateAsync(OneIdValidateIdTokenContext context);
     }
 
-    internal sealed partial class DefaultOneIdTokenValidator : OneIdTokenValidator
+    internal sealed class DefaultOneIdTokenValidator : OneIdTokenValidator
     {
         private readonly ILogger _logger;
 
