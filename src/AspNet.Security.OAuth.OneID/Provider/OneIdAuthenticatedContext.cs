@@ -215,6 +215,12 @@ if (options is null)
         /// </summary>
         public string? FamilyName { get; }
 
+
+        /// <summary>
+        /// Username
+        /// </summary>
+        public string? UserName { get; }
+
         /// <summary>
         /// User identifier
         /// </summary>

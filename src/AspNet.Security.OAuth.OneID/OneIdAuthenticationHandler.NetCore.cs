@@ -281,6 +281,12 @@ namespace AspNet.Security.OAuth.OneID
                     {
                         retVal.Add(new Claim(ClaimTypes.HomePhone, phoneNumber, ClaimValueTypes.String, Options.ClaimsIssuer));
                     }
+
+                    var actor = parsedToken.Claims.FirstOrDefault(x => x.Type == "username")?.Value;
+                    if (!string.IsNullOrEmpty(actor))
+                    {
+                        retVal.Add(new Claim(ClaimTypes.Actor, actor, ClaimValueTypes.String, Options.ClaimsIssuer));
+                    }
                 }
 
                 return retVal;
