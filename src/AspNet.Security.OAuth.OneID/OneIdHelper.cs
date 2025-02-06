@@ -59,7 +59,7 @@ namespace AspNet.Security.OAuth.OneID
                 throw new ArgumentNullException(nameof(oneIdClient));
             }
 
-            var revokeUrl = "https://login.pst.oneidfederation.ehealthontario.ca/oidc/oauth2/token/revoke";
+            const string revokeUrl = "https://login.pst.oneidfederation.ehealthontario.ca/oidc/oauth2/token/revoke";
 
             var parameters = new Dictionary<string, string?>
             {
@@ -69,10 +69,9 @@ namespace AspNet.Security.OAuth.OneID
                 [OAuth2Constants.Assertion] = "123"
             };
 
-            using var request = new HttpRequestMessage(HttpMethod.Post, revokeUrl)
-            {
-                Content = new FormUrlEncodedContent(parameters)
-            };
+            using var request = new HttpRequestMessage(HttpMethod.Post, revokeUrl);
+
+            request.Content = new FormUrlEncodedContent(parameters);
 
             var response = await oneIdClient.SendAsync(request);
 
@@ -118,7 +117,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Obtain a new access token
         /// </summary>
-        /// <param name="client">An http client that uses <see cref="OneIdAuthenticationBackChannelHandler"/> as it's backing http handler</param>
+        /// <param name="client">A http client that uses <see cref="OneIdAuthenticationBackChannelHandler"/> as it's backing http handler</param>
         /// <param name="options">The same set of <see cref="OneIdAuthenticationOptions"/> that was used when setting up authentication</param>
         /// <param name="refreshToken">The refresh token</param>
         /// <param name="ct">(optional) The cancellation token</param>
@@ -172,12 +171,10 @@ namespace AspNet.Security.OAuth.OneID
             request.Content = new FormUrlEncodedContent((IEnumerable<KeyValuePair<string?, string?>>)parameters);
             using var response = await client.SendAsync(request, cancellationToken: ct).ConfigureAwait(false);
 
-            Task<string>? readTask = null;
-
 #if NETCORE
-            readTask = response.Content.ReadAsStringAsync(ct);
+            var readTask = response.Content.ReadAsStringAsync(ct);
 #else
-            readTask = response.Content.ReadAsStringAsync();
+            var readTask = response.Content.ReadAsStringAsync();
 #endif
 
             if (response.IsSuccessStatusCode)
@@ -186,12 +183,10 @@ namespace AspNet.Security.OAuth.OneID
 
                 return tokenJson?[OAuth2Constants.AccessToken]?.ToObject<string>() ?? string.Empty;
             }
-            else
-            {
-                var responseContent = await readTask.ConfigureAwait(false);
 
-                throw new OneIdAuthException(request.RequestUri, response.StatusCode, responseContent);
-            }
+            var responseContent = await readTask.ConfigureAwait(false);
+
+            throw new OneIdAuthException(request.RequestUri, response.StatusCode, responseContent);
         }
     }
 }

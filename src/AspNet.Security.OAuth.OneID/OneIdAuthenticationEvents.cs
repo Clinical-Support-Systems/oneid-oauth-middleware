@@ -54,7 +54,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <returns>
         /// A <see cref="Task"/> representing the completed operation.
         /// </returns>
-        public virtual async Task ValidateIdToken([NotNull] OneIdValidateIdTokenContext context) =>
+        public virtual async Task ValidateIdToken(OneIdValidateIdTokenContext context) =>
             await OnValidateIdToken(context).ConfigureAwait(false);
     }
 }

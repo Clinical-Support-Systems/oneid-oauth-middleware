@@ -59,13 +59,12 @@ namespace AspNet.Security.OAuth.OneID
     {
         private readonly ILogger _logger;
 
-        public DefaultOneIdTokenValidator(
-            [NotNull] ILogger<DefaultOneIdTokenValidator> logger)
+        public DefaultOneIdTokenValidator(ILogger<DefaultOneIdTokenValidator> logger)
         {
             _logger = logger;
         }
 
-        public async Task ValidateAsync([NotNull] OneIdValidateIdTokenContext context)
+        public async Task ValidateAsync(OneIdValidateIdTokenContext context)
         {
             if (context.Options.SecurityTokenHandler is null)
             {

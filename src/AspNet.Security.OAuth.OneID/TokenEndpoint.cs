@@ -174,7 +174,7 @@ namespace AspNet.Security.OAuth.OneID
             var bufferWriter = new ArrayBufferWriter<byte>();
             using (var writer = new Utf8JsonWriter(bufferWriter))
                 element.WriteTo(writer);
-            return System.Text.Json.JsonSerializer.Deserialize<T>(bufferWriter.WrittenSpan, options);
+            return JsonSerializer.Deserialize<T>(bufferWriter.WrittenSpan, options);
         }
 
         /// <summary>
