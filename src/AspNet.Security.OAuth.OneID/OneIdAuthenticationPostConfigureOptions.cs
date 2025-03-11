@@ -77,7 +77,7 @@ namespace AspNet.Security.OAuth.OneID
             }
 
             options.TokenValidator ??= new DefaultOneIdTokenValidator(
-                    _loggerFactory.CreateLogger<DefaultOneIdTokenValidator>());
+                    _loggerFactory.CreateLogger<DefaultOneIdTokenValidator>(), _httpClientFactory);
 
             if (options.ConfigurationManager == null)
             {
