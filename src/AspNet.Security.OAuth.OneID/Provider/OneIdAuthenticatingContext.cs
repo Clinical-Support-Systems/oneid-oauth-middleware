@@ -50,8 +50,8 @@ namespace AspNet.Security.OAuth.OneID.Provider
         public OneIdAuthenticatingContext(IOwinContext context, OneIdAuthenticationOptions options)
             : base(context)
         {
-            this.Context = context;
-            this.Options = options;
+            Context = context;
+            Options = options;
         }
 
         #endregion Constructors and Destructors

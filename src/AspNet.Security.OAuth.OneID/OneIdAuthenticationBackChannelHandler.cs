@@ -66,22 +66,46 @@ namespace AspNet.Security.OAuth.OneID
         /// <inheritdoc/>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+#if NET8_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(request);
+#else
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+#endif
+
             // Get the certificate
-            X509Certificate2 cert = null;
+            X509Certificate2? cert = null;
 
             try
             {
-
+                if (!string.IsNullOrEmpty(_options.CertificateThumbprint) && !string.IsNullOrEmpty(_options.CertificateFilename))
+                {
+                    throw new InvalidOperationException("Cannot specify both CertificateThumbprint and CertificateFilename.");
+                }
 
                 if (!string.IsNullOrEmpty(_options.CertificateThumbprint))
                 {
-                    cert = CertificateUtility.FindCertificateByThumbprint(_options.CertificateStoreName, _options.CertificateStoreLocation, _options.CertificateThumbprint, false);
+                    cert = OneIdCertificateUtility.FindCertificateByThumbprint(
+                        _options.CertificateStoreName,
+                        _options.CertificateStoreLocation,
+                        _options.CertificateThumbprint,
+                        false);
                 }
-                if (!string.IsNullOrEmpty(_options.CertificateFilename))
+                else if (!string.IsNullOrEmpty(_options.CertificateFilename))
                 {
+#if NET8_0_OR_GREATER
+                    var certBytes = await File.ReadAllBytesAsync(_options.CertificateFilename, cancellationToken);
+#else
                     var certBytes = File.ReadAllBytes(_options.CertificateFilename);
-                    cert = new X509Certificate2(certBytes, _options.CertificatePassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
+#endif
+                    cert = new X509Certificate2(
+                        certBytes,
+                        _options.CertificatePassword,
+                        X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
                 }
+
                 if (cert == null)
                 {
                     throw new InvalidOperationException("Must specify CertificateThumbprint or CertificateFilename (with CertificatePassword if applicable).");
@@ -96,17 +120,16 @@ namespace AspNet.Security.OAuth.OneID
                 // we now need to create a JWT that we include in the response as the claim_assertion
                 var permClaims = new List<Claim>
             {
-                new Claim("iss", _options.ClientId),
-                new Claim("sub", _options.ClientId),
-                new Claim("aud", _options.Audience),
-                new Claim("iat", now.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
-                new Claim("exp", expire.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
-#if NET5_0_OR_GREATER
-                new Claim("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-","", StringComparison.InvariantCulture)}")
+                new("iss", _options.ClientId),
+                new("sub", _options.ClientId),
+                new("aud", _options.Audience),
+                new("iat", now.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
+                new("exp", expire.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
+#if NET8_0_OR_GREATER
+                new("jti", $"{Guid.NewGuid().ToString().Replace("-", string.Empty, StringComparison.InvariantCulture)}")
 #else
-                new Claim("jti", $"{now}/{Guid.NewGuid().ToString().Replace("-","")}")
+                new("jti", $"{Guid.NewGuid().ToString().Replace("-", string.Empty)}")
 #endif
-                
             };
 
                 // Create Security Token object by giving required parameters. Since we're specifically setting the iss/sub/aud/exp above, don't include them below
@@ -116,58 +139,45 @@ namespace AspNet.Security.OAuth.OneID
 
                 token.Header.Remove("kid");
 
-                var jwt_token = new JwtSecurityTokenHandler().WriteToken(token);
+                var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
 
                 // Now we need to redo the form params so we can add/modify. Let's first take the values out and put them into a mutable dictionary
-                if (request == null) return null;
-#if NET5_0_OR_GREATER
+                if (request.Content == null) return new HttpResponseMessage { StatusCode = HttpStatusCode.NoContent };
+#if NET8_0_OR_GREATER
                 var oldContent = await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 #else
                 var oldContent = await request.Content.ReadAsStringAsync().ConfigureAwait(false);
 #endif
 
-#if NET5_0_OR_GREATER
+#if NET8_0_OR_GREATER
                 var data = oldContent.Replace("?", string.Empty, StringComparison.InvariantCulture).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
 #else
-                var data = oldContent.Replace("?", string.Empty).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
+                    var data = oldContent.Replace("?", string.Empty).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
 #endif
 
-
                 // Helen reported we were double encoding this, so let's set it again
-                data["redirect_uri"] = WebUtility.UrlDecode(data["redirect_uri"]);
+                if (data.TryGetValue("redirect_uri", out string? redirectUri))
+                    data["redirect_uri"] = WebUtility.UrlDecode(redirectUri);
 
                 // Make sure the client_assertion_type is what is expected.
-                if (data.ContainsKey("client_assertion_type"))
-                {
-                    data.Remove("client_assertion_type");
-                }
+                data.Remove("client_assertion_type");
                 data.Add("client_assertion_type", ClaimNames.JwtBearerAssertion); // must include this non-encoded as the process will re-encode it
 
                 // Make sure the client_assertion is what is expected.
-                if (data.ContainsKey("client_assertion"))
-                {
-                    data.Remove("client_assertion");
-                }
-                data.Add("client_assertion", jwt_token);
+                data.Remove("client_assertion");
+                data.Add("client_assertion", jwtToken);
 
-                if (data.ContainsKey("aud"))
-                {
-                    data.Remove("aud");
-                }
-                data.Add("aud", ClaimNames.ApiAudience); // Is this value ever changing?
+                data.Remove("aud");
+                data.Add("aud", ClaimNames.ApiAudience); // Is this value ever-changing?
 
                 // Now put it back ibnto the request
-                var content = new FormUrlEncodedContent(data);
-                request.Content = content;
+                request.Content = new FormUrlEncodedContent(data.AsEnumerable());
 
                 return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
-                if (cert != null)
-                {
-                    cert.Dispose();
-                }
+                cert?.Dispose();
             }
         }
     }
@@ -175,7 +185,7 @@ namespace AspNet.Security.OAuth.OneID
     /// <summary>
     /// utility class to find certs and export them into byte arrays
     /// </summary>
-    public static class CertificateUtility
+    public static class OneIdCertificateUtility
     {
         /// <summary>
         /// Finds the cert having thumbprint supplied from store location supplied
@@ -185,8 +195,13 @@ namespace AspNet.Security.OAuth.OneID
         /// <param name="thumbprint"></param>
         /// <param name="validationRequired"></param>
         /// <returns>X509Certificate2</returns>
-        public static X509Certificate2 FindCertificateByThumbprint(StoreName storeName, StoreLocation storeLocation, string thumbprint, bool validationRequired)
+        public static X509Certificate2 FindCertificateByThumbprint(StoreName storeName, StoreLocation storeLocation, string? thumbprint, bool validationRequired)
         {
+            if (string.IsNullOrEmpty(thumbprint))
+            {
+                throw new ArgumentNullException(nameof(thumbprint));
+            }
+
             var store = new X509Store(storeName, storeLocation);
             try
             {
@@ -201,7 +216,7 @@ namespace AspNet.Security.OAuth.OneID
             }
             finally
             {
-#if NET451
+#if !NETCORE
                 // IDisposable not implemented in NET451
                 store.Close();
 #else
@@ -219,7 +234,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <returns>X509Certificate2</returns>
         public static X509Certificate2 FindCertificateByThumbprint(string thumbprint, bool validateCertificate)
         {
-            return FindCertificateByThumbprint(StoreName.My, StoreLocation.LocalMachine, thumbprint, validateCertificate);
+            return FindCertificateByThumbprint(StoreName.My, StoreLocation.CurrentUser, thumbprint, validateCertificate);
         }
 
         /// <summary>
@@ -230,10 +245,14 @@ namespace AspNet.Security.OAuth.OneID
         /// <returns></returns>
         public static byte[] ExportCertificateWithPrivateKey(X509Certificate2 cert, out string password)
         {
+#if NET8_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(cert);
+#else
             if (cert is null)
             {
                 throw new ArgumentNullException(nameof(cert));
             }
+#endif
 
             password = Convert.ToBase64String(Encoding.Unicode.GetBytes(Guid.NewGuid().ToString("N")));
             return cert.Export(X509ContentType.Pkcs12, password);

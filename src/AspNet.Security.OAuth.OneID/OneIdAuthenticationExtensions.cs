@@ -31,19 +31,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
 
-#if NETCORE
-
+#if NET8_0_OR_GREATER
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 
-#elif NETFULL
+#elif !NETCORE
 
 using Owin;
 
@@ -56,8 +55,7 @@ namespace AspNet.Security.OAuth.OneID
     /// </summary>
     public static class OneIdAuthenticationExtensions
     {
-#if NETCORE
-
+#if NET8_0_OR_GREATER
         /// <summary>
         /// Adds <see cref="OneIdAuthenticationHandler"/> to the specified
         /// <see cref="AuthenticationBuilder"/>, which enables OneId authentication capabilities.
@@ -66,9 +64,9 @@ namespace AspNet.Security.OAuth.OneID
         /// <returns>A reference to this instance after the operation has completed.</returns>
         public static AuthenticationBuilder AddOneId(this AuthenticationBuilder builder)
         {
-            Contract.Requires(builder != null);
+            ArgumentNullException.ThrowIfNull(builder);
 
-            return builder.AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, options => { });
+            return builder.AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, _ => { });
         }
 
         /// <summary>
@@ -82,8 +80,8 @@ namespace AspNet.Security.OAuth.OneID
             this AuthenticationBuilder builder,
             Action<OneIdAuthenticationOptions> configuration)
         {
-            Contract.Requires(builder != null);
-            Contract.Requires(configuration != null);
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentNullException.ThrowIfNull(configuration);
 
             return builder.AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, configuration);
         }
@@ -101,9 +99,13 @@ namespace AspNet.Security.OAuth.OneID
             string scheme,
             Action<OneIdAuthenticationOptions> configuration)
         {
-            Contract.Requires(builder != null);
-            Contract.Requires(scheme != null);
-            Contract.Requires(configuration != null);
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentNullException.ThrowIfNull(configuration);
+
+            if (string.IsNullOrEmpty(scheme))
+            {
+                throw new ArgumentException($"'{nameof(scheme)}' cannot be null or empty.", nameof(scheme));
+            }
 
             return builder.AddOneId(scheme, OneIdAuthenticationDefaults.DisplayName, configuration);
         }
@@ -123,19 +125,18 @@ namespace AspNet.Security.OAuth.OneID
             string caption,
             Action<OneIdAuthenticationOptions> configuration)
         {
-            Contract.Requires(builder != null);
-            Contract.Requires(scheme != null);
-            Contract.Requires(configuration != null);
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentNullException.ThrowIfNull(scheme);
+            ArgumentNullException.ThrowIfNull(configuration);
 
+            builder.Services.AddHttpClient();
             builder.Services.TryAddSingleton<JwtSecurityTokenHandler>();
-            //builder.Services.TryAddSingleton<IPostConfigureOptions<OneIdAuthenticationOptions>, OneIdAuthenticationPostConfigureOptions>();
-
-            //builder.Services.Configure(configuration);`
+            builder.Services.TryAddSingleton<IPostConfigureOptions<OneIdAuthenticationOptions>, OneIdAuthenticationPostConfigureOptions>();
 
             return builder.AddOAuth<OneIdAuthenticationOptions, OneIdAuthenticationHandler>(scheme, caption, configuration);
         }
 
-#elif NETFULL
+#elif !NETCORE
 
         /// <summary>The to query string.</summary>
         /// <param name="parameters">The parameters.</param>
@@ -186,6 +187,7 @@ namespace AspNet.Security.OAuth.OneID
             });
             return app;
         }
+
 #endif
     }
 }

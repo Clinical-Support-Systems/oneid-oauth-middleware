@@ -8,3 +8,57 @@
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+
+
+@if (User.Identity != null && User.Identity.IsAuthenticated)
+{
+    <h2>Claims</h2>
+    <dl>
+        @foreach (var claim in User.Claims)
+        {
+            <dt>@claim.Type</dt>
+            <dd>@claim.Value</dd>
+        }
+    </dl>
+
+    @if (!string.IsNullOrEmpty(IndexModel.IdToken))
+    {
+        <h2>Id Token</h2>
+        <pre id="idToken">@IndexModel.IdToken</pre>
+        <button class="btn btn-secondary" onclick="copyToClipboard('idToken')">Copy ID Token</button>
+    }
+
+    @if (!string.IsNullOrEmpty(IndexModel.AccessToken))
+    {
+        <h2>Access Token</h2>
+        <pre id="accessToken">@IndexModel.AccessToken</pre>
+        <button class="btn btn-secondary" onclick="copyToClipboard('accessToken')">Copy Access Token</button>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.RefreshToken))
+    {
+        <h2>Refresh Token</h2>
+        <pre id="refreshToken">@Model.RefreshToken</pre>
+        <button class="btn btn-secondary" onclick="copyToClipboard('refreshToken')">Copy Refresh Token</button>
+    }
+
+    <form method="post">
+        <button type="submit" class="btn btn-primary" asp-page-handler="Submit">Refresh</button>
+        @Html.HiddenFor(m => IndexModel.AccessToken)
+        @Html.HiddenFor(m => m.RefreshToken)
+        @Html.HiddenFor(m => IndexModel.IdToken)
+    </form>
+}
+
+@section Scripts {
+    <script type="text/javascript">
+        function copyToClipboard(elementId) {
+            var textToCopy = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(textToCopy).then(function() {
+                alert('Copied to clipboard');
+            }).catch(function(err) {
+                console.error('Failed to copy: ', err);
+            });
+        }
+    </script>
+}

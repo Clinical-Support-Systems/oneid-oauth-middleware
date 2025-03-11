@@ -36,21 +36,21 @@ using static AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Collections.ObjectModel;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
 
-#if NETCORE
-
+#if NET8_0_OR_GREATER
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-#elif NETFULL
+#elif !NETCORE
 
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
@@ -64,63 +64,58 @@ namespace AspNet.Security.OAuth.OneID
     /// Defines a set of options used by <see cref="OneIdAuthenticationHandler"/>.
     /// </summary>
     public class OneIdAuthenticationOptions :
-#if NETCORE
+#if NET8_0_OR_GREATER
         OAuthOptions
-#elif NETFULL
+#elif !NETCORE
         AuthenticationOptions
 #endif
     {
-        private OneIdAuthenticationEnvironment _environment;
-        private string _authority;
+        private OneIdAuthenticationEnvironment _environment = OneIdAuthenticationEnvironment.PartnerSelfTest;
+        private string _authority = string.Empty;
         private OneIdAuthenticationServiceProfiles _serviceProfileOptions = OneIdAuthenticationDefaults.ServiceProfiles;
+        private string _audience = string.Empty;
 
         /// <summary>
         /// Constructor
         /// </summary>
         public OneIdAuthenticationOptions()
-#if NETFULL
+#if !NETCORE
              : base(OneIdAuthenticationDefaults.DisplayName)
 #endif
         {
-#if NETCORE
+#if NET8_0_OR_GREATER
             Environment = OneIdAuthenticationDefaults.Environment;
             ClaimsIssuer = OneIdAuthenticationDefaults.Issuer;
             CallbackPath = CallbackPath != null ? CallbackPath : new PathString(OneIdAuthenticationDefaults.CallbackPath);
             SaveTokens = false;
             SignInScheme = IdentityConstants.ExternalScheme;
             ResponseType = OpenIdConnectResponseType.Code;
-            GetClaimsFromUserInfoEndpoint = false;
             UsePkce = true;
             BackchannelHttpHandler = new OneIdAuthenticationBackChannelHandler(this);
             CertificateStoreLocation = StoreLocation.LocalMachine;
             CertificateStoreName = StoreName.My;
+            Events = new OneIdAuthenticationEvents();
+
+            UpdateEndpoints();
+
             TokenValidationParameters = new TokenValidationParameters()
             {
                 ValidateAudience = true,
                 ValidAudience = ClientId,
 
-                ValidateIssuer = false,
-                ValidIssuers = new[] { Authority },
-                IssuerSigningKeyValidator = (sk, st, tvp) =>
-                {
-                    return true;
-                },
+                ValidateIssuer = true,
+                ValidIssuer = Authority,
 
-                NameClaimType = "name",
-                RoleClaimType = "groups",
-
-                SignatureValidator = (token, validationParameters) =>
-                {
-                    validationParameters.RequireSignedTokens = false;
-                    var tokenHandler = new JwtSecurityTokenHandler();
-                    return tokenHandler.ReadToken(token);
-                },
-
-                RequireExpirationTime = true,
                 ValidateLifetime = true,
-                RequireSignedTokens = true,
+
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String("iGlWMW7KNH1FOIMRSUluC7PPCu6K9zdQTrP1I4Cl5q0=")),
+
+                NameClaimType = ClaimTypes.NameIdentifier,
+                RoleClaimType = "groups"
             };
 
+            // Profile, email and offline_access scopes are not supported by OneID
             Scope.Clear();
             Scope.Add("openid");
 
@@ -138,13 +133,19 @@ namespace AspNet.Security.OAuth.OneID
             ClaimActions.MapJsonKey(ClaimTypes.GivenName, "given_name");
             ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "sub");
             ClaimActions.MapJsonKey(ClaimTypes.Surname, "family_name");
+            ClaimActions.MapJsonKey(ClaimTypes.Actor, "username");
 
-#elif NETFULL
+            // Add a custom claim action that maps the email claim from the ID token if
+            // it was not otherwise provided in the user endpoint response.
+            ClaimActions.Add(new OneIdAuthenticationClaimAction(this));
+
+#elif !NETCORE
             AuthenticationType = OneIdAuthenticationDefaults.DisplayName;
             Caption = OneIdAuthenticationDefaults.DisplayName;
             AuthenticationMode = AuthenticationMode.Passive;
             CallbackPath = new PathString(OneIdAuthenticationDefaults.CallbackPath);
             BackchannelTimeout = TimeSpan.FromSeconds(60);
+            ResponseType = "code";
 
             Scope = new List<string>
             {
@@ -172,17 +173,18 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         ///     Gets or sets additional values set in this property will be appended to the authorization request.
         /// </summary>
-        public Dictionary<string, string> AdditionalParameters { get; set; }
+        public Dictionary<string, string> AdditionalParameters { get; } = new();
 
         /// <summary>
         /// For the purposes of removing subdomains from the request and restoring them for the redirect once complete
         /// Add second and third level TLDs that might be expected (ie. (host).uk is 1st, (host).co.uk is a 2nd, (host).k12.ma.us is a third)
         /// </summary>
-        public ReadOnlyCollection<string> Tlds { get; set; }
+        public ReadOnlyCollection<string>? Tlds { get; set; }
 
         /// <summary>
         /// Authority, which depends on the environment
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1863:Use 'CompositeFormat'", Justification = "<Pending>")]
         public string Authority
         {
             get
@@ -199,6 +201,11 @@ namespace AspNet.Security.OAuth.OneID
             }
             set => _authority = value;
         }
+
+        /// <summary>
+        /// Gets or sets the security token validator to use.
+        /// </summary>
+        public JsonWebTokenHandler? SecurityTokenHandler { get; set; }
 
         /// <summary>
         /// When SaveTokens is true, this let's you specify which tokens get persisted non-session (ie. cookie)
@@ -249,7 +256,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// The thumbprint of the PKI certificate pre-configured with eHealth Ontario
         /// </summary>
-        public string CertificateThumbprint { get; set; }
+        public string? CertificateThumbprint { get; set; }
 
         public StoreLocation CertificateStoreLocation { get; set; }
         public StoreName CertificateStoreName { get; set; }
@@ -257,33 +264,22 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Certificate filename, if not using thumbprint
         /// </summary>
-        public string CertificateFilename { get; set; }
+        public string? CertificateFilename { get; set; }
 
         /// <summary>
         /// Certificate password, if not using thumbprint
         /// </summary>
-        public SecureString CertificatePassword { get; set; }
+        public SecureString? CertificatePassword { get; set; }
 
         /// <summary>
         /// Response type
         /// </summary>
-        public string ResponseType { get; private set; }
-
-        /// <summary>
-        /// Get claims from the user info endpoint? no.
-        /// </summary>
-
-        public bool GetClaimsFromUserInfoEndpoint { get; private set; }
+        public string ResponseType { get; }
 
         /// <summary>
         /// Validate tokens?
         /// </summary>
-        public bool ValidateTokens { get; internal set; }
-
-        /// <summary>
-        /// Token validation parameterd
-        /// </summary>
-        public object TokenValidationParameters { get; internal set; }
+        public bool ValidateTokens { get; set; } = true;
 
         /// <summary>
         /// Gets or sets the target online environment to either development, stage or production.
@@ -306,26 +302,38 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Audience
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1863:Use 'CompositeFormat'", Justification = "<Pending>")]
         public string Audience
         {
             get
             {
-                string env = GetEnvironment();
-                return string.Format(CultureInfo.InvariantCulture, FormatStrings.Audience, env);
+                if (string.IsNullOrEmpty(_audience))
+                {
+                    var env = GetEnvironment();
+                    _audience = string.Format(CultureInfo.InvariantCulture,
+                       FormatStrings.Audience,
+                       env);
+                }
+
+                return _audience;
             }
+            set => _audience = value;
         }
 
-#if NETFULL
-        public string AuthorizationEndpoint { get; private set; }
-        public string TokenEndpoint { get; private set; }
-        public string ClaimsIssuer { get; private set; }
+        public string EndSessionEndpoint { get; private set; } = string.Empty;
+        public string MetadataEndpoint { get; private set; } = string.Empty;
 
-        public string ClientId { get; set; }
+#if !NETCORE
+        public string AuthorizationEndpoint { get; private set; } = string.Empty;
+        public string TokenEndpoint { get; private set; } = string.Empty;
+        public string ClaimsIssuer { get; private set; } = string.Empty;
+        public string ClientId { get; set; } = string.Empty;
+        public string ClientSecret { get; set; } = string.Empty;
 
-        public ISecureDataFormat<AuthenticationProperties> StateDataFormat { get; set; }
-        public IOneIdAuthenticationProvider Provider { get; set; }
+        public ISecureDataFormat<AuthenticationProperties>? StateDataFormat { get; set; }
+        public IOneIdAuthenticationProvider Provider { get; set; } = new OneIdAuthenticationProvider();
 
-        public string SignInAsAuthenticationType { get; set; }
+        public string SignInAsAuthenticationType { get; set; } = string.Empty;
         public IList<string> Scope { get; }
         public PathString CallbackPath { get; set; }
 
@@ -334,10 +342,10 @@ namespace AspNet.Security.OAuth.OneID
         /// This cannot be set at the same time as BackchannelCertificateValidator unless the value
         /// can be downcast to a WebRequestHandler.
         /// </summary>
-        public HttpMessageHandler BackchannelHttpHandler { get; set; }
+        public HttpMessageHandler? BackchannelHttpHandler { get; set; }
 
         /// <summary>Gets or sets the authentication handler.</summary>
-        public IOneIdAuthenticationHandlerFactory AuthenticationHandlerFactory { get; set; }
+        public IOneIdAuthenticationHandlerFactory? AuthenticationHandlerFactory { get; set; }
 
         /// <summary>
         /// Gets or sets timeout value in milliseconds for back channel communications with OneId.
@@ -355,6 +363,56 @@ namespace AspNet.Security.OAuth.OneID
             get { return Description.Caption; }
             set { Description.Caption = value; }
         }
+
+#else
+        /// <summary>
+        /// UserInformationEndpoint, which depends on the environment
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1863:Use 'CompositeFormat'", Justification = "<Pending>")]
+        public string UserInfo
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(UserInformationEndpoint))
+                {
+                    var env = GetEnvironment();
+                    UserInformationEndpoint = string.Format(CultureInfo.InvariantCulture,
+                       FormatStrings.UserInfoEndpoint,
+                       env);
+                }
+
+                return UserInformationEndpoint;
+            }
+            set => UserInformationEndpoint = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the <see cref="OneIdAuthenticationEvents"/> used to handle authentication events.
+        /// </summary>
+        public new OneIdAuthenticationEvents Events
+        {
+            get => (OneIdAuthenticationEvents)base.Events;
+            set => base.Events = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the configuration manager responsible for retrieving, caching, and refreshing the
+        /// OpenId configuration from metadata. If not provided, then one will be created using the <see cref="MetadataEndpoint"/>
+        /// and <see cref="RemoteAuthenticationOptions.Backchannel"/> properties.
+        /// </summary>
+        public IConfigurationManager<OpenIdConnectConfiguration>? ConfigurationManager { get; set; }
+
+        /// <summary>
+        /// Gets or sets the parameters used to validate identity tokens.
+        /// </summary>
+        /// <remarks>Contains the types and definitions required for validating a token.</remarks>
+        public TokenValidationParameters TokenValidationParameters { get; }
+
+        /// <summary>
+        /// Gets or sets the <see cref="IOneIdTokenValidator"/> to use.
+        /// </summary>
+        public IOneIdTokenValidator TokenValidator { get; set; } = default!;
+
 #endif
 
         /// <summary>
@@ -373,9 +431,13 @@ namespace AspNet.Security.OAuth.OneID
             };
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1863:Use 'CompositeFormat'", Justification = "<Pending>")]
         private void UpdateEndpoints()
         {
             string env = GetEnvironment();
+            
+            Audience = string.Format(CultureInfo.InvariantCulture, FormatStrings.Audience, env);
+            Authority = string.Format(CultureInfo.InvariantCulture, FormatStrings.Authority, env);
 
             AuthorizationEndpoint = string.Format(CultureInfo.InvariantCulture,
                FormatStrings.AuthorizeEndpoint,
@@ -389,30 +451,96 @@ namespace AspNet.Security.OAuth.OneID
                 FormatStrings.ClaimsIssuer,
                 env);
 
+            EndSessionEndpoint = string.Format(CultureInfo.InvariantCulture,
+                FormatStrings.EndSessionEndpoint,
+                env);
+
+            MetadataEndpoint = string.Format(CultureInfo.InvariantCulture,
+               FormatStrings.MetadataEndpoint,
+               env);
+#if NET8_0_OR_GREATER
+            UserInformationEndpoint = string.Format(CultureInfo.InvariantCulture,
+               FormatStrings.UserInfoEndpoint,
+               env);
+#endif
+
             if (_environment == OneIdAuthenticationEnvironment.Production)
             {
                 // unlike all other environments, prod simply removes the domain
                 // ie. you won't see login.prod.oneidfederation.ehealthontario.ca, just login.oneidfederation.ehealthontario.ca
-#if NET5_0_OR_GREATER
+#if NET8_0_OR_GREATER
                 AuthorizationEndpoint = AuthorizationEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
                 TokenEndpoint = TokenEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
-                ClaimsIssuer = ClaimsIssuer.Replace(".prod", string.Empty, StringComparison.InvariantCulture); 
+                ClaimsIssuer = ClaimsIssuer.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
+                Audience = Audience.Replace(".prod", string.Empty, StringComparison.InvariantCulture).Replace("idaasprodoidc", "idaasoidc", StringComparison.InvariantCultureIgnoreCase); // Special case
+                EndSessionEndpoint = EndSessionEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
+                MetadataEndpoint = MetadataEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
+                UserInfo = UserInfo.Replace(".prod", string.Empty, StringComparison.InvariantCulture).Replace("idaasprodoidc", "idaasoidc", StringComparison.InvariantCultureIgnoreCase); // Special case
 #else
                 AuthorizationEndpoint = AuthorizationEndpoint.Replace(".prod", string.Empty);
                 TokenEndpoint = TokenEndpoint.Replace(".prod", string.Empty);
                 ClaimsIssuer = ClaimsIssuer.Replace(".prod", string.Empty);
+                Audience = Audience.Replace(".prod", string.Empty).Replace("idaasprodoidc", "idaasoidc"); // Special case
+                EndSessionEndpoint = EndSessionEndpoint.Replace(".prod", string.Empty);
+                MetadataEndpoint = MetadataEndpoint.Replace(".prod", string.Empty);
 #endif
             }
         }
 
-#if NETCORE
+#if NET8_0_OR_GREATER
 
         /// <inheritdoc/>
         public override void Validate()
         {
-            ClientSecret = Guid.NewGuid().ToString(); // HACK, base.Validate is checking to see thast ClientSecret isn't empty. Ron Popeil this (set and then forget).
+            var old = ClientSecret;
+            // base.Validate is checking to see that ClientSecret isn't empty. Ron Popeil this (set and then forget).
+            if (string.IsNullOrEmpty(old)) ClientSecret = Guid.NewGuid().ToString();
             base.Validate();
-            ClientSecret = null;
+            ClientSecret = old;
+
+            if (_environment == OneIdAuthenticationEnvironment.Production
+            && !AuthorizationEndpoint.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new NotSupportedException("Production environment requires secure endpoints, i.e. begins with 'https://'.");
+            }
+
+            if (string.IsNullOrEmpty(AuthorizationEndpoint))
+            {
+                throw new InvalidOperationException($"The '{nameof(AuthorizationEndpoint)}' option must be provided.");
+            }
+
+            if (string.IsNullOrEmpty(TokenEndpoint))
+            {
+                throw new InvalidOperationException($"The '{nameof(TokenEndpoint)}' option must be provided.");
+            }
+
+            if (!ServiceProfileOptions.HasFlag(OneIdAuthenticationServiceProfiles.OLIS) && !ServiceProfileOptions.HasFlag(OneIdAuthenticationServiceProfiles.DHDR))
+            {
+                throw new InvalidOperationException($"A '{nameof(ServiceProfileOptions)}' option must be provided.");
+            }
+
+            if (!TokenSaveOptions.HasFlag(OneIdAuthenticationTokenSave.AccessToken)
+                && !TokenSaveOptions.HasFlag(OneIdAuthenticationTokenSave.RefreshToken)
+                && !TokenSaveOptions.HasFlag(OneIdAuthenticationTokenSave.IdToken))
+            {
+                throw new InvalidOperationException($"A '{nameof(TokenSaveOptions)}' option must be provided because they must be accessed in session.");
+            }
+
+            if (_environment != OneIdAuthenticationEnvironment.Production &&
+                string.IsNullOrEmpty(ClientSecret))
+            {
+                throw new InvalidOperationException($"The '{nameof(ClientSecret)}' option must be provided within this environment.");
+            }
+
+            if (!CallbackPath.HasValue)
+            {
+                throw new InvalidOperationException($"The '{nameof(CallbackPath)}' option must be provided.");
+            }
+
+            if (ConfigurationManager == null)
+            {
+                throw new InvalidOperationException($"Provide {nameof(Authority)}, {nameof(MetadataEndpoint)}, or {nameof(ConfigurationManager)} to {nameof(OneIdAuthenticationOptions)}.");
+            }
         }
 
 #endif

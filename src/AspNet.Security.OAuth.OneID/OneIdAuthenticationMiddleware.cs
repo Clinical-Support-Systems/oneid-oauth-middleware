@@ -29,7 +29,7 @@
 
 #endregion License, Terms and Conditions
 
-#if NETFULL
+#if !NETCORE
 
 using AspNet.Security.OAuth.OneID.Properties;
 using AspNet.Security.OAuth.OneID.Provider;
@@ -48,22 +48,18 @@ namespace AspNet.Security.OAuth.OneID
 {
     public sealed class OneIdAuthenticationMiddleware : AuthenticationMiddleware<OneIdAuthenticationOptions> , IDisposable
     {
-        private HttpClient _httpClient;
-        private readonly ILogger _logger;
+        private HttpClient? _httpClient;
         private bool _isDisposed;
 
         public OneIdAuthenticationMiddleware(OwinMiddleware next, IAppBuilder app, OneIdAuthenticationOptions options) : base(next, options)
         {
-            if (string.IsNullOrWhiteSpace(this.Options.ClientId))
+            if (string.IsNullOrWhiteSpace(Options.ClientId))
             {
                 throw new ArgumentException(
                     string.Format(CultureInfo.CurrentCulture, Resources.Exception_OptionMustBeProvided, "ClientId"));
             }
 
-            _logger = app.CreateLogger<OneIdAuthenticationMiddleware>();
-
-            if (Options.Provider == null)
-                Options.Provider = new OneIdAuthenticationProvider();
+            var logger = app.CreateLogger<OneIdAuthenticationMiddleware>();
 
             if (options != null && options.StateDataFormat == null)
             {
@@ -73,20 +69,20 @@ namespace AspNet.Security.OAuth.OneID
                 options.StateDataFormat = new PropertiesDataFormat(dataProtector);
             }
 
-            if (string.IsNullOrEmpty(this.Options.SignInAsAuthenticationType))
+            if (string.IsNullOrEmpty(Options.SignInAsAuthenticationType))
             {
-                this.Options.SignInAsAuthenticationType = app.GetDefaultSignInAsAuthenticationType();
+                Options.SignInAsAuthenticationType = app.GetDefaultSignInAsAuthenticationType();
             }
 
-            _httpClient = new HttpClient(ResolveHttpMessageHandler(this.Options))
+            _httpClient = new HttpClient(ResolveHttpMessageHandler(Options))
             {
                 Timeout = options?.BackchannelTimeout ?? TimeSpan.FromMinutes(5),
                 MaxResponseContentBufferSize = 1024 * 1024 * 10
             };
 
-            if (this.Options.AuthenticationHandlerFactory == null)
+            if (Options.AuthenticationHandlerFactory == null)
             {
-                this.Options.AuthenticationHandlerFactory = new OneIdAuthenticationHandlerFactory(_httpClient, _logger);
+                Options.AuthenticationHandlerFactory = new OneIdAuthenticationHandlerFactory(_httpClient, logger);
             }
 
             _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(OneIdAuthenticationDefaults.UserAgent);
@@ -104,7 +100,7 @@ namespace AspNet.Security.OAuth.OneID
 
         protected override AuthenticationHandler<OneIdAuthenticationOptions> CreateHandler()
         {
-            return this.Options.AuthenticationHandlerFactory.CreateHandler();
+            return Options.AuthenticationHandlerFactory!.CreateHandler();
         }
 
         private void Dispose(bool disposing)
@@ -113,23 +109,18 @@ namespace AspNet.Security.OAuth.OneID
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects)
-                    _httpClient.Dispose();
+                    _httpClient?.Dispose();
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
                 _httpClient = null;
                 _isDisposed = true;
             }
         }
-
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~OneIdAuthenticationMiddleware()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
+        ~OneIdAuthenticationMiddleware()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
+        }
 
         public void Dispose()
         {

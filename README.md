@@ -1,31 +1,17 @@
-﻿# eHealth Ontario OneID Authentication Middleware
+﻿# Ontario Health (OH) OneID Authentication Middleware
 
-- An easy to use library that makes connecting with eHealth Ontario easy for .NET Kestrel/Owin/Katana applications.
+- An easy to use library that makes connecting with [Ontario Health](https://www.ontariohealth.ca/) easy for .NET Kestrel/Owin/Katana applications.
 
-<p align="center">
-  <a href="https://dev.azure.com/css/eHealthServices/_build/latest?definitionId=39&branchName=develop">
-    <img src="https://dev.azure.com/css/eHealthServices/_apis/build/status/eHealthServices-CI?branchName=develop" alt="Sublime's custom image"/>
-  </a>
-  <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Clinical-Support-Systems/oneid-oauth-middleware/CI">
-  <img alt="Nuget" src="https://img.shields.io/nuget/v/AspNet.Security.OAuth.OneID">
-  <img alt="Nuget" src="https://img.shields.io/nuget/dt/AspNet.Security.OAuth.OneID">
-</p>
+ [![CI](https://github.com/Clinical-Support-Systems/oneid-oauth-middleware/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/Clinical-Support-Systems/oneid-oauth-middleware/actions/workflows/main.yml) [![Nuget](https://img.shields.io/nuget/v/AspNet.Security.OAuth.OneID)](https://www.nuget.org/packages/AspNet.Security.OAuth.OneID) [![Nuget](https://img.shields.io/nuget/dt/AspNet.Security.OAuth.OneID)](#) [![Tests](https://gist.githubusercontent.com/kfrancis/65229774df094982ad195fe336f6b4c2/raw/63321843226df7596eed98e96391eedc8cb02c14/oneid_middleware_tests.md_badge.svg)](https://gist.github.com/kfrancis/65229774df094982ad195fe336f6b4c2)
 
-<p align="center">
-    <a href="#beginner-about">About</a> |
-    <a href="#sunny-usage">Usage</a> |
-    <a href="#wrench-development">Development</a> |
-    <a href="#camera-gallery">Gallery</a> |
-    <a href="#star2-creditacknowledgment">Acknowledgement</a> |
-    <a href="#lock-license">License</a>
-</p>
+[About](#beginner-about) | [Usage](#sunny-usage) | [Development](#wrench-development) | [Gallery](#camera-gallery) | [Acknowledgement](#star2-creditacknowledgment) | [License](#lock-license)
 
 ---
 
 # :beginner: About
 This library was created by Clinical Support Systems and Kori Francis, who have experience integrating with APIs of varying complexity. We wanted to simplify the connection in .NET web applications so we could get on with the actual API implementation.
 
-### :tada: Supported eHealth Services
+## :tada: Supported Ontario Health (OH) Services
 
 To make integration simple, there's support in this middlewear to adjust the scope and profile depending on the service you're integrating with. As such, we currently support the following:
 
@@ -35,10 +21,20 @@ To make integration simple, there's support in this middlewear to adjust the sco
 
 This will allow you to perform authentication once but retrieve an `access_token` that can access multiple services.
 
+## Supported oAuth/OIDC Features
+
+- :heavy_check_mark: Authenticate    
+- :heavy_check_mark: Discovery   
+- :heavy_check_mark: User Info   
+- :heavy_check_mark: Validation (use JSON Web Key Set)
+- :heavy_check_mark: Manual refresh
+- :x: End Session
+- :x: Logout
+
 # :sunny: Usage
 Here is how to use this library in your project.
 
-###  :electric_plug: NuGet Installation
+##  :electric_plug: NuGet Installation
 
 ```powershell
 Install-Package AspNet.Security.OAuth.OneID
@@ -80,12 +76,24 @@ services.AddAuthentication().AddOneId(OneIdAuthenticationDefaults.Authentication
 #  :wrench: Development
 If you want other people to contribute to this project, this is the section, make sure you always add this.
 
-### :notebook: Pre-Requisites
+## :notebook: Pre-Requisites
 
 List all the pre-requisites the system needs to develop this project.
 
-- You will need a PKI certificate from eHealth Ontario
-- You will need login credentials from eHealth Ontario
+- You will need a PKI certificate from Ontario Health (OH)
+- You will need login credentials from Ontario Health (OH)
+
+## IdentityModel Package Version Consistency
+
+Run this command:
+
+```powershell
+dotnet list package --include-transitive | sls "Microsoft.IdentityModel|System.IdentityModel"
+```
+
+If there are differences in the versions of the output, make sure to update those packages to all the same version. This is how the models and clients are kept in sync.
+
+See [this](https://docs.duendesoftware.com/identityserver/v7/troubleshooting/wilson/) for more info.
 
  ###  :fire: Contribution
 
@@ -123,7 +131,7 @@ After this, changes will be merged.
 
 #  :camera: Gallery
 
-![OneId Authentication](oneid.gif)
+![OneId Authentication](https://raw.githubusercontent.com/Clinical-Support-Systems/oneid-oauth-middleware/master/oneid.gif)
 
 # :star2: Credit/Acknowledgment
  * Kori Francis
@@ -134,3 +142,5 @@ After this, changes will be merged.
 #  :lock: License
 
 [License](https://raw.githubusercontent.com/Clinical-Support-Systems/oneid-oauth-middleware/master/LICENSE)
+
+https://login.oneidfederation.ehealthontario.ca/sso/oauth2/realms/root/realms/idaasoidc/.well-known/openid-configuration

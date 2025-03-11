@@ -56,15 +56,13 @@ namespace AspNet.Security.OAuth.OneID.Provider
     /// The OneId authenticated context
     /// </summary>
     public sealed class OneIdAuthenticatedContext :
-#if NETCORE
+#if NET8_0_OR_GREATER
         OAuthCreatingTicketContext
 #else
 BaseContext
 #endif
     {
-        private readonly TokenEndpoint _response;
-
-#if NETCORE
+#if NET8_0_OR_GREATER
 
         /// <summary>
         /// Constructor
@@ -79,7 +77,12 @@ BaseContext
         /// <param name="user">The user data from the id token</param>
         public OneIdAuthenticatedContext(ClaimsPrincipal principal, AuthenticationProperties properties, HttpContext context, AuthenticationScheme scheme, OAuthOptions options, HttpClient backchannel, OAuthTokenResponse tokens, JsonElement user) : base(principal, properties, context, scheme, options, backchannel, tokens, user)
         {
-            if (options is null)
+#if NET8_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(options);
+
+            ArgumentNullException.ThrowIfNull(tokens);
+#else
+if (options is null)
             {
                 throw new ArgumentNullException(nameof(options));
             }
@@ -88,12 +91,13 @@ BaseContext
             {
                 throw new ArgumentNullException(nameof(tokens));
             }
+#endif
 
             Context = context;
             Principal = principal;
             Properties = properties;
 
-            _response = user.ToObject<TokenEndpoint>();
+            ParsedResponse = user.ToObject<TokenEndpoint>();
 
             if (options.SaveTokens)
             {
@@ -102,7 +106,7 @@ BaseContext
                 if ((((OneIdAuthenticationOptions)options).TokenSaveOptions & OneIdAuthenticationTokenSave.AccessToken) == OneIdAuthenticationTokenSave.AccessToken && !string.IsNullOrEmpty(tokens.AccessToken))
                 {
                     authTokens.Add(new AuthenticationToken() { Name = "access_token", Value = tokens.AccessToken });
-                };
+                }
 
                 if ((((OneIdAuthenticationOptions)options).TokenSaveOptions & OneIdAuthenticationTokenSave.RefreshToken) == OneIdAuthenticationTokenSave.RefreshToken && !string.IsNullOrEmpty(tokens.RefreshToken))
                 {
@@ -114,36 +118,33 @@ BaseContext
                     authTokens.Add(new AuthenticationToken() { Name = "token_type", Value = tokens.TokenType });
                 }
 
-                if (!string.IsNullOrEmpty(tokens.ExpiresIn))
+                if (!string.IsNullOrEmpty(tokens.ExpiresIn) && int.TryParse(tokens.ExpiresIn, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value))
                 {
-                    if (int.TryParse(tokens.ExpiresIn, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value))
-                    {
-                        // https://www.w3.org/TR/xmlschema-2/#dateTime
-                        // https://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110).aspx
-                        var expiresAt = DateTime.UtcNow + TimeSpan.FromSeconds(value);
+                    // https://www.w3.org/TR/xmlschema-2/#dateTime
+                    // https://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110).aspx
+                    var expiresAt = DateTime.UtcNow + TimeSpan.FromSeconds(value);
 
-                        authTokens.Add(new AuthenticationToken()
-                        {
-                            Name = "expires_at",
-                            Value = expiresAt.ToString("o", CultureInfo.InvariantCulture),
-                        });
-                    }
+                    authTokens.Add(new AuthenticationToken()
+                    {
+                        Name = "expires_at",
+                        Value = expiresAt.ToString("o", CultureInfo.InvariantCulture),
+                    });
                 }
 
                 Properties.StoreTokens(authTokens);
             }
 
-            this.Email = user.GetString("email");
-            this.Id = user.GetString("sub");
-            this.GivenName = user.GetString("given_name");
-            this.FamilyName = user.GetString("family_name");
-            this.PhoneNumber = user.GetString("phoneNumber");
+            Email = user.GetString("email");
+            Id = user.GetString("sub");
+            GivenName = user.GetString("given_name");
+            FamilyName = user.GetString("family_name");
+            PhoneNumber = user.GetString("phoneNumber");
         }
 
         /// <summary>
         /// The http context
         /// </summary>
-        public HttpContext Context { get; private set; }
+        public HttpContext Context { get; }
 
 #endif
 
@@ -157,76 +158,82 @@ BaseContext
             }
 
             Context = context;
-            _response = response;
+            ParsedResponse = response;
 
             AccessToken = accessToken;
             IdentityToken = idToken;
             RefreshToken = refreshToken;
 
             user.TryGetValue("email", out var email);
-            this.Email = email.ToString();
+            Email = email.ToString();
 
             user.TryGetValue("sub", out var id);
-            this.Id = id.ToString();
+            Id = id.ToString();
 
             user.TryGetValue("given_name", out var givenName);
-            this.GivenName = givenName.ToString();
+            GivenName = givenName.ToString();
 
             user.TryGetValue("family_name", out var familyName);
-            this.FamilyName = familyName.ToString();
+            FamilyName = familyName.ToString();
 
             user.TryGetValue("phoneNumber", out var phoneNumber);
-            this.PhoneNumber = phoneNumber.ToString();
+            PhoneNumber = phoneNumber.ToString();
         }
 
-        public IOwinContext Context { get; private set; }
+        public IOwinContext Context { get; }
 
-        public ClaimsIdentity Identity { get; set; }
-        public AuthenticationProperties Properties { get; set; }
+        public ClaimsIdentity? Identity { get; set; }
+        public AuthenticationProperties? Properties { get; set; }
         /// <summary>
         /// Gets the refresh token.
         /// </summary>
-        public string RefreshToken { get; private set; }
+        public string RefreshToken { get; }
 
         /// <summary>
         /// Gets the access token
         /// </summary>
-        public string AccessToken { get; private set; }
+        public string AccessToken { get; }
 #endif
 
         /// <summary>
         /// The parsed response
         /// </summary>
-        public TokenEndpoint ParsedResponse => _response;
+        public TokenEndpoint? ParsedResponse { get; }
 
         /// <summary>
         /// Gets the identity token.
         /// </summary>
-        public string IdentityToken { get; private set; }
+        public string? IdentityToken { get; }
 
         /// <summary>
         /// First name
         /// </summary>
-        public string GivenName { get; private set; }
+        public string? GivenName { get; }
 
         /// <summary>
         /// Last name
         /// </summary>
-        public string FamilyName { get; private set; }
+        public string? FamilyName { get; }
+
+
+        /// <summary>
+        /// Username
+        /// </summary>
+        public string? UserName { get; }
 
         /// <summary>
         /// User identifier
         /// </summary>
-        public string Id { get; private set; }
+        public string? Id { get; }
 
         /// <summary>
         /// User email address
         /// </summary>
-        public string Email { get; private set; }
+        public string? Email { get; }
 
         /// <summary>
         /// Phone number
         /// </summary>
-        public string PhoneNumber { get; private set; }
+        public string? PhoneNumber { get; }
     }
 }
