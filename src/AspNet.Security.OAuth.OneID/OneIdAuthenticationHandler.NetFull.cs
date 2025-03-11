@@ -1,4 +1,4 @@
-﻿#region License, Terms and Conditions
+#region License, Terms and Conditions
 
 //
 // OneIdAuthenticationHandler.NetFull.cs
