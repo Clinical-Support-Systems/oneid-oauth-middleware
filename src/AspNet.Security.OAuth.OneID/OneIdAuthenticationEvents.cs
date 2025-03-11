@@ -32,7 +32,6 @@
 #if NET8_0_OR_GREATER
 using Microsoft.AspNetCore.Authentication.OAuth;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace AspNet.Security.OAuth.OneID
@@ -45,7 +44,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Gets or sets the delegate that is invoked when the <see cref="ValidateIdToken"/> method is invoked.
         /// </summary>
-        public Func<OneIdValidateIdTokenContext, Task> OnValidateIdToken { get; set; } = async context => await context.Options.TokenValidator.ValidateAsync(context).ConfigureAwait(false);
+        private Func<OneIdValidateIdTokenContext, Task> OnValidateIdToken { get; } = async context => await context.Options.TokenValidator.ValidateAsync(context).ConfigureAwait(false);
 
         /// <summary>
         /// Invoked whenever the ID token needs to be validated.
