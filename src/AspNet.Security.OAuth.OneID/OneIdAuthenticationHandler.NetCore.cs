@@ -251,7 +251,7 @@ namespace AspNet.Security.OAuth.OneID
                         throw new InvalidOperationException($"'{nameof(parsedToken)}' cannot be null or have no claims.");
                     }
 
-                    retVal = new(parsedToken.Claims);
+                    retVal = [..parsedToken.Claims];
                     
                     if (!string.IsNullOrEmpty(parsedToken.Subject))
                     {

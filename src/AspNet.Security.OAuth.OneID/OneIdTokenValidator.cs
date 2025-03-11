@@ -56,20 +56,20 @@ namespace AspNet.Security.OAuth.OneID
         /// </returns>
         Task ValidateAsync(OneIdValidateIdTokenContext context);
     }
-
+    
     internal sealed partial class DefaultOneIdTokenValidator : IOneIdTokenValidator
     {
         private readonly ILogger _logger;
         private readonly IHttpClientFactory _httpClientFactory;
 
-        public DefaultOneIdTokenValidator(
+public DefaultOneIdTokenValidator(
             [NotNull] ILogger<DefaultOneIdTokenValidator> logger, IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
             _httpClientFactory = httpClientFactory;
         }
 
-        [SuppressMessage("Performance", "CA1848:Use the LoggerMessage delegates", Justification = "<Pending>")]
+[SuppressMessage("Performance", "CA1848:Use the LoggerMessage delegates", Justification = "<Pending>")]
         [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
 
         public async Task ValidateAsync([NotNull] OneIdValidateIdTokenContext context)

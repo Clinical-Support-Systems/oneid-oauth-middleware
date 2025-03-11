@@ -106,12 +106,16 @@ namespace AspNet.Security.OAuth.OneID
                 ValidateIssuer = true,
                 ValidIssuer = Authority,
 
-                ValidateIssuerSigningKey = true,
+                ValidateLifetime = true,
 
-                NameClaimType = "name",
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String("iGlWMW7KNH1FOIMRSUluC7PPCu6K9zdQTrP1I4Cl5q0=")),
+
+                NameClaimType = ClaimTypes.NameIdentifier,
                 RoleClaimType = "groups"
             };
 
+            // Profile, email and offline_access scopes are not supported by OneID
             Scope.Clear();
             Scope.Add("openid");
 
@@ -402,7 +406,7 @@ namespace AspNet.Security.OAuth.OneID
         /// Gets or sets the parameters used to validate identity tokens.
         /// </summary>
         /// <remarks>Contains the types and definitions required for validating a token.</remarks>
-        public TokenValidationParameters TokenValidationParameters { get; set; } = new TokenValidationParameters();
+        public TokenValidationParameters TokenValidationParameters { get; }
 
         /// <summary>
         /// Gets or sets the <see cref="IOneIdTokenValidator"/> to use.

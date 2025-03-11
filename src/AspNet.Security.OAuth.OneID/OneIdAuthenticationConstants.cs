@@ -29,7 +29,6 @@
 
 #endregion License, Terms and Conditions
 
-using System;
 using System.Resources;
 
 [assembly: NeutralResourcesLanguage("en")]
@@ -62,7 +61,14 @@ namespace AspNet.Security.OAuth.OneID
             /// </summary>
             public const string ClientId = "client_id";
 
+            /// <summary>
+            /// The post logout redirect uri
+            /// </summary>
             public const string PostLogoutRedirectUri = "post_logout_redirect_uri";
+
+            /// <summary>
+            /// The id token hint 
+            /// </summary>
             public const string IdTokenHint = "id_token_hint";
 
             /// <summary>
