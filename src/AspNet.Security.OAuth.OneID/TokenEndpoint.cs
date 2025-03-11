@@ -155,7 +155,7 @@ namespace AspNet.Security.OAuth.OneID
 #endif
     }
 
-#if NETCORE
+#if NET8_0_OR_GREATER
 
     /// <summary>
     /// Extensions related to deserializing json

@@ -135,7 +135,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <exception cref="ArgumentException"></exception>
         public static async Task<string> RefreshToken(HttpClient client, OneIdAuthenticationOptions options, string refreshToken, CancellationToken ct = default)
         {
-#if NETCORE
+#if NET8_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(client);
             ArgumentNullException.ThrowIfNull(options);
 #else
@@ -180,7 +180,7 @@ namespace AspNet.Security.OAuth.OneID
             request.Content = new FormUrlEncodedContent((IEnumerable<KeyValuePair<string?, string?>>)parameters);
             using var response = await client.SendAsync(request, cancellationToken: ct).ConfigureAwait(false);
 
-#if NETCORE
+#if NET8_0_OR_GREATER
             var readTask = response.Content.ReadAsStringAsync(ct);
 #else
             var readTask = response.Content.ReadAsStringAsync();

@@ -56,13 +56,13 @@ namespace AspNet.Security.OAuth.OneID.Provider
     /// The OneId authenticated context
     /// </summary>
     public sealed class OneIdAuthenticatedContext :
-#if NETCORE
+#if NET8_0_OR_GREATER
         OAuthCreatingTicketContext
 #else
 BaseContext
 #endif
     {
-#if NETCORE
+#if NET8_0_OR_GREATER
 
         /// <summary>
         /// Constructor
@@ -77,7 +77,7 @@ BaseContext
         /// <param name="user">The user data from the id token</param>
         public OneIdAuthenticatedContext(ClaimsPrincipal principal, AuthenticationProperties properties, HttpContext context, AuthenticationScheme scheme, OAuthOptions options, HttpClient backchannel, OAuthTokenResponse tokens, JsonElement user) : base(principal, properties, context, scheme, options, backchannel, tokens, user)
         {
-#if NETCORE
+#if NET8_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(options);
 
             ArgumentNullException.ThrowIfNull(tokens);

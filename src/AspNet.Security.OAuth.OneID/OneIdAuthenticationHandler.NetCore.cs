@@ -25,7 +25,7 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 
-#if NETCORE
+#if NET8_0_OR_GREATER
 
 using AspNet.Security.OAuth.OneID.Provider;
 using Microsoft.AspNetCore.Authentication;

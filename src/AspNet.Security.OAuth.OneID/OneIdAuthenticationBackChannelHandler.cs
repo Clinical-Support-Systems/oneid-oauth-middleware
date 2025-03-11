@@ -66,7 +66,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <inheritdoc/>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-#if NETCORE
+#if NET8_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(request);
 #else
             if (request is null)
@@ -95,7 +95,7 @@ namespace AspNet.Security.OAuth.OneID
                 }
                 else if (!string.IsNullOrEmpty(_options.CertificateFilename))
                 {
-#if NETCORE
+#if NET8_0_OR_GREATER
                     var certBytes = await File.ReadAllBytesAsync(_options.CertificateFilename, cancellationToken);
 #else
                     var certBytes = File.ReadAllBytes(_options.CertificateFilename);
@@ -125,7 +125,7 @@ namespace AspNet.Security.OAuth.OneID
                 new("aud", _options.Audience),
                 new("iat", now.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
                 new("exp", expire.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
-#if NETCORE
+#if NET8_0_OR_GREATER
                 new("jti", $"{Guid.NewGuid().ToString().Replace("-", string.Empty, StringComparison.InvariantCulture)}")
 #else
                 new("jti", $"{Guid.NewGuid().ToString().Replace("-", string.Empty)}")
@@ -143,13 +143,13 @@ namespace AspNet.Security.OAuth.OneID
 
                 // Now we need to redo the form params so we can add/modify. Let's first take the values out and put them into a mutable dictionary
                 if (request.Content == null) return new HttpResponseMessage { StatusCode = HttpStatusCode.NoContent };
-#if NETCORE
+#if NET8_0_OR_GREATER
                 var oldContent = await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 #else
                 var oldContent = await request.Content.ReadAsStringAsync().ConfigureAwait(false);
 #endif
 
-#if NETCORE
+#if NET8_0_OR_GREATER
                 var data = oldContent.Replace("?", string.Empty, StringComparison.InvariantCulture).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
 #else
                     var data = oldContent.Replace("?", string.Empty).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
@@ -245,7 +245,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <returns></returns>
         public static byte[] ExportCertificateWithPrivateKey(X509Certificate2 cert, out string password)
         {
-#if NETCORE
+#if NET8_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(cert);
 #else
             if (cert is null)

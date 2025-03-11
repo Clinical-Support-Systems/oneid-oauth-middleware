@@ -14,7 +14,7 @@ namespace AspNet.Security.OAuth.Providers.Tests
             };
 
             // Act and Assert
-            Assert.Throws<ArgumentException>("ClientId", () => options.Validate());
+            Assert.Throws<ArgumentNullException>("ClientId", () => options.Validate());
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace AspNet.Security.OAuth.Providers.Tests
             };
 
             // Act and Assert
-            Assert.Throws<ArgumentException>("AuthorizationEndpoint", () => options.Validate());
+            Assert.Throws<ArgumentNullException>("AuthorizationEndpoint", () => options.Validate());
         }
 
         [Fact]
@@ -87,7 +87,7 @@ namespace AspNet.Security.OAuth.Providers.Tests
             };
 
             // Act and Assert
-            Assert.Throws<ArgumentException>("TokenEndpoint", () => options.Validate());
+            Assert.Throws<ArgumentNullException>("TokenEndpoint", () => options.Validate());
         }
 
         [Fact]

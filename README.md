@@ -83,6 +83,18 @@ List all the pre-requisites the system needs to develop this project.
 - You will need a PKI certificate from Ontario Health (OH)
 - You will need login credentials from Ontario Health (OH)
 
+## IdentityModel Package Version Consistency
+
+Run this command:
+
+```powershell
+dotnet list package --include-transitive | sls "Microsoft.IdentityModel|System.IdentityModel"
+```
+
+If there are differences in the versions of the output, make sure to update those packages to all the same version. This is how the models and clients are kept in sync.
+
+See [this](https://docs.duendesoftware.com/identityserver/v7/troubleshooting/wilson/) for more info.
+
  ###  :fire: Contribution
 
  Your contributions are always welcome and appreciated. Following are the things you can do to contribute to this project.

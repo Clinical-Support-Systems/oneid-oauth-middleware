@@ -40,7 +40,7 @@ using System.Collections.ObjectModel;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
-#if NETCORE
+#if NET8_0_OR_GREATER
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -64,7 +64,7 @@ namespace AspNet.Security.OAuth.OneID
     /// Defines a set of options used by <see cref="OneIdAuthenticationHandler"/>.
     /// </summary>
     public class OneIdAuthenticationOptions :
-#if NETCORE
+#if NET8_0_OR_GREATER
         OAuthOptions
 #elif !NETCORE
         AuthenticationOptions
@@ -83,7 +83,7 @@ namespace AspNet.Security.OAuth.OneID
              : base(OneIdAuthenticationDefaults.DisplayName)
 #endif
         {
-#if NETCORE
+#if NET8_0_OR_GREATER
             Environment = OneIdAuthenticationDefaults.Environment;
             ClaimsIssuer = OneIdAuthenticationDefaults.Issuer;
             CallbackPath = CallbackPath != null ? CallbackPath : new PathString(OneIdAuthenticationDefaults.CallbackPath);
@@ -458,7 +458,7 @@ namespace AspNet.Security.OAuth.OneID
             MetadataEndpoint = string.Format(CultureInfo.InvariantCulture,
                FormatStrings.MetadataEndpoint,
                env);
-#if NETCORE
+#if NET8_0_OR_GREATER
             UserInformationEndpoint = string.Format(CultureInfo.InvariantCulture,
                FormatStrings.UserInfoEndpoint,
                env);
@@ -468,7 +468,7 @@ namespace AspNet.Security.OAuth.OneID
             {
                 // unlike all other environments, prod simply removes the domain
                 // ie. you won't see login.prod.oneidfederation.ehealthontario.ca, just login.oneidfederation.ehealthontario.ca
-#if NETCORE
+#if NET8_0_OR_GREATER
                 AuthorizationEndpoint = AuthorizationEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
                 TokenEndpoint = TokenEndpoint.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
                 ClaimsIssuer = ClaimsIssuer.Replace(".prod", string.Empty, StringComparison.InvariantCulture);
@@ -487,7 +487,7 @@ namespace AspNet.Security.OAuth.OneID
             }
         }
 
-#if NETCORE
+#if NET8_0_OR_GREATER
 
         /// <inheritdoc/>
         public override void Validate()

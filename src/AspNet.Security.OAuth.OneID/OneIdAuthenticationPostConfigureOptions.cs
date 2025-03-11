@@ -28,7 +28,7 @@
 //
 
 #endregion License, Terms and Conditions
-#if NETCORE
+#if NET8_0_OR_GREATER
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;

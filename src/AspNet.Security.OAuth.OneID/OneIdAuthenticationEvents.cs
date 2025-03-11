@@ -29,7 +29,7 @@
 
 #endregion License, Terms and Conditions
 
-#if NETCORE
+#if NET8_0_OR_GREATER
 using Microsoft.AspNetCore.Authentication.OAuth;
 using System;
 using System.Diagnostics.CodeAnalysis;

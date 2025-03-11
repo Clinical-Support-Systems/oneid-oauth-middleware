@@ -33,7 +33,7 @@ namespace AspNet.Security.OAuth.OneID
             : base(serializationInfo, streamingContext)
 #endif
         {
-#if NETCORE
+#if NET8_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(serializationInfo);
 #else
             if (serializationInfo is null)
