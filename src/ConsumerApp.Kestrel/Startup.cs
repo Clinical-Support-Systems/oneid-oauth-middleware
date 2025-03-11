@@ -69,7 +69,7 @@ namespace ConsumerApp.Kestrel
             // Add authentication services
             services.AddAuthentication().AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, (OneIdAuthenticationOptions options) =>
             {
-                options.ClientId = Configuration["EHS:ClientId"];
+                options.ClientId = Configuration["EHS:AuthClientId"];
                 options.CertificateThumbprint = Configuration["EHS:CertificateThumbprint"];
                 options.ClientSecret = Configuration["EHS:ClientSecret"];
                 options.Environment = OneIdAuthenticationEnvironment.PartnerSelfTest;

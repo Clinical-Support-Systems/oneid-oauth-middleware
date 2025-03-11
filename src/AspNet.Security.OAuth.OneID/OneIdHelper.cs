@@ -41,15 +41,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using static AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants;
+using static System.Net.WebRequestMethods;
 
 namespace AspNet.Security.OAuth.OneID
 {
     public static class OneIdHelper
     {
-        /// <summary>
-        /// This value should be updated by the discovery endpoint content, but won't be because it might not be correct.
-        /// </summary>
-        private static string EndSessionUrl = "https://login.pst.oneidfederation.ehealthontario.ca/oidc/connect/endSession";
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "CA1510:Use ArgumentNullException throw helper", Justification = "<Pending>")]
         public static async Task RevokeToken(string accessToken, string clientId, HttpClient oneIdClient)
@@ -89,29 +86,41 @@ namespace AspNet.Security.OAuth.OneID
         /// Retrieves the constructed endSession url that the user should be redirected to, to end their OAG session.
         /// </summary>
         /// <param name="idToken">The id token</param>
-        /// <param name="clientId">(Optional) The auth client id</param>
+        /// <param name="options">(Optional) The auth client id</param>
         /// <param name="postLogoutUri">(Optional) A post logout redirect</param>
-        /// <param name="isProduction">Is this production? Default is false, PST</param>
         /// <returns>The url to redirect to</returns>
-        public static string GetEndSessionUrl(string idToken, string? clientId = null, Uri? postLogoutUri = null, bool isProduction = false)
+        public static string GetEndSessionUrl(string idToken, OneIdAuthenticationOptions options, Uri? postLogoutUri = null)
         {
+            if (string.IsNullOrEmpty(idToken))
+            {
+                throw new ArgumentException($"'{nameof(idToken)}' cannot be null or empty.", nameof(idToken));
+            }
+
+            if (options is null)
+            {
+                throw new ArgumentException($"'{nameof(options)}' cannot be null or empty.", nameof(options));
+            }
+
             var queryValues = new Dictionary<string, string?>
             {
-                {OAuth2Constants.IdTokenHint, idToken}
+                {OAuth2Constants.IdTokenHint, idToken},
+                {OAuth2Constants.ClientId, options.ClientId}
             };
-            if (!string.IsNullOrEmpty(clientId))
-                queryValues.Add(OAuth2Constants.ClientId, HttpUtility.UrlEncode(clientId));
 
             if (postLogoutUri != null)
                 queryValues.Add(OAuth2Constants.PostLogoutRedirectUri, HttpUtility.UrlDecode(postLogoutUri.ToString()));
 
-            if (isProduction)
+            var tokenEndpoint = options.Environment switch
             {
-                EndSessionUrl = "https://login.oneidfederation.ehealthontario.ca/oidc/connect/endSession";
-            }
+                OneIdAuthenticationEnvironment.Production => "https://login.oneidfederation.ehealthontario.ca/oidc/connect/endSession",
+                OneIdAuthenticationEnvironment.PartnerSelfTest => "https://login.pst.oneidfederation.ehealthontario.ca/oidc/connect/endSession",
+                OneIdAuthenticationEnvironment.Development => "https://login.dev.oneidfederation.ehealthontario.ca:1443/oidc/connect/endSession",
+                OneIdAuthenticationEnvironment.QualityAssurance => "https://login.qa.oneidfederation.ehealthontario.ca:2443/oidc/connect/endSession",
+                _ => throw new NotSupportedException(),
+            };
 
             var array = queryValues.Where(x => !string.IsNullOrEmpty(x.Value)).Select(x => $"{HttpUtility.UrlEncode(x.Key)}={HttpUtility.UrlEncode(x.Value)}").ToArray();
-            return EndSessionUrl + "?" + string.Join("&", array);
+            return tokenEndpoint + "?" + string.Join("&", array);
         }
 
         /// <summary>

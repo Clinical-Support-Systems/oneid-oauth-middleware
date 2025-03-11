@@ -30,12 +30,14 @@
 #endregion License, Terms and Conditions
 
 #if NETCORE
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace AspNet.Security.OAuth.OneID
@@ -58,13 +60,19 @@ namespace AspNet.Security.OAuth.OneID
     internal sealed partial class DefaultOneIdTokenValidator : IOneIdTokenValidator
     {
         private readonly ILogger _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public DefaultOneIdTokenValidator(ILogger<DefaultOneIdTokenValidator> logger)
+public DefaultOneIdTokenValidator(
+            [NotNull] ILogger<DefaultOneIdTokenValidator> logger, IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
+            _httpClientFactory = httpClientFactory;
         }
 
-        public async Task ValidateAsync(OneIdValidateIdTokenContext context)
+[SuppressMessage("Performance", "CA1848:Use the LoggerMessage delegates", Justification = "<Pending>")]
+        [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
+
+        public async Task ValidateAsync([NotNull] OneIdValidateIdTokenContext context)
         {
             if (context.Options.SecurityTokenHandler is null)
             {
@@ -88,8 +96,54 @@ namespace AspNet.Security.OAuth.OneID
 
             var configuration = await context.Options.ConfigurationManager.GetConfigurationAsync(context.HttpContext.RequestAborted).ConfigureAwait(false);
 
+            // After retrieving the configuration
+            if (configuration.JsonWebKeySet == null)
+            {
+                _logger.LogWarning("JsonWebKeySet is null in original configuration");
+
+                // Try to fetch JWKS directly if the URI is available
+                if (!string.IsNullOrEmpty(configuration.JwksUri))
+                {
+                    _logger.LogDebug("Attempting to fetch JWKS directly from: {JwksUri}", configuration.JwksUri);
+                    try
+                    {
+                        using var httpClient = _httpClientFactory.CreateClient();
+                        var jwksJson = await httpClient.GetStringAsync(new Uri(configuration.JwksUri)).ConfigureAwait(false);
+                        _logger.LogTrace("JWKS response: {JwksJson}", jwksJson);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error fetching JWKS directly");
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("No JwksUri available in the configuration");
+
+                    // Set it manually
+                    configuration.JwksUri = $"{configuration.AuthorizationEndpoint[..configuration.AuthorizationEndpoint.LastIndexOf('/')]}/connect/jwk_uri";
+
+                    // Manually load the JWK set
+                    using var httpClient = _httpClientFactory.CreateClient();
+                    var jwksResponse = await httpClient.GetStringAsync(new Uri(configuration.JwksUri)).ConfigureAwait(false);
+
+                    // Parse and set the JSON Web Key Set
+                    configuration.JsonWebKeySet = JsonWebKeySet.Create(jwksResponse);
+                }
+            }
+
             var validationParameters = context.Options.TokenValidationParameters.Clone();
-            validationParameters.IssuerSigningKeys = configuration.JsonWebKeySet.Keys;
+
+            if (configuration.JsonWebKeySet != null)
+            {
+                validationParameters.IssuerSigningKeys = configuration.JsonWebKeySet?.Keys;
+            }
+            else
+            {
+#pragma warning disable CA5404 // Do not disable token validation checks
+                validationParameters.ValidateIssuer = false;
+#pragma warning restore CA5404 // Do not disable token validation checks
+            }
 
             try
             {
