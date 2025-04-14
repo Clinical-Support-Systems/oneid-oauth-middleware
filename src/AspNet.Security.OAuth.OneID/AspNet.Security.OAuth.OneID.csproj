@@ -36,7 +36,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="DotNet.ReproducibleBuilds" />
-		<PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="8.3.1" />
+		<PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="8.8.0" />
 		<PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.3.1" />
 		<PackageReference Include="Microsoft.IdentityModel.Logging" Version="8.3.1" />
 		<PackageReference Include="Microsoft.IdentityModel.Protocols" Version="8.3.1" />
