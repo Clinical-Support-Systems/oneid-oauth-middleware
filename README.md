@@ -11,6 +11,18 @@
 # :beginner: About
 This library was created by Clinical Support Systems and Kori Francis, who have experience integrating with APIs of varying complexity. We wanted to simplify the connection in .NET web applications so we could get on with the actual API implementation.
 
+## Documentation
+
+Check out our [detailed tutorial](./tutorial/index.md) for implementation guides and examples.
+
+Additional documentation:
+- [Authentication Options](./tutorial/01_oneidauthenticationoptions_.md)
+- [Environment Settings](./tutorial/02_oneidauthenticationenvironment_.md)
+- [Extension Methods](./tutorial/03_oneidauthenticationextensions_.md)
+- [Authentication Handler](./tutorial/04_oneidauthenticationhandler_.md)
+- [Back Channel Handling](./tutorial/05_oneidauthenticationbackchannelhandler_.md)
+- [Helper Functions](./tutorial/06_oneidhelper_.md)
+
 ## :tada: Supported Ontario Health (OH) Services
 
 To make integration simple, there's support in this middlewear to adjust the scope and profile depending on the service you're integrating with. As such, we currently support the following:

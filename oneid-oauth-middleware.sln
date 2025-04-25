@@ -25,6 +25,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerApp.Kestrel", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNet.Security.OAuth.Providers.Tests", "tests\AspNet.Security.OAuth.OneID.Tests\AspNet.Security.OAuth.Providers.Tests.csproj", "{742B1C22-4197-4EA2-A180-ED68C922DDA8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tutorial", "tutorial", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		tutorial\01_oneidauthenticationoptions_.md = tutorial\01_oneidauthenticationoptions_.md
+		tutorial\02_oneidauthenticationenvironment_.md = tutorial\02_oneidauthenticationenvironment_.md
+		tutorial\03_oneidauthenticationextensions_.md = tutorial\03_oneidauthenticationextensions_.md
+		tutorial\04_oneidauthenticationhandler_.md = tutorial\04_oneidauthenticationhandler_.md
+		tutorial\05_oneidauthenticationbackchannelhandler_.md = tutorial\05_oneidauthenticationbackchannelhandler_.md
+		tutorial\06_oneidhelper_.md = tutorial\06_oneidhelper_.md
+		tutorial\index.md = tutorial\index.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
