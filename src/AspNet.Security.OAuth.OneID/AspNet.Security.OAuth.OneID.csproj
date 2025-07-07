@@ -36,9 +36,9 @@
 
 	<ItemGroup>
 		<PackageReference Include="DotNet.ReproducibleBuilds" />
-		<PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="8.3.1" />
+		<PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="8.12.1" />
 		<PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.3.1" />
-		<PackageReference Include="Microsoft.IdentityModel.Logging" Version="8.3.1" />
+		<PackageReference Include="Microsoft.IdentityModel.Logging" Version="8.12.1" />
 		<PackageReference Include="Microsoft.IdentityModel.Protocols" Version="8.3.1" />
 		<PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.3.1" />
 		<PackageReference Include="Nerdbank.GitVersioning" Version="3.7.115">
@@ -49,7 +49,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<PackageReference Include="Roslynator.Analyzers" Version="4.12.11">
+		<PackageReference Include="Roslynator.Analyzers" Version="4.13.1">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
