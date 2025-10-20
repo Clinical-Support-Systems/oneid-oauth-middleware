@@ -26,7 +26,6 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 //
-
 #endregion License, Terms and Conditions
 
 using Microsoft.IdentityModel.Tokens;
@@ -47,42 +46,29 @@ using static AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants;
 
 namespace AspNet.Security.OAuth.OneID
 {
-    /// <summary>
-    /// The backchannel handler that deals with the client assertion and SSL
-    /// </summary>
     public sealed class OneIdAuthenticationBackChannelHandler : HttpClientHandler
     {
         private readonly OneIdAuthenticationOptions _options;
+        private static readonly char[] EqualsSeparator = ['=']; // CA1861 mitigation
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="options">The options</param>
-        public OneIdAuthenticationBackChannelHandler(OneIdAuthenticationOptions options)
-        {
-            _options = options;
-        }
+        public OneIdAuthenticationBackChannelHandler(OneIdAuthenticationOptions options) => _options = options;
 
-        /// <inheritdoc/>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
 #if NET8_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(request);
 #else
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            if (request is null) throw new ArgumentNullException(nameof(request));
 #endif
-            // EARLY RETURN: If there's no content we don't need a cert nor to touch form parameters.
             if (request.Content == null)
             {
-                return new HttpResponseMessage { StatusCode = HttpStatusCode.NoContent };
+                // Early return without performing a network call when there is no content.
+                // This aligns with test expectations: SendAsync should return 204 NoContent.
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
             }
 
-            // Get the certificate
+#pragma warning disable CA1508 // cert may be null until assignment; disposal uses null-conditional for safety.
             X509Certificate2? cert = null;
-
             try
             {
                 if (!string.IsNullOrEmpty(_options.CertificateThumbprint) && !string.IsNullOrEmpty(_options.CertificateFilename))
@@ -92,36 +78,28 @@ namespace AspNet.Security.OAuth.OneID
 
                 if (!string.IsNullOrEmpty(_options.CertificateThumbprint))
                 {
-                    cert = OneIdCertificateUtility.FindCertificateByThumbprint(
-                        _options.CertificateStoreName,
-                        _options.CertificateStoreLocation,
-                        _options.CertificateThumbprint,
-                        false);
+                    cert = OneIdCertificateUtility.FindCertificateByThumbprint(_options.CertificateStoreName, _options.CertificateStoreLocation, _options.CertificateThumbprint, false);
                 }
                 else if (!string.IsNullOrEmpty(_options.CertificateFilename))
                 {
 #if NET8_0_OR_GREATER
-                    var certBytes = await File.ReadAllBytesAsync(_options.CertificateFilename, cancellationToken);
+                    var certBytes = await File.ReadAllBytesAsync(_options.CertificateFilename, cancellationToken).ConfigureAwait(false);
 #else
                     var certBytes = File.ReadAllBytes(_options.CertificateFilename);
 #endif
-                    // Use EphemeralKeySet to avoid access denied in restricted environments (e.g. CI) when MachineKeySet is unavailable.
-                    // Exportable retained for signing operations; PersistKeySet intentionally omitted.
-                    try
+                    string? plainPassword = null;
+#if NET8_0_OR_GREATER
+                    if (_options.CertificatePassword is not null)
                     {
-                        cert = new X509Certificate2(
-                            certBytes,
-                            _options.CertificatePassword,
-                            X509KeyStorageFlags.EphemeralKeySet | X509KeyStorageFlags.Exportable);
+                        plainPassword = new System.Net.NetworkCredential(string.Empty, _options.CertificatePassword).Password;
                     }
-                    catch (System.Security.Cryptography.CryptographicException)
+#else
+                    if (_options.CertificatePassword is not null)
                     {
-                        // Fallback to legacy flags if ephemeral not supported on the platform/runtime.
-                        cert = new X509Certificate2(
-                            certBytes,
-                            _options.CertificatePassword,
-                            X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
+                        plainPassword = new System.Net.NetworkCredential(string.Empty, _options.CertificatePassword).Password;
                     }
+#endif
+                    cert = TryImportWithFallback(certBytes, plainPassword);
                 }
 
                 if (cert == null)
@@ -129,34 +107,28 @@ namespace AspNet.Security.OAuth.OneID
                     throw new InvalidOperationException("Must specify CertificateThumbprint or CertificateFilename (with CertificatePassword if applicable).");
                 }
 
-                X509SecurityKey key = new(cert);
-                SigningCredentials credentials = new(key, SecurityAlgorithms.RsaSha256);
+                var signingKey = new X509SecurityKey(cert);
+                var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.RsaSha256);
 
                 var now = DateTimeOffset.Now.ToUnixTimeSeconds();
                 var expire = DateTimeOffset.Now.AddMinutes(20).ToUnixTimeSeconds();
 
-                // we now need to create a JWT that we include in the response as the claim_assertion
                 var permClaims = new List<Claim>
-            {
-                new("iss", _options.ClientId),
-                new("sub", _options.ClientId),
-                new("aud", _options.Audience),
-                new("iat", now.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
-                new("exp", expire.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
+                {
+                    new("iss", _options.ClientId),
+                    new("sub", _options.ClientId),
+                    new("aud", _options.Audience),
+                    new("iat", now.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
+                    new("exp", expire.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
 #if NET8_0_OR_GREATER
-                new("jti", $"{Guid.NewGuid().ToString().Replace("-", string.Empty, StringComparison.InvariantCulture)}")
+                    new("jti", Guid.NewGuid().ToString().Replace("-", string.Empty, StringComparison.InvariantCulture))
 #else
-                new("jti", $"{Guid.NewGuid().ToString().Replace("-", string.Empty)}")
+                    new("jti", Guid.NewGuid().ToString().Replace("-", string.Empty))
 #endif
-            };
+                };
 
-                // Create Security Token object by giving required parameters. Since we're specifically setting the iss/sub/aud/exp above, don't include them below
-                var token = new JwtSecurityToken(
-                                claims: permClaims,
-                                signingCredentials: credentials);
-
+                var token = new JwtSecurityToken(claims: permClaims, signingCredentials: credentials);
                 token.Header.Remove("kid");
-
                 var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
 
 #if NET8_0_OR_GREATER
@@ -165,111 +137,96 @@ namespace AspNet.Security.OAuth.OneID
                 var oldContent = await request.Content.ReadAsStringAsync().ConfigureAwait(false);
 #endif
 
+                var data = new Dictionary<string, string>(StringComparer.Ordinal);
 #if NET8_0_OR_GREATER
-                var data = oldContent.Replace("?", string.Empty, StringComparison.InvariantCulture).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
+                var raw = oldContent.Replace("?", string.Empty, StringComparison.InvariantCulture);
 #else
-                    var data = oldContent.Replace("?", string.Empty).Split('&').ToDictionary(x => x.Split('=')[0], x => x.Split('=')[1]);
+                var raw = oldContent.Replace("?", string.Empty);
 #endif
+                foreach (var segment in raw.Split('&'))
+                {
+                    if (string.IsNullOrWhiteSpace(segment)) continue;
+                    var parts = segment.Split(EqualsSeparator, 2);
+                    var decodedKeyLocal = WebUtility.UrlDecode(parts[0]);
+                    var decodedValueLocal = parts.Length == 2 ? WebUtility.UrlDecode(parts[1]) : string.Empty;
+                    data[decodedKeyLocal] = decodedValueLocal;
+                }
 
-                // Helen reported we were double encoding this, so let's set it again
                 if (data.TryGetValue("redirect_uri", out string? redirectUri))
+                {
                     data["redirect_uri"] = WebUtility.UrlDecode(redirectUri);
+                }
 
-                // Make sure the client_assertion_type is what is expected.
-                data.Remove("client_assertion_type");
-                data.Add("client_assertion_type", ClaimNames.JwtBearerAssertion); // must include this non-encoded as the process will re-encode it
+                data["client_assertion_type"] = ClaimNames.JwtBearerAssertion;
+                data["client_assertion"] = jwtToken;
+                data["aud"] = ClaimNames.ApiAudience;
 
-                // Make sure the client_assertion is what is expected.
-                data.Remove("client_assertion");
-                data.Add("client_assertion", jwtToken);
-
-                data.Remove("aud");
-                data.Add("aud", ClaimNames.ApiAudience); // Is this value ever-changing?
-
-                // Now put it back into the request
                 request.Content = new FormUrlEncodedContent(data.AsEnumerable());
-
                 return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
                 cert?.Dispose();
             }
+#pragma warning restore CA1508
+        }
+
+        private static X509Certificate2? TryImportWithFallback(byte[] certBytes, string? password)
+        {
+            if (certBytes.Length == 0) return null;
+
+            var attempts = new List<X509KeyStorageFlags>();
+#if NET8_0_OR_GREATER
+            attempts.Add(X509KeyStorageFlags.EphemeralKeySet | X509KeyStorageFlags.Exportable);
+#endif
+            attempts.Add(X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.Exportable);
+            attempts.Add(X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable);
+
+            foreach (var flags in attempts)
+            {
+                try { return new X509Certificate2(certBytes, password, flags); }
+                catch (System.Security.Cryptography.CryptographicException) { }
+            }
+
+            // Legacy fallback (may persist key). Avoid if possible but retain for backward compatibility.
+            try { return new X509Certificate2(certBytes, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet); }
+            catch (System.Security.Cryptography.CryptographicException) { return null; }
         }
     }
 
-    /// <summary>
-    /// utility class to find certs and export them into byte arrays
-    /// </summary>
     public static class OneIdCertificateUtility
     {
-        /// <summary>
-        /// Finds the cert having thumbprint supplied from store location supplied
-        /// </summary>
-        /// <param name="storeName"></param>
-        /// <param name="storeLocation"></param>
-        /// <param name="thumbprint"></param>
-        /// <param name="validationRequired"></param>
-        /// <returns>X509Certificate2</returns>
         public static X509Certificate2 FindCertificateByThumbprint(StoreName storeName, StoreLocation storeLocation, string? thumbprint, bool validationRequired)
         {
-            if (string.IsNullOrEmpty(thumbprint))
-            {
-                throw new ArgumentNullException(nameof(thumbprint));
-            }
-
+            if (string.IsNullOrEmpty(thumbprint)) throw new ArgumentNullException(nameof(thumbprint));
             var store = new X509Store(storeName, storeLocation);
             try
             {
                 store.Open(OpenFlags.ReadOnly);
                 var col = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, validationRequired);
-                if (col == null || col.Count == 0)
-                {
-                    throw new ArgumentException($"Certificate was not found in store {storeName}:{storeLocation}");
-                }
-
+                if (col == null || col.Count == 0) throw new ArgumentException($"Certificate was not found in store {storeName}:{storeLocation}");
                 return col[0];
             }
             finally
             {
 #if !NETCORE
-                // IDisposable not implemented in NET451
                 store.Close();
 #else
-                // Close is private in DNXCORE, but Dispose calls close internally
                 store.Dispose();
 #endif
             }
         }
 
-        /// <summary>
-        ///Finds the cert having thumbprint supplied defaulting to the personal store of currrent user.
-        /// </summary>
-        /// <param name="thumbprint"></param>
-        /// <param name="validateCertificate"></param>
-        /// <returns>X509Certificate2</returns>
         public static X509Certificate2 FindCertificateByThumbprint(string thumbprint, bool validateCertificate)
-        {
-            return FindCertificateByThumbprint(StoreName.My, StoreLocation.CurrentUser, thumbprint, validateCertificate);
-        }
+            => FindCertificateByThumbprint(StoreName.My, StoreLocation.CurrentUser, thumbprint, validateCertificate);
 
-        /// <summary>
-        /// Exports the cert supplied into a byte arrays and secures it with a randomly generated password.
-        ///</summary>
-        /// <param name="cert"></param>
-        /// <param name="password"></param>
-        /// <returns></returns>
         public static byte[] ExportCertificateWithPrivateKey(X509Certificate2 cert, out string password)
         {
 #if NET8_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(cert);
 #else
-            if (cert is null)
-            {
-                throw new ArgumentNullException(nameof(cert));
-            }
+            if (cert is null) throw new ArgumentNullException(nameof(cert));
 #endif
-
             password = Convert.ToBase64String(Encoding.Unicode.GetBytes(Guid.NewGuid().ToString("N")));
             return cert.Export(X509ContentType.Pkcs12, password);
         }
