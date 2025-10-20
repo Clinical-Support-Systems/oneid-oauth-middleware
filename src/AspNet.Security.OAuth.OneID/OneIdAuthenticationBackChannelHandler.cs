@@ -74,6 +74,11 @@ namespace AspNet.Security.OAuth.OneID
                 throw new ArgumentNullException(nameof(request));
             }
 #endif
+            // EARLY RETURN: If there's no content we don't need a cert nor to touch form parameters.
+            if (request.Content == null)
+            {
+                return new HttpResponseMessage { StatusCode = HttpStatusCode.NoContent };
+            }
 
             // Get the certificate
             X509Certificate2? cert = null;
@@ -100,10 +105,23 @@ namespace AspNet.Security.OAuth.OneID
 #else
                     var certBytes = File.ReadAllBytes(_options.CertificateFilename);
 #endif
-                    cert = new X509Certificate2(
-                        certBytes,
-                        _options.CertificatePassword,
-                        X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
+                    // Use EphemeralKeySet to avoid access denied in restricted environments (e.g. CI) when MachineKeySet is unavailable.
+                    // Exportable retained for signing operations; PersistKeySet intentionally omitted.
+                    try
+                    {
+                        cert = new X509Certificate2(
+                            certBytes,
+                            _options.CertificatePassword,
+                            X509KeyStorageFlags.EphemeralKeySet | X509KeyStorageFlags.Exportable);
+                    }
+                    catch (System.Security.Cryptography.CryptographicException)
+                    {
+                        // Fallback to legacy flags if ephemeral not supported on the platform/runtime.
+                        cert = new X509Certificate2(
+                            certBytes,
+                            _options.CertificatePassword,
+                            X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
+                    }
                 }
 
                 if (cert == null)
@@ -141,8 +159,6 @@ namespace AspNet.Security.OAuth.OneID
 
                 var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
 
-                // Now we need to redo the form params so we can add/modify. Let's first take the values out and put them into a mutable dictionary
-                if (request.Content == null) return new HttpResponseMessage { StatusCode = HttpStatusCode.NoContent };
 #if NET8_0_OR_GREATER
                 var oldContent = await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 #else
@@ -170,7 +186,7 @@ namespace AspNet.Security.OAuth.OneID
                 data.Remove("aud");
                 data.Add("aud", ClaimNames.ApiAudience); // Is this value ever-changing?
 
-                // Now put it back ibnto the request
+                // Now put it back into the request
                 request.Content = new FormUrlEncodedContent(data.AsEnumerable());
 
                 return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);

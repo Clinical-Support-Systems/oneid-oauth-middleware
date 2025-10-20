@@ -51,14 +51,16 @@ namespace AspNet.Security.OAuth.OneID
 
         public override void Run(JsonElement userData, ClaimsIdentity identity, string issuer)
         {
-            if (!identity.HasClaim((p) => string.Equals(p.Type, ClaimType, StringComparison.OrdinalIgnoreCase)))
+            if (identity.HasClaim(p => string.Equals(p.Type, ClaimType, StringComparison.OrdinalIgnoreCase)))
             {
-                var emailClaim = identity.FindFirst("email");
+                return;
+            }
 
-                if (!string.IsNullOrEmpty(emailClaim?.Value))
-                {
-                    identity.AddClaim(new Claim(ClaimType, emailClaim.Value, ValueType, _options.ClaimsIssuer));
-                }
+            var emailClaim = identity.FindFirst("email");
+
+            if (!string.IsNullOrEmpty(emailClaim?.Value))
+            {
+                identity.AddClaim(new Claim(ClaimType, emailClaim.Value, ValueType, _options.ClaimsIssuer));
             }
         }
     }

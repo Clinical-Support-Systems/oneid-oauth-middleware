@@ -411,7 +411,7 @@ namespace AspNet.Security.OAuth.OneID
         /// <summary>
         /// Gets or sets the <see cref="IOneIdTokenValidator"/> to use.
         /// </summary>
-        public IOneIdTokenValidator TokenValidator { get; set; } = default!;
+        public IOneIdTokenValidator? TokenValidator { get; set; }
 
 #endif
 

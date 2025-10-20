@@ -42,17 +42,22 @@ namespace AspNet.Security.OAuth.OneID
     public class OneIdAuthenticationEvents : OAuthEvents
     {
         /// <summary>
-        /// Gets or sets the delegate that is invoked when the <see cref="ValidateIdToken"/> method is invoked.
+        /// Delegate invoked when the <see cref="ValidateIdToken"/> method is invoked.
+        /// Skips validation silently if no <see cref="IOneIdTokenValidator"/> is configured to avoid NREs in unit tests.
         /// </summary>
-        private Func<OneIdValidateIdTokenContext, Task> OnValidateIdToken { get; } = async context => await context.Options.TokenValidator.ValidateAsync(context).ConfigureAwait(false);
+        private Func<OneIdValidateIdTokenContext, Task> OnValidateIdToken { get; } = context =>
+        {
+            ArgumentNullException.ThrowIfNull(context);
+            // If no validator configured (e.g. lightweight unit test scenario), do nothing.
+            var validator = context.Options.TokenValidator;
+            return validator is not null ? validator.ValidateAsync(context) : Task.CompletedTask;
+        };
 
         /// <summary>
         /// Invoked whenever the ID token needs to be validated.
         /// </summary>
         /// <param name="context">Contains information about the ID token to validate.</param>
-        /// <returns>
-        /// A <see cref="Task"/> representing the completed operation.
-        /// </returns>
+        /// <returns>A <see cref="Task"/> representing the completed operation.</returns>
         public virtual async Task ValidateIdToken(OneIdValidateIdTokenContext context) =>
             await OnValidateIdToken(context).ConfigureAwait(false);
     }

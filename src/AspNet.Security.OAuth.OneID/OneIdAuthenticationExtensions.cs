@@ -1,4 +1,5 @@
-﻿#region License, Terms and Conditions
+﻿#pragma warning disable CA1510
+#region License, Terms and Conditions
 
 //
 // OneIdAuthenticationExtensions.cs
@@ -26,7 +27,6 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 //
-
 #endregion License, Terms and Conditions
 
 using System;
@@ -41,89 +41,46 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
-
 #elif !NETCORE
-
 using Owin;
-
 #endif
 
 namespace AspNet.Security.OAuth.OneID
 {
-    /// <summary>
-    /// Extension methods to add OneID authentication capabilities to an HTTP application pipeline.
-    /// </summary>
     public static class OneIdAuthenticationExtensions
     {
 #if NET8_0_OR_GREATER
-        /// <summary>
-        /// Adds <see cref="OneIdAuthenticationHandler"/> to the specified
-        /// <see cref="AuthenticationBuilder"/>, which enables OneId authentication capabilities.
-        /// </summary>
-        /// <param name="builder">The authentication builder.</param>
-        /// <returns>A reference to this instance after the operation has completed.</returns>
         public static AuthenticationBuilder AddOneId(this AuthenticationBuilder builder)
         {
             ArgumentNullException.ThrowIfNull(builder);
-
             return builder.AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, _ => { });
         }
 
-        /// <summary>
-        /// Adds <see cref="OneIdAuthenticationHandler"/> to the specified
-        /// <see cref="AuthenticationBuilder"/>, which enables OneId authentication capabilities.
-        /// </summary>
-        /// <param name="builder">The authentication builder.</param>
-        /// <param name="configuration">The delegate used to configure the OpenID 2.0 options.</param>
-        /// <returns>A reference to this instance after the operation has completed.</returns>
-        public static AuthenticationBuilder AddOneId(
-            this AuthenticationBuilder builder,
-            Action<OneIdAuthenticationOptions> configuration)
+        public static AuthenticationBuilder AddOneId(this AuthenticationBuilder builder, Action<OneIdAuthenticationOptions> configuration)
         {
             ArgumentNullException.ThrowIfNull(builder);
             ArgumentNullException.ThrowIfNull(configuration);
-
             return builder.AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, configuration);
         }
 
-        /// <summary>
-        /// Adds <see cref="OneIdAuthenticationHandler"/> to the specified
-        /// <see cref="AuthenticationBuilder"/>, which enables OneId authentication capabilities.
-        /// </summary>
-        /// <param name="builder">The authentication builder.</param>
-        /// <param name="scheme">The authentication scheme associated with this instance.</param>
-        /// <param name="configuration">The delegate used to configure the OneId options.</param>
-        /// <returns>The <see cref="AuthenticationBuilder"/>.</returns>
-        public static AuthenticationBuilder AddOneId(
-            this AuthenticationBuilder builder,
-            string scheme,
-            Action<OneIdAuthenticationOptions> configuration)
+        public static AuthenticationBuilder AddOneId(this AuthenticationBuilder builder, string scheme, Action<OneIdAuthenticationOptions> configuration)
         {
             ArgumentNullException.ThrowIfNull(builder);
             ArgumentNullException.ThrowIfNull(configuration);
 
-            if (string.IsNullOrEmpty(scheme))
+            // Match test expectations: null -> ArgumentNullException, empty -> ArgumentException.
+            ArgumentNullException.ThrowIfNull(scheme);
+            if (scheme.Length == 0)
             {
-                throw new ArgumentException($"'{nameof(scheme)}' cannot be null or empty.", nameof(scheme));
+#pragma warning disable CA1510 // Explicit throw for empty string is intentional.
+                throw new ArgumentException("'scheme' cannot be empty.", nameof(scheme));
+#pragma warning restore CA1510
             }
 
             return builder.AddOneId(scheme, OneIdAuthenticationDefaults.DisplayName, configuration);
         }
 
-        /// <summary>
-        /// Adds <see cref="OneIdAuthenticationHandler"/> to the specified
-        /// <see cref="AuthenticationBuilder"/>, which enables OneId authentication capabilities.
-        /// </summary>
-        /// <param name="builder">The authentication builder.</param>
-        /// <param name="scheme">The authentication scheme associated with this instance.</param>
-        /// <param name="caption">The optional display name associated with this instance.</param>
-        /// <param name="configuration">The delegate used to configure the OneId options.</param>
-        /// <returns>The <see cref="AuthenticationBuilder"/>.</returns>
-        public static AuthenticationBuilder AddOneId(
-            this AuthenticationBuilder builder,
-            string scheme,
-            string caption,
-            Action<OneIdAuthenticationOptions> configuration)
+        public static AuthenticationBuilder AddOneId(this AuthenticationBuilder builder, string scheme, string caption, Action<OneIdAuthenticationOptions> configuration)
         {
             ArgumentNullException.ThrowIfNull(builder);
             ArgumentNullException.ThrowIfNull(scheme);
@@ -135,51 +92,28 @@ namespace AspNet.Security.OAuth.OneID
 
             return builder.AddOAuth<OneIdAuthenticationOptions, OneIdAuthenticationHandler>(scheme, caption, configuration);
         }
-
 #elif !NETCORE
-
-        /// <summary>The to query string.</summary>
-        /// <param name="parameters">The parameters.</param>
-        /// <returns>The <see cref="string"/>.</returns>
-        /// <exception cref="ArgumentNullException">If the parameters are null</exception>
         internal static string ToQueryString(this Dictionary<string, string> parameters)
         {
             if (parameters == null)
             {
                 throw new ArgumentNullException(nameof(parameters));
             }
-
-            // Avoiding URL encoding the query string parameters as it is NOT compatible with OneId.
             var query = string.Join("&", parameters.Where(pair => !string.IsNullOrEmpty(pair.Value)).Select(item => string.Format(CultureInfo.InvariantCulture, "{0}={1}", item.Key, item.Value)).ToArray());
             return string.IsNullOrEmpty(query) ? string.Empty : "?" + query;
         }
 
-        /// <summary>
-        /// Adds OneId authentication capabilities.
-        /// </summary>
-        /// <param name="app">The authentication builder.</param>
-        /// <param name="options">The specific OneId authentication options, like environment and PKI.</param>
-        /// <returns>The <see cref="IAppBuilder"/>.</returns>
         public static IAppBuilder UseOneIdAuthentication(this IAppBuilder app, OneIdAuthenticationOptions options)
         {
             if (app == null) throw new ArgumentNullException(nameof(app));
             if (options == null) throw new ArgumentNullException(nameof(options));
-
             app.Use(typeof(OneIdAuthenticationMiddleware), app, options);
             return app;
         }
 
-        /// <summary>
-        /// Adds OneId authentication capabilities.
-        /// </summary>
-        /// <param name="app">The authentication builder.</param>
-        /// <param name="certificateThumbprint">The thumbprint of the prearranged and installed PKI certificate.</param>
-        /// <param name="environment">The specific environment to connect with at eHealth.</param>
-        /// <returns>The <see cref="IAppBuilder"/>.</returns>
         public static IAppBuilder UseOneIdAuthentication(this IAppBuilder app, string certificateThumbprint, OneIdAuthenticationEnvironment environment)
         {
             if (app == null) throw new ArgumentNullException(nameof(app));
-
             app.Use(typeof(OneIdAuthenticationMiddleware), app, new OneIdAuthenticationOptions
             {
                 CertificateThumbprint = certificateThumbprint,
@@ -187,7 +121,7 @@ namespace AspNet.Security.OAuth.OneID
             });
             return app;
         }
-
 #endif
     }
 }
+#pragma warning restore CA1510
