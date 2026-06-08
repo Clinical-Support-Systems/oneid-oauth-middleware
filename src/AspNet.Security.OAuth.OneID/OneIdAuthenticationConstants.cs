@@ -174,7 +174,7 @@ namespace AspNet.Security.OAuth.OneID
             /// <summary>
             /// The api audience
             /// </summary>
-            public const string ApiAudience = "https://provider.ehealthontario.ca";
+            public const string ApiAudience = "https://provider.ontariohealth.ca";
         }
 
         /// <summary>
