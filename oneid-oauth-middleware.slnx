@@ -1,0 +1,31 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".github/workflows/codeql-analysis.yml" />
+    <File Path=".github/workflows/dependencies.yml" />
+    <File Path=".github/workflows/main.yml" />
+    <File Path="Directory.Build.props" />
+    <File Path="global.json" />
+    <File Path="NuGet.Config" />
+    <File Path="oneid.gif" />
+    <File Path="README.md" />
+    <File Path="version.json" />
+  </Folder>
+  <Folder Name="/tutorial/">
+    <File Path="tutorial/01_oneidauthenticationoptions_.md" />
+    <File Path="tutorial/02_oneidauthenticationenvironment_.md" />
+    <File Path="tutorial/03_oneidauthenticationextensions_.md" />
+    <File Path="tutorial/04_oneidauthenticationhandler_.md" />
+    <File Path="tutorial/05_oneidauthenticationbackchannelhandler_.md" />
+    <File Path="tutorial/06_oneidhelper_.md" />
+    <File Path="tutorial/index.md" />
+  </Folder>
+  <Project Path="src/AspNet.Security.OAuth.OneID/AspNet.Security.OAuth.OneID.csproj" />
+  <Project Path="src/ConsumerApp.Katana/ConsumerApp.Katana.csproj">
+    <Build Solution="Release|*" Project="false" />
+  </Project>
+  <Project Path="src/ConsumerApp.Kestrel/ConsumerApp.Kestrel.csproj">
+    <Build Solution="Release|*" Project="false" />
+  </Project>
+  <Project Path="tests/AspNet.Security.OAuth.OneID.Tests/AspNet.Security.OAuth.Providers.Tests.csproj" />
+</Solution>
