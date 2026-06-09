@@ -23,10 +23,6 @@ Additional documentation:
 - [Back Channel Handling](./tutorial/05_oneidauthenticationbackchannelhandler_.md)
 - [Helper Functions](./tutorial/06_oneidhelper_.md)
 
-## Provider audience migration
-
-The middleware OneID/OAG API audience is configured as `https://provider.ontariohealth.ca` (migrated from `https://provider.ehealthontario.ca` ahead of the June 19 cutover).
-
 ## :tada: Supported Ontario Health (OH) Services
 
 To make integration simple, there's support in this middlewear to adjust the scope and profile depending on the service you're integrating with. As such, we currently support the following:
