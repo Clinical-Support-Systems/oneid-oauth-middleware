@@ -48,16 +48,23 @@ namespace AspNet.Security.OAuth.OneID
         /// <param name="scheme">The authentication scheme.</param>
         /// <param name="options">The authentication options associated with the scheme.</param>
         /// <param name="idToken">The OneID ID token for the user to validate.</param>
-        public OneIdValidateIdTokenContext(HttpContext context, AuthenticationScheme scheme, OneIdAuthenticationOptions options, string idToken)
+        /// <param name="expectedNonce">The nonce value that was sent with the authentication request.</param>
+        public OneIdValidateIdTokenContext(HttpContext context, AuthenticationScheme scheme, OneIdAuthenticationOptions options, string idToken, string? expectedNonce = null)
             : base(context, scheme, options)
         {
             IdToken = idToken;
+            ExpectedNonce = expectedNonce;
         }
 
         /// <summary>
         /// Gets the Apple ID token.
         /// </summary>
         public string IdToken { get; }
+
+        /// <summary>
+        /// Gets the expected nonce from the associated authentication request.
+        /// </summary>
+        public string? ExpectedNonce { get; }
     }
 }
 

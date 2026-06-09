@@ -93,7 +93,22 @@ namespace AspNet.Security.OAuth.OneID
         private static readonly Action<ILogger, string, Exception?> _tokenInvalid = LoggerMessage.Define<string>(
             logLevel: LogLevel.Trace,
             eventId: 9,
-            formatString: "OneID token {IdToken} could not be validated.");
+            formatString: "OneID token {IdTokenSnippet} could not be validated.");
+
+        private static string RedactToken(string? token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return string.Empty;
+            }
+
+            if (token.Length <= 16)
+            {
+                return "[REDACTED]";
+            }
+
+            return $"{token.Substring(0, 8)}...[REDACTED]...{token.Substring(token.Length - 8, 8)}";
+        }
 
         public static void TokenValidationFailed(this ILogger logger, Exception exception, string tokenIssuer, string tokenAudience)
         {
@@ -102,21 +117,21 @@ namespace AspNet.Security.OAuth.OneID
 
         public static void TokenInvalid(this ILogger logger, Exception exception, string idToken)
         {
-            _tokenInvalid(logger, idToken, exception);
+            _tokenInvalid(logger, RedactToken(idToken), exception);
         }
 
         public static void LogAccessToken(
             this ILogger logger, string? accessToken)
         {
             if (!string.IsNullOrEmpty(accessToken))
-                _logAccessToken(logger, accessToken, null);
+                _logAccessToken(logger, RedactToken(accessToken), null);
         }
 
         public static void LogRefreshToken(
             this ILogger logger, string? refreshToken)
         {
             if (!string.IsNullOrEmpty(refreshToken))
-                _logRefreshToken(logger, refreshToken, null);
+                _logRefreshToken(logger, RedactToken(refreshToken), null);
         }
 
         public static void LogTokenType(
@@ -137,7 +152,7 @@ namespace AspNet.Security.OAuth.OneID
             this ILogger logger, string? idToken)
         {
             if (!string.IsNullOrEmpty(idToken))
-                _logIdToken(logger, idToken, null);
+                _logIdToken(logger, RedactToken(idToken), null);
         }
 
         public static void LogTokenResponse(

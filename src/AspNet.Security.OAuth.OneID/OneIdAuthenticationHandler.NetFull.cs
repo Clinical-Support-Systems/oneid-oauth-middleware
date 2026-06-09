@@ -32,6 +32,7 @@
 #if !NETCORE
 
 using AspNet.Security.OAuth.OneID.Provider;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.Owin;
 using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin.Logging;
@@ -53,6 +54,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.Tokens;
 using static AspNet.Security.OAuth.OneID.OneIdAuthenticationConstants;
 
 namespace AspNet.Security.OAuth.OneID
@@ -64,12 +66,12 @@ namespace AspNet.Security.OAuth.OneID
         private const string StateCookie = ".AspNet.Correlation.OneID";
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;
-        private static PkceCode? _pkceCode;
         private static readonly RandomNumberGenerator CryptoRandom = RandomNumberGenerator.Create();
         private const string CorrelationPrefix = ".AspNetCore.Correlation.";
         private const string CorrelationProperty = ".xsrf";
         private const string CorrelationMarker = "N";
-        private const string NonceProperty = "N";
+        private const string NonceProperty = "oneid_expected_nonce";
+        private const string PkceCodeVerifierProperty = "oneid_pkce_code_verifier";
 
         public OneIdAuthenticationHandler(ILogger logger, HttpClient httpClient)
         {
@@ -96,13 +98,21 @@ namespace AspNet.Security.OAuth.OneID
                 values = query.GetValues(nameof(state));
                 if (values?.Count == 1)
                     state = values[0];
-
-                state = Request.Cookies[StateCookie];
+                string? callbackIssuer = null;
+                values = query.GetValues("iss");
+                if (values?.Count == 1)
+                    callbackIssuer = values[0];
 
                 properties = Options.StateDataFormat?.Unprotect(state);
 
                 if (properties == null)
                     return null;
+
+                if (string.IsNullOrWhiteSpace(state))
+                {
+                    return new AuthenticationTicket(null, properties);
+                }
+                var callbackState = state!;
 
                 // OAuth2 10.12 CSRF
                 if (!ValidateCorrelationId(properties, _logger))
@@ -113,7 +123,7 @@ namespace AspNet.Security.OAuth.OneID
                     return new AuthenticationTicket(null, properties);
                 }
 
-                var tokenRequestContext = new OneIdTokenRequestContext(Context, Options, state, code, properties);
+                var tokenRequestContext = new OneIdTokenRequestContext(Context, Options, callbackState, code, properties);
                 await Options.Provider.TokenRequest(tokenRequestContext).ConfigureAwait(false);
 
                 string host = Request.Host.Value;
@@ -143,13 +153,20 @@ namespace AspNet.Security.OAuth.OneID
 
                 var requestPrefix = Request.Scheme + Uri.SchemeDelimiter + hostWithoutPrefix + Request.PathBase;
                 var redirectUri = requestPrefix + Options.CallbackPath;
+
+                properties.Dictionary.TryGetValue(PkceCodeVerifierProperty, out var codeVerifier);
+                if (string.IsNullOrEmpty(codeVerifier))
+                {
+                    throw new InvalidOperationException("PKCE code_verifier is missing from authentication state.");
+                }
+
                 var body = new Dictionary<string, string>
                 {
                     { OneIdAuthenticationConstants.OAuth2Constants.RedirectUri, redirectUri },
                     { OneIdAuthenticationConstants.OAuth2Constants.GrantType, OneIdAuthenticationConstants.OAuth2Constants.AuthorizationCode },
                     { OneIdAuthenticationConstants.OAuth2Constants.ClientId, Uri.EscapeDataString(Options.ClientId) },
                     { OneIdAuthenticationConstants.OAuth2Constants.Code, Uri.EscapeDataString(code) },
-                    { OneIdAuthenticationConstants.OAuth2Constants.CodeVerifier, Uri.EscapeDataString(_pkceCode?.CodeVerifier) },
+                    { OneIdAuthenticationConstants.OAuth2Constants.CodeVerifier, Uri.EscapeDataString(codeVerifier) },
                 };
 
                 // Request the token
@@ -184,7 +201,8 @@ namespace AspNet.Security.OAuth.OneID
                 string idToken = response.IdToken;
                 string refreshToken = response.RefreshToken;
 
-                var idTokenContent = new JwtSecurityTokenHandler().ReadJwtToken(idToken).Payload;
+                properties.Dictionary.TryGetValue(NonceProperty, out var expectedNonce);
+                var idTokenContent = await ValidateIdTokenAsync(idToken, callbackIssuer, expectedNonce).ConfigureAwait(false);
 
                 var context = new OneIdAuthenticatedContext(Context, response, idTokenContent, accessToken, idToken, refreshToken)
                 {
@@ -193,35 +211,36 @@ namespace AspNet.Security.OAuth.OneID
                         ClaimsIdentity.DefaultNameClaimType,
                         ClaimsIdentity.DefaultRoleClaimType)
                 };
+                var identity = context.Identity;
 
                 if (!string.IsNullOrEmpty(context.Id))
                 {
-                    context.Identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, context.Id, XmlSchemaString, Options.AuthenticationType));
+                    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, context.Id, XmlSchemaString, Options.AuthenticationType));
                 }
 
                 if (!string.IsNullOrEmpty(context.Email))
                 {
-                    context.Identity.AddClaim(new Claim(ClaimTypes.Email, context.Email, XmlSchemaString, Options.AuthenticationType));
+                    identity.AddClaim(new Claim(ClaimTypes.Email, context.Email, XmlSchemaString, Options.AuthenticationType));
                 }
 
                 if (!string.IsNullOrEmpty(context.PhoneNumber))
                 {
-                    context.Identity.AddClaim(new Claim(ClaimTypes.HomePhone, context.PhoneNumber, XmlSchemaString, Options.AuthenticationType));
+                    identity.AddClaim(new Claim(ClaimTypes.HomePhone, context.PhoneNumber, XmlSchemaString, Options.AuthenticationType));
                 }
 
                 if (!string.IsNullOrEmpty(context.GivenName))
                 {
-                    context.Identity.AddClaim(new Claim(ClaimTypes.GivenName, context.GivenName, XmlSchemaString, Options.AuthenticationType));
+                    identity.AddClaim(new Claim(ClaimTypes.GivenName, context.GivenName, XmlSchemaString, Options.AuthenticationType));
                 }
 
                 if (!string.IsNullOrEmpty(context.FamilyName))
                 {
-                    context.Identity.AddClaim(new Claim(ClaimTypes.Surname, context.FamilyName, XmlSchemaString, Options.AuthenticationType));
+                    identity.AddClaim(new Claim(ClaimTypes.Surname, context.FamilyName, XmlSchemaString, Options.AuthenticationType));
                 }
-                
+                 
                 if (!string.IsNullOrEmpty(context.UserName))
                 {
-                    context.Identity.AddClaim(new Claim(ClaimTypes.Actor, context.UserName, XmlSchemaString, Options.AuthenticationType));
+                    identity.AddClaim(new Claim(ClaimTypes.Actor, context.UserName, XmlSchemaString, Options.AuthenticationType));
                 }
 
                 context.Properties = properties;
@@ -413,11 +432,15 @@ namespace AspNet.Security.OAuth.OneID
 
             string state = Options.StateDataFormat!.Protect(properties);
 
-            // First generate the PKCE verifier and challenge
-            _pkceCode = PkceCode.GeneratePKCECodes();
+            // Generate per-request PKCE verifier/challenge and persist verifier in protected state.
+            var pkceCode = PkceCode.GeneratePKCECodes();
+            properties.Dictionary[PkceCodeVerifierProperty] = pkceCode.CodeVerifier ?? string.Empty;
 
             // Add nonce
-            var nonce = Guid.NewGuid().ToString();
+            var nonceBytes = new byte[32];
+            CryptoRandom.GetBytes(nonceBytes);
+            var nonce = TextEncodings.Base64Url.Encode(nonceBytes);
+            properties.Dictionary[NonceProperty] = nonce;
 
             var explicitParameters = new Dictionary<string, string>
                 {
@@ -427,7 +450,7 @@ namespace AspNet.Security.OAuth.OneID
                     { OneIdAuthenticationConstants.OAuth2Constants.Scope, Uri.EscapeDataString(scope) },
                     { OneIdAuthenticationConstants.OAuth2Constants.State, Uri.EscapeDataString(state) },
                     { OneIdAuthenticationConstants.OAuth2Constants.Nonce, Uri.EscapeDataString(nonce) },
-                    { OneIdAuthenticationConstants.OAuth2Constants.CodeChallenge, Uri.EscapeDataString(_pkceCode.CodeChallenge) },
+                    { OneIdAuthenticationConstants.OAuth2Constants.CodeChallenge, Uri.EscapeDataString(pkceCode.CodeChallenge) },
                     { OneIdAuthenticationConstants.OAuth2Constants.CodeChallengeMethod, Uri.EscapeDataString("S256") },
                     { OneIdAuthenticationConstants.OAuth2Constants.Audience, Uri.EscapeDataString(ClaimNames.ApiAudience) },
                     { OneIdAuthenticationConstants.OAuth2Constants.Profile, Uri.EscapeDataString(Options.GetServiceProfileOptionsString()) },
@@ -494,6 +517,84 @@ namespace AspNet.Security.OAuth.OneID
             properties.Dictionary[correlationKey] = correlationId;
 
             Response.Cookies.Append(correlationKey, correlationId, cookieOptions);
+        }
+
+        private async Task<JwtPayload> ValidateIdTokenAsync(string idToken, string? callbackIssuer, string? expectedNonce)
+        {
+            if (string.IsNullOrWhiteSpace(idToken))
+            {
+                throw new InvalidOperationException("No OneID ID token was returned in the token response.");
+            }
+
+            if (string.IsNullOrWhiteSpace(expectedNonce))
+            {
+                throw new SecurityTokenValidationException("Expected nonce is missing from authentication state.");
+            }
+
+            var authorizationEndpoint = Options.AuthorizationEndpoint;
+            var lastSlash = authorizationEndpoint.LastIndexOf('/');
+            if (lastSlash <= 0)
+            {
+                throw new InvalidOperationException("Authorization endpoint format is invalid for JWKS discovery.");
+            }
+
+            var jwksUri = new Uri($"{authorizationEndpoint.Substring(0, lastSlash)}/connect/jwk_uri");
+            var jwksPayload = await _httpClient.GetStringAsync(jwksUri).ConfigureAwait(false);
+            var jwks = JsonWebKeySet.Create(jwksPayload);
+
+            if (jwks.Keys == null || jwks.Keys.Count == 0)
+            {
+                throw new SecurityTokenValidationException("Unable to load OneID signing keys from JWKS endpoint.");
+            }
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKeys = jwks.Keys,
+                ValidateAudience = true,
+                ValidAudience = Options.ClientId,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.FromMinutes(1),
+                RequireSignedTokens = true,
+                ValidateIssuer = !string.IsNullOrWhiteSpace(callbackIssuer)
+            };
+
+            if (!string.IsNullOrWhiteSpace(callbackIssuer))
+            {
+                validationParameters.ValidIssuer = callbackIssuer;
+            }
+
+            var result = await tokenHandler.ValidateTokenAsync(idToken, validationParameters).ConfigureAwait(false);
+            if (result.Exception is not null || !result.IsValid)
+            {
+                throw new SecurityTokenValidationException("OneID token validation failed.", result.Exception);
+            }
+
+            string? alg = result.SecurityToken switch
+            {
+                JwtSecurityToken jwt => jwt.Header.Alg,
+                JsonWebToken jsonWebToken => jsonWebToken.Alg,
+                _ => null
+            };
+
+            if (!string.Equals(alg, SecurityAlgorithms.RsaSha256, StringComparison.Ordinal))
+            {
+                throw new SecurityTokenValidationException("OneID token must be signed with RS256.");
+            }
+
+            var tokenNonce = result.ClaimsIdentity?.FindFirst("nonce")?.Value;
+            if (!string.Equals(tokenNonce, expectedNonce, StringComparison.Ordinal))
+            {
+                throw new SecurityTokenValidationException("OneID token nonce validation failed.");
+            }
+
+            return result.SecurityToken switch
+            {
+                JwtSecurityToken jwtToken => jwtToken.Payload,
+                JsonWebToken jsonToken => new JwtPayload(jsonToken.Claims),
+                _ => throw new SecurityTokenValidationException("Validated OneID token type is unsupported.")
+            };
         }
     }
 }

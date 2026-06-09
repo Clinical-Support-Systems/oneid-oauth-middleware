@@ -59,30 +59,14 @@ namespace AspNet.Security.OAuth.Providers.Tests
         }
 
         [Fact]
-        public async Task SendAsync_Returns_NoContent_When_Request_Has_No_Content()
+        public void SendAsync_Throws_When_Request_Has_No_Content()
         {
             var (options, tempFile) = CreateOptionsWithTempCertificate();
             using var handler = new OneIdAuthenticationBackChannelHandler(options);
             using var request = new HttpRequestMessage(HttpMethod.Post, "https://localhost/token"); // no Content
 
-            HttpResponseMessage? response = null;
-            try
-            {
-                response = await InvokeSendAsync(handler, request);
-            }
-            catch (TargetInvocationException tie) when (tie.InnerException is HttpRequestException)
-            {
-                // Network failure not expected because early return occurs before base.SendAsync.
-                throw; // rethrow to fail test
-            }
-            catch (HttpRequestException)
-            {
-                // Same as above - should not happen when no content.
-                throw;
-            }
-
-            response.ShouldNotBeNull();
-            response!.StatusCode.ShouldBe(System.Net.HttpStatusCode.NoContent);
+            var ex = Assert.Throws<InvalidOperationException>(() => InvokeSendAsync(handler, request).GetAwaiter().GetResult());
+            ex.Message.ShouldContain("Token request content must be provided");
 
             CleanupTempCertificate(tempFile);
         }

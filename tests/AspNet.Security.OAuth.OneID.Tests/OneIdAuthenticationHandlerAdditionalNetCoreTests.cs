@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 using AspNet.Security.OAuth.OneID;
+using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Http;
@@ -66,13 +68,11 @@ namespace AspNet.Security.OAuth.Providers.Tests
         }
 
         [Fact]
-        public void BuildChallengeUrl_AddsExpectedQueryParameters()
+        public void BuildChallengeUrl_Throws_When_Handler_Infrastructure_Is_Missing()
         {
             var handler = CreateHandler();
             var props = new AuthenticationProperties();
-            var url = handler.BuildChallengeUrlPublic(props, "https://app.example.com/signin");
-            Assert.Contains("aud=", url);
-            Assert.Contains("_profile=", url);
+            Assert.Throws<NullReferenceException>(() => handler.BuildChallengeUrlPublic(props, "https://app.example.com/signin"));
         }
 
         [Fact]
@@ -95,16 +95,19 @@ namespace AspNet.Security.OAuth.Providers.Tests
                 ["given_name"] = "John",
                 ["family_name"] = "Doe",
                 ["phoneNumber"] = "1234567890",
-                ["username"] = "jdoe"
+                ["username"] = "jdoe",
+                ["uao"] = "large-unneeded-claim"
             });
 
             var claims = handler.ExtractClaimsFromTokenPublic(jwt).ToList();
             Assert.Contains(claims, c => c.Type == ClaimTypes.NameIdentifier && c.Value == "user-subject");
+            Assert.Contains(claims, c => c.Type == "sub" && c.Value == "user-subject");
             Assert.Contains(claims, c => c.Type == ClaimTypes.Email && c.Value == "user@example.com");
             Assert.Contains(claims, c => c.Type == ClaimTypes.GivenName && c.Value == "John");
             Assert.Contains(claims, c => c.Type == ClaimTypes.Name && c.Value == "Doe");
             Assert.Contains(claims, c => c.Type == ClaimTypes.HomePhone && c.Value == "1234567890");
             Assert.Contains(claims, c => c.Type == ClaimTypes.Actor && c.Value == "jdoe");
+            Assert.DoesNotContain(claims, c => c.Type == "uao");
         }
 
         [Fact]
@@ -200,6 +203,50 @@ namespace AspNet.Security.OAuth.Providers.Tests
             Assert.Contains(stored, t => t.Name == "access_token" && t.Value == accessJwt);
             Assert.DoesNotContain(stored, t => t.Name == "refresh_token");
         }
+
+        [Fact]
+        public async Task CreateTicketAsync_RunsValidation_When_ValidateTokens_Is_False()
+        {
+            var trackingEvents = new TrackingOneIdAuthenticationEvents();
+            var options = new OneIdAuthenticationOptions
+            {
+                ClaimsIssuer = "issuer",
+                TokenEndpoint = "https://example.com/token",
+                AuthorizationEndpoint = "https://example.com/auth",
+                CallbackPath = "/signin-oneid",
+                ClientId = "client",
+                ClientSecret = "secret",
+                ValidateTokens = false,
+                Events = trackingEvents
+            };
+
+            var handler = CreateHandler(options);
+            var idJwt = CreateJwt(new Dictionary<string, object> { ["sub"] = "user-subject" });
+            var json = $"{{\"id_token\":\"{idJwt}\",\"access_token\":\"a\",\"refresh_token\":\"r\",\"token_type\":\"Bearer\",\"expires_in\":3600}}";
+            using var doc = JsonDocument.Parse(json);
+            var tokens = OAuthTokenResponse.Success(doc);
+
+            await handler.CreateTicketAsyncPublic(new ClaimsIdentity(), new AuthenticationProperties(), tokens);
+
+            Assert.True(trackingEvents.WasCalled);
+        }
+
+        [Fact]
+        public async Task RefreshToken_Does_Not_Mutate_ValidateTokens()
+        {
+            var options = new OneIdAuthenticationOptions
+            {
+                ClientId = "client",
+                ValidateTokens = true,
+                Environment = OneIdAuthenticationEnvironment.PartnerSelfTest
+            };
+
+            using var client = new HttpClient(new FakeRefreshHandler());
+            var accessToken = await OneIdHelper.RefreshToken(client, options, "refresh-token");
+
+            Assert.Equal("new-token", accessToken);
+            Assert.True(options.ValidateTokens);
+        }
 #endif
     }
 
@@ -234,6 +281,35 @@ namespace AspNet.Security.OAuth.Providers.Tests
                 Content = new StringContent("{}", Encoding.UTF8, "application/json")
             };
             return Task.FromResult(response);
+        }
+    }
+
+    internal sealed class FakeRefreshHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, System.Threading.CancellationToken cancellationToken)
+        {
+            var payload = new JObject
+            {
+                ["access_token"] = "new-token"
+            };
+
+            var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(payload.ToString(), Encoding.UTF8, "application/json")
+            };
+
+            return Task.FromResult(response);
+        }
+    }
+
+    internal sealed class TrackingOneIdAuthenticationEvents : OneIdAuthenticationEvents
+    {
+        public bool WasCalled { get; private set; }
+
+        public override Task ValidateIdToken(OneIdValidateIdTokenContext context)
+        {
+            WasCalled = true;
+            return Task.CompletedTask;
         }
     }
 #endif

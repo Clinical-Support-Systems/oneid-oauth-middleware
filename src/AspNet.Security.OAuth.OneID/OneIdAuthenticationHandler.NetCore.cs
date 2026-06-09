@@ -32,6 +32,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -53,6 +54,7 @@ namespace AspNet.Security.OAuth.OneID
     /// </summary>
     public class OneIdAuthenticationHandler : OAuthHandler<OneIdAuthenticationOptions>
     {
+        private const string NonceItemKey = "oneid_expected_nonce";
 #if !NET8_0_OR_GREATER
         /// <summary>
         /// Constructor
@@ -109,29 +111,13 @@ namespace AspNet.Security.OAuth.OneID
                 throw new ArgumentException($"'{nameof(redirectUri)}' cannot be null or empty.", nameof(redirectUri));
             }
 
-            string challengeUrl;
-            try
-            {
-                // In a fully configured ASP.NET Core pipeline this should succeed.
-                // Unit tests that manually construct the handler may omit services required by the base implementation (e.g. nonce/state generators),
-                // which can lead to a NullReferenceException inside the framework's BuildChallengeUrl.
-                challengeUrl = base.BuildChallengeUrl(properties, redirectUri);
-            }
-            catch (NullReferenceException)
-            {
-                // Fallback: construct the minimal challenge URL manually so unit tests can validate appended parameters
-                // without requiring the full authentication infrastructure.
-                var scope = string.Join(' ', Options.Scope); // Scope list always initialized in options constructor.
-                var parameters = new Dictionary<string, string?>
-                {
-                    ["response_type"] = Options.ResponseType,
-                    ["client_id"] = Options.ClientId,
-                    ["redirect_uri"] = redirectUri,
-                    ["scope"] = scope
-                };
-                challengeUrl = QueryHelpers.AddQueryString(Options.AuthorizationEndpoint, parameters);
-            }
+            // OAuthHandler doesn't automatically manage OIDC nonce.
+            var nonce = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+            properties.Items[NonceItemKey] = nonce;
 
+            var challengeUrl = base.BuildChallengeUrl(properties, redirectUri);
+
+            challengeUrl = QueryHelpers.AddQueryString(challengeUrl, "nonce", nonce);
             challengeUrl = QueryHelpers.AddQueryString(challengeUrl, "aud", ClaimNames.ApiAudience);
             challengeUrl = QueryHelpers.AddQueryString(challengeUrl, "_profile", Options.GetServiceProfileOptionsString());
 
@@ -180,14 +166,12 @@ namespace AspNet.Security.OAuth.OneID
                 Logger.LogRefreshToken(tokens.RefreshToken);
                 Logger.LogTokenType(tokens.TokenType);
                 Logger.LogTokenExpiry(tokens.ExpiresIn);
-                Logger.LogTokenResponse(tokens.Response?.RootElement);
             }
 
-            if (Options.ValidateTokens)
-            {
-                var validateIdContext = new OneIdValidateIdTokenContext(Context, Scheme, Options, idToken);
-                await Events.ValidateIdToken(validateIdContext).ConfigureAwait(false);
-            }
+            properties.Items.TryGetValue(NonceItemKey, out var expectedNonce);
+
+            var validateIdContext = new OneIdValidateIdTokenContext(Context, Scheme, Options, idToken, expectedNonce);
+            await Events.ValidateIdToken(validateIdContext).ConfigureAwait(false);
 
             foreach (var claim in ExtractClaimsFromToken(idToken))
             {
@@ -335,40 +319,36 @@ namespace AspNet.Security.OAuth.OneID
                         $"'{nameof(parsedToken)}' cannot be null or have no claims.");
                 }
 
-                retVal = [.. parsedToken.Claims];
-
-                if (!string.IsNullOrEmpty(parsedToken.Subject))
+                static void AddIfPresent(List<Claim> claims, string claimType, string? claimValue, string issuer)
                 {
-                    retVal.Add(new Claim(ClaimTypes.NameIdentifier, parsedToken.Subject, ClaimValueTypes.String,
+                    if (!string.IsNullOrEmpty(claimValue))
+                    {
+                        claims.Add(new Claim(claimType, claimValue, ClaimValueTypes.String, issuer));
+                    }
+                }
+                var claimsIssuer = Options.ClaimsIssuer ?? string.Empty;
+
+                var subject = parsedToken.Subject ??
+                              parsedToken.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
+
+                if (!string.IsNullOrEmpty(subject))
+                {
+                    retVal.Add(new Claim(ClaimTypes.NameIdentifier, subject, ClaimValueTypes.String,
                         ClaimsIssuer));
+                    retVal.Add(new Claim("sub", subject, ClaimValueTypes.String, ClaimsIssuer));
                 }
 
                 var address = parsedToken.Claims.FirstOrDefault(x => x.Type == "email")?.Value;
-                if (!string.IsNullOrEmpty(address))
-                {
-                    retVal.Add(new Claim(ClaimTypes.Email, address, ClaimValueTypes.String, Options.ClaimsIssuer));
-                }
+                AddIfPresent(retVal, ClaimTypes.Email, address, claimsIssuer);
 
                 var givenName = parsedToken.Claims.FirstOrDefault(x => x.Type == "given_name")?.Value;
-                if (!string.IsNullOrEmpty(givenName))
-                {
-                    retVal.Add(new Claim(ClaimTypes.GivenName, givenName, ClaimValueTypes.String,
-                        Options.ClaimsIssuer));
-                }
+                AddIfPresent(retVal, ClaimTypes.GivenName, givenName, claimsIssuer);
 
                 var familyName = parsedToken.Claims.FirstOrDefault(x => x.Type == "family_name")?.Value;
-                if (!string.IsNullOrEmpty(familyName))
-                {
-                    retVal.Add(new Claim(ClaimTypes.Name, familyName, ClaimValueTypes.String,
-                        Options.ClaimsIssuer));
-                }
+                AddIfPresent(retVal, ClaimTypes.Name, familyName, claimsIssuer);
 
                 var phoneNumber = parsedToken.Claims.FirstOrDefault(x => x.Type == "phoneNumber")?.Value;
-                if (!string.IsNullOrEmpty(phoneNumber))
-                {
-                    retVal.Add(new Claim(ClaimTypes.HomePhone, phoneNumber, ClaimValueTypes.String,
-                        Options.ClaimsIssuer));
-                }
+                AddIfPresent(retVal, ClaimTypes.HomePhone, phoneNumber, claimsIssuer);
 
                 // Look for username in multiple possible claims
                 var actor = parsedToken.Claims.FirstOrDefault(x => x.Type == "username")?.Value ??
@@ -378,7 +358,7 @@ namespace AspNet.Security.OAuth.OneID
 
                 if (!string.IsNullOrEmpty(actor))
                 {
-                    retVal.Add(new Claim(ClaimTypes.Actor, actor, ClaimValueTypes.String, Options.ClaimsIssuer));
+                    retVal.Add(new Claim(ClaimTypes.Actor, actor, ClaimValueTypes.String, claimsIssuer));
                 }
 
                 return retVal;

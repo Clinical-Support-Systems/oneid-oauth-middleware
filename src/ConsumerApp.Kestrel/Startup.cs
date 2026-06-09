@@ -1,3 +1,5 @@
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
 using AspNet.Security.OAuth.OneID;
 using ConsumerApp.Kestrel.Data;
 using Microsoft.AspNetCore.Builder;
@@ -8,9 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.IdentityModel.Logging;
-using System.Security.Cryptography.X509Certificates;
 
 namespace ConsumerApp.Kestrel
 {
@@ -22,8 +22,8 @@ namespace ConsumerApp.Kestrel
             Environment = environment;
         }
 
-        public IConfiguration Configuration { get; }
-        public IWebHostEnvironment Environment { get; }
+        private IConfiguration Configuration { get; }
+        private IWebHostEnvironment Environment { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -35,29 +35,37 @@ namespace ConsumerApp.Kestrel
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddSession();
-            var options = new OneIdAuthenticationOptions()
+
+            var options = new OneIdAuthenticationOptions
             {
-                ClientId = Configuration["EHS:ClientId"],
-                CertificateThumbprint = Configuration["EHS:CertificateThumbprint"],
-                ClientSecret = Configuration["EHS:ClientSecret"],
+                ClientId = Configuration.GetValue("EHS:AuthClientId", string.Empty),
+                CertificateThumbprint = Configuration.GetValue("EHS:CertificateThumbprint", string.Empty),
+                CertificatePassword =
+                    new NetworkCredential("", Configuration.GetValue("EHS:CertificatePassword", string.Empty))
+                        .SecurePassword,
+                ClientSecret = Configuration.GetValue("EHS:ClientSecret", string.Empty),
                 Environment = OneIdAuthenticationEnvironment.PartnerSelfTest,
-                CallbackPath = new("/oneid-signin"),
+                CallbackPath = new PathString("/oneid-signin"),
                 CertificateStoreName = StoreName.My,
                 CertificateStoreLocation = StoreLocation.CurrentUser,
-                TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken | OneIdAuthenticationTokenSave.IdToken,
-                ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS | OneIdAuthenticationServiceProfiles.DHDR,
+                TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken |
+                                   OneIdAuthenticationTokenSave.RefreshToken | OneIdAuthenticationTokenSave.IdToken,
+                ServiceProfileOptions =
+                    OneIdAuthenticationServiceProfiles.OLIS | OneIdAuthenticationServiceProfiles.DHDR,
                 SaveTokens = false
             };
-            services.AddHttpClient(OneIdAuthenticationDefaults.DisplayName, client =>
-            {
-                client.DefaultRequestHeaders.Add("User-Agent", OneIdAuthenticationDefaults.UserAgent);
-            }).ConfigurePrimaryHttpMessageHandler(handler => new OneIdAuthenticationBackChannelHandler(options));
+            services.AddHttpClient(OneIdAuthenticationDefaults.DisplayName,
+                    client =>
+                    {
+                        client.DefaultRequestHeaders.Add("User-Agent", OneIdAuthenticationDefaults.UserAgent);
+                    })
+                .ConfigurePrimaryHttpMessageHandler(_ => new OneIdAuthenticationBackChannelHandler(options));
 
-            services.Configure<CookiePolicyOptions>(options =>
+            services.Configure<CookiePolicyOptions>(policyOptions =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-                options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.Lax;
+                policyOptions.CheckConsentNeeded = _ => true;
+                policyOptions.MinimumSameSitePolicy = SameSiteMode.Lax;
             });
 
             if (Environment.IsDevelopment())
@@ -67,21 +75,29 @@ namespace ConsumerApp.Kestrel
             }
 
             // Add authentication services
-            services.AddAuthentication().AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme, (OneIdAuthenticationOptions options) =>
-            {
-                options.ClientId = Configuration["EHS:AuthClientId"];
-                options.CertificateThumbprint = Configuration["EHS:CertificateThumbprint"];
-                options.ClientSecret = Configuration["EHS:ClientSecret"];
-                options.Environment = OneIdAuthenticationEnvironment.PartnerSelfTest;
-                options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-                options.CorrelationCookie.SameSite = SameSiteMode.Lax;
-                options.CallbackPath = new PathString("/oneid-signin");
-                options.CertificateStoreName = StoreName.My;
-                options.SaveTokens = true;
-                options.CertificateStoreLocation = StoreLocation.CurrentUser;
-                options.TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken | OneIdAuthenticationTokenSave.IdToken;
-                options.ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS | OneIdAuthenticationServiceProfiles.DHDR;
-            });
+            services.AddAuthentication().AddOneId(OneIdAuthenticationDefaults.AuthenticationScheme,
+                authenticationOptions =>
+                {
+                    authenticationOptions.ClientId = Configuration.GetValue("EHS:AuthClientId", string.Empty);
+                    authenticationOptions.CertificateThumbprint =
+                        Configuration.GetValue("EHS:CertificateThumbprint", string.Empty);
+                    authenticationOptions.CertificatePassword =
+                        new NetworkCredential("", Configuration.GetValue("EHS:CertificatePassword", string.Empty))
+                            .SecurePassword;
+                    authenticationOptions.ClientSecret = Configuration.GetValue("EHS:ClientSecret", string.Empty);
+                    authenticationOptions.Environment = OneIdAuthenticationEnvironment.PartnerSelfTest;
+                    authenticationOptions.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                    authenticationOptions.CorrelationCookie.SameSite = SameSiteMode.Lax;
+                    authenticationOptions.CallbackPath = new PathString("/oneid-signin");
+                    authenticationOptions.CertificateStoreName = StoreName.My;
+                    authenticationOptions.SaveTokens = true;
+                    authenticationOptions.CertificateStoreLocation = StoreLocation.CurrentUser;
+                    authenticationOptions.TokenSaveOptions = OneIdAuthenticationTokenSave.AccessToken |
+                                                             OneIdAuthenticationTokenSave.RefreshToken |
+                                                             OneIdAuthenticationTokenSave.IdToken;
+                    authenticationOptions.ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS |
+                                                                  OneIdAuthenticationServiceProfiles.DHDR;
+                });
 
             services.AddRazorPages();
         }
@@ -114,10 +130,7 @@ namespace ConsumerApp.Kestrel
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapRazorPages();
-            });
+            app.UseEndpoints(endpoints => { endpoints.MapRazorPages(); });
         }
     }
 }

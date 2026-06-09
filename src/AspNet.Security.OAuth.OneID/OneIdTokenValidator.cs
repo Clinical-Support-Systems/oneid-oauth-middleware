@@ -109,7 +109,7 @@ public DefaultOneIdTokenValidator(
                     {
                         using var httpClient = _httpClientFactory.CreateClient();
                         var jwksJson = await httpClient.GetStringAsync(new Uri(configuration.JwksUri)).ConfigureAwait(false);
-                        _logger.LogTrace("JWKS response: {JwksJson}", jwksJson);
+                        configuration.JsonWebKeySet = JsonWebKeySet.Create(jwksJson);
                     }
                     catch (Exception ex)
                     {
@@ -134,25 +134,40 @@ public DefaultOneIdTokenValidator(
 
             var validationParameters = context.Options.TokenValidationParameters.Clone();
 
-            if (configuration.JsonWebKeySet != null)
+            if (configuration.JsonWebKeySet?.Keys?.Count > 0)
             {
-                validationParameters.IssuerSigningKeys = configuration.JsonWebKeySet?.Keys;
+                validationParameters.IssuerSigningKeys = configuration.JsonWebKeySet.Keys;
             }
             else
             {
-#pragma warning disable CA5404 // Do not disable token validation checks
-                validationParameters.ValidateIssuer = false;
-#pragma warning restore CA5404 // Do not disable token validation checks
+                throw new SecurityTokenValidationException("Unable to load OneID signing keys from discovery/JWKS.");
             }
 
             try
             {
-                validationParameters.ValidIssuer = context.Options.Audience.Replace("/access_token", string.Empty, StringComparison.OrdinalIgnoreCase);
+                if (string.IsNullOrWhiteSpace(configuration.Issuer))
+                {
+                    throw new SecurityTokenValidationException("OpenID configuration issuer is missing.");
+                }
+
+                validationParameters.ValidateIssuer = true;
+                validationParameters.ValidIssuer = configuration.Issuer;
                 var result = await context.Options.SecurityTokenHandler.ValidateTokenAsync(context.IdToken, validationParameters).ConfigureAwait(false);
 
                 if (result.Exception is not null || !result.IsValid)
                 {
                     throw new SecurityTokenValidationException("OneID token validation failed.", result.Exception);
+                }
+
+                if (string.IsNullOrWhiteSpace(context.ExpectedNonce))
+                {
+                    throw new SecurityTokenValidationException("Expected nonce was not found for OneID callback.");
+                }
+
+                var tokenNonce = result.ClaimsIdentity?.FindFirst("nonce")?.Value;
+                if (!string.Equals(tokenNonce, context.ExpectedNonce, StringComparison.Ordinal))
+                {
+                    throw new SecurityTokenValidationException("OneID token nonce validation failed.");
                 }
             }
             catch (Exception ex)

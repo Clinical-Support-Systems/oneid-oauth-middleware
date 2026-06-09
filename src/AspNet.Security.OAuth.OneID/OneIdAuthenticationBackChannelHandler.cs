@@ -61,6 +61,8 @@ namespace AspNet.Security.OAuth.OneID
     {
         private static readonly char[] EqualsSeparator = ['=']; // CA1861 mitigation
         private readonly OneIdAuthenticationOptions _options;
+        private readonly object _certificateLock = new();
+        private X509Certificate2? _cachedCertificate;
 
         /// <summary>
         ///     Initializes a new instance of the OneIdAuthenticationBackChannelHandler class using the specified
@@ -72,7 +74,7 @@ namespace AspNet.Security.OAuth.OneID
             _options = options;
         }
 
-        protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
 #if NET8_0_OR_GREATER
@@ -85,61 +87,16 @@ namespace AspNet.Security.OAuth.OneID
 #endif
             if (request.Content == null)
             {
-                // Early return without performing a network call when there is no content.
-                // This aligns with test expectations: SendAsync should return 204 NoContent.
-                return new HttpResponseMessage(HttpStatusCode.NoContent);
+                throw new InvalidOperationException("Token request content must be provided.");
             }
 
-#pragma warning disable CA1508 // cert may be null until assignment; disposal uses null-conditional for safety.
-            X509Certificate2? cert = null;
-            try
-            {
-                if (!string.IsNullOrEmpty(_options.CertificateThumbprint) &&
-                    !string.IsNullOrEmpty(_options.CertificateFilename))
-                {
-                    throw new InvalidOperationException(
-                        "Cannot specify both CertificateThumbprint and CertificateFilename.");
-                }
-
-                if (!string.IsNullOrEmpty(_options.CertificateThumbprint))
-                {
-                    cert = OneIdCertificateUtility.FindCertificateByThumbprint(_options.CertificateStoreName,
-                        _options.CertificateStoreLocation, _options.CertificateThumbprint, false);
-                }
-                else if (!string.IsNullOrEmpty(_options.CertificateFilename))
-                {
-#if NET8_0_OR_GREATER
-                    var certBytes =
-                        await File.ReadAllBytesAsync(_options.CertificateFilename!, cancellationToken).ConfigureAwait(false);
-#else
-                    var certBytes = File.ReadAllBytes(_options.CertificateFilename!);
-#endif
-                    string? plainPassword = null;
-#if NET8_0_OR_GREATER
-                    if (_options.CertificatePassword is not null)
-                    {
-                        plainPassword = new NetworkCredential(string.Empty, _options.CertificatePassword).Password;
-                    }
-#else
-                    if (_options.CertificatePassword is not null)
-                    {
-                        plainPassword = new NetworkCredential(string.Empty, _options.CertificatePassword).Password;
-                    }
-#endif
-                    cert = TryImportWithFallback(certBytes, plainPassword);
-                }
-
-                if (cert == null)
-                {
-                    throw new InvalidOperationException(
-                        "Must specify CertificateThumbprint or CertificateFilename (with CertificatePassword if applicable).");
-                }
+            var cert = await GetClientCertificateAsync(cancellationToken).ConfigureAwait(false);
 
                 var signingKey = new X509SecurityKey(cert);
                 var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.RsaSha256);
 
-                var now = DateTimeOffset.Now.ToUnixTimeSeconds();
-                var expire = DateTimeOffset.Now.AddMinutes(20).ToUnixTimeSeconds();
+                var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                var expire = DateTimeOffset.UtcNow.AddMinutes(20).ToUnixTimeSeconds();
 
                 var permClaims = new List<Claim>
                 {
@@ -154,8 +111,8 @@ namespace AspNet.Security.OAuth.OneID
                     new("jti", Guid.NewGuid().ToString().Replace("-", string.Empty))
 #endif
                 };
-
                 var token = new JwtSecurityToken(claims: permClaims, signingCredentials: credentials);
+                // OneID client assertion validation rejects middleware-generated kid values.
                 token.Header.Remove("kid");
                 var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
 
@@ -165,29 +122,7 @@ namespace AspNet.Security.OAuth.OneID
                 var oldContent = await request.Content.ReadAsStringAsync().ConfigureAwait(false);
 #endif
 
-                var data = new Dictionary<string, string>(StringComparer.Ordinal);
-#if NET8_0_OR_GREATER
-                var raw = oldContent.Replace("?", string.Empty, StringComparison.InvariantCulture);
-#else
-                var raw = oldContent.Replace("?", string.Empty);
-#endif
-                foreach (var segment in raw.Split('&'))
-                {
-                    if (string.IsNullOrWhiteSpace(segment))
-                    {
-                        continue;
-                    }
-
-                    var parts = segment.Split(EqualsSeparator, 2);
-                    var decodedKeyLocal = WebUtility.UrlDecode(parts[0]);
-                    var decodedValueLocal = parts.Length == 2 ? WebUtility.UrlDecode(parts[1]) : string.Empty;
-                    data[decodedKeyLocal] = decodedValueLocal;
-                }
-
-                if (data.TryGetValue("redirect_uri", out var redirectUri))
-                {
-                    data["redirect_uri"] = WebUtility.UrlDecode(redirectUri);
-                }
+                var data = ParseFormBody(oldContent);
 
                 data["client_assertion_type"] = ClaimNames.JwtBearerAssertion;
                 data["client_assertion"] = jwtToken;
@@ -195,12 +130,108 @@ namespace AspNet.Security.OAuth.OneID
 
                 request.Content = new FormUrlEncodedContent(data.AsEnumerable());
                 return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            }
-            finally
+        }
+
+        private static Dictionary<string, string> ParseFormBody(string formBody)
+        {
+            if (string.IsNullOrEmpty(formBody))
             {
-                cert?.Dispose();
+                return new Dictionary<string, string>(StringComparer.Ordinal);
             }
-#pragma warning restore CA1508
+
+            var normalized = formBody[0] == '?' ? formBody.Substring(1) : formBody;
+            var data = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var segment in normalized.Split('&'))
+            {
+                if (string.IsNullOrWhiteSpace(segment))
+                {
+                    continue;
+                }
+
+                var parts = segment.Split(EqualsSeparator, 2);
+                var decodedKey = WebUtility.UrlDecode(parts[0]);
+                if (string.IsNullOrEmpty(decodedKey))
+                {
+                    continue;
+                }
+
+                var decodedValue = parts.Length == 2 ? WebUtility.UrlDecode(parts[1]) ?? string.Empty : string.Empty;
+                data[decodedKey] = decodedValue;
+            }
+
+            return data;
+        }
+
+#if NET8_0_OR_GREATER
+        private async Task<X509Certificate2> GetClientCertificateAsync(CancellationToken cancellationToken)
+#else
+        private Task<X509Certificate2> GetClientCertificateAsync(CancellationToken cancellationToken)
+#endif
+        {
+            lock (_certificateLock)
+            {
+                if (_cachedCertificate != null)
+                {
+#if NET8_0_OR_GREATER
+                    return _cachedCertificate;
+#else
+                    return Task.FromResult(_cachedCertificate);
+#endif
+                }
+            }
+
+            if (!string.IsNullOrEmpty(_options.CertificateThumbprint) &&
+                !string.IsNullOrEmpty(_options.CertificateFilename))
+            {
+                throw new InvalidOperationException(
+                    "Cannot specify both CertificateThumbprint and CertificateFilename.");
+            }
+
+            X509Certificate2? cert = null;
+            if (!string.IsNullOrEmpty(_options.CertificateThumbprint))
+            {
+                cert = OneIdCertificateUtility.FindCertificateByThumbprint(_options.CertificateStoreName,
+                    _options.CertificateStoreLocation, _options.CertificateThumbprint, false);
+            }
+            else if (!string.IsNullOrEmpty(_options.CertificateFilename))
+            {
+#if NET8_0_OR_GREATER
+                var certBytes = await File.ReadAllBytesAsync(_options.CertificateFilename!, cancellationToken).ConfigureAwait(false);
+#else
+                var certBytes = File.ReadAllBytes(_options.CertificateFilename!);
+#endif
+                string? plainPassword = null;
+                if (_options.CertificatePassword is not null)
+                {
+                    plainPassword = new NetworkCredential(string.Empty, _options.CertificatePassword).Password;
+                }
+
+                cert = TryImportWithFallback(certBytes, plainPassword);
+            }
+
+            if (cert == null)
+            {
+                throw new InvalidOperationException(
+                    "Must specify CertificateThumbprint or CertificateFilename (with CertificatePassword if applicable).");
+            }
+
+            lock (_certificateLock)
+            {
+                if (_cachedCertificate == null)
+                {
+                    _cachedCertificate = cert;
+                }
+                else
+                {
+                    cert.Dispose();
+                }
+
+#if NET8_0_OR_GREATER
+                return _cachedCertificate!;
+#else
+                return Task.FromResult(_cachedCertificate);
+#endif
+            }
         }
 
         private static X509Certificate2? TryImportWithFallback(byte[] certBytes, string? password)
@@ -223,15 +254,21 @@ namespace AspNet.Security.OAuth.OneID
                 catch (CryptographicException) { }
             }
 
-            // Legacy fallback (may persist key). Avoid if possible but retain for backward compatibility.
-            try
+            return null;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
             {
-                return new X509Certificate2(certBytes, password,
-                    X509KeyStorageFlags.MachineKeySet |
-                    X509KeyStorageFlags.Exportable |
-                    X509KeyStorageFlags.PersistKeySet);
+                lock (_certificateLock)
+                {
+                    _cachedCertificate?.Dispose();
+                    _cachedCertificate = null;
+                }
             }
-            catch (CryptographicException) { return null; }
+
+            base.Dispose(disposing);
         }
     }
 
