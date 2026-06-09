@@ -1,21 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Web;
 using System.Web.UI;
-using System.Web.UI.WebControls;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 
 namespace ConsumerApp.Katana.Account
 {
-    public partial class VerifyPhoneNumber : System.Web.UI.Page
+    public partial class VerifyPhoneNumber : Page
     {
         protected void Page_Load(object sender, EventArgs e)
         {
             var manager = Context.GetOwinContext().GetUserManager<ApplicationUserManager>();
             var phonenumber = Request.QueryString["PhoneNumber"];
-            var code = manager.GenerateChangePhoneNumberToken(User.Identity.GetUserId(), phonenumber);           
+            var code = manager.GenerateChangePhoneNumberToken(User.Identity.GetUserId(), phonenumber);
             PhoneNumber.Value = phonenumber;
         }
 
@@ -38,7 +35,7 @@ namespace ConsumerApp.Katana.Account
 
                 if (user != null)
                 {
-                    signInManager.SignIn(user, isPersistent: false, rememberBrowser: false);
+                    signInManager.SignIn(user, false, false);
                     Response.Redirect("/Account/Manage?m=AddPhoneNumberSuccess");
                 }
             }

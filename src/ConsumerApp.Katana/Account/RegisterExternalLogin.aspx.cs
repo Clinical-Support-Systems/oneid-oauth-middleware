@@ -1,41 +1,42 @@
 ﻿using System;
 using System.Web;
+using System.Web.UI;
+using ConsumerApp.Katana.Models;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
-using Owin;
-using ConsumerApp.Katana.Models;
 
 namespace ConsumerApp.Katana.Account
 {
-    public partial class RegisterExternalLogin : System.Web.UI.Page
+    public partial class RegisterExternalLogin : Page
     {
         protected string ProviderName
         {
-            get { return (string)ViewState["ProviderName"] ?? String.Empty; }
+            get { return (string)ViewState["ProviderName"] ?? string.Empty; }
             private set { ViewState["ProviderName"] = value; }
         }
 
         protected string ProviderAccountKey
         {
-            get { return (string)ViewState["ProviderAccountKey"] ?? String.Empty; }
+            get { return (string)ViewState["ProviderAccountKey"] ?? string.Empty; }
             private set { ViewState["ProviderAccountKey"] = value; }
         }
 
         private void RedirectOnFail()
         {
-            Response.Redirect((User.Identity.IsAuthenticated) ? "~/Account/Manage" : "~/Account/Login");
+            Response.Redirect(User.Identity.IsAuthenticated ? "~/Account/Manage" : "~/Account/Login");
         }
 
         protected void Page_Load()
         {
             // Process the result from an auth provider in the request
             ProviderName = IdentityHelper.GetProviderNameFromRequest(Request);
-            if (String.IsNullOrEmpty(ProviderName))
+            if (string.IsNullOrEmpty(ProviderName))
             {
                 RedirectOnFail();
                 return;
             }
+
             if (!IsPostBack)
             {
                 var manager = Context.GetOwinContext().GetUserManager<ApplicationUserManager>();
@@ -46,16 +47,18 @@ namespace ConsumerApp.Katana.Account
                     RedirectOnFail();
                     return;
                 }
+
                 var user = manager.Find(loginInfo.Login);
                 if (user != null)
                 {
-                    signInManager.SignIn(user, isPersistent: false, rememberBrowser: false);
+                    signInManager.SignIn(user, false, false);
                     IdentityHelper.RedirectToReturnUrl(Request.QueryString["ReturnUrl"], Response);
                 }
                 else if (User.Identity.IsAuthenticated)
                 {
                     // Apply Xsrf check when linking
-                    var verifiedloginInfo = Context.GetOwinContext().Authentication.GetExternalLoginInfo(IdentityHelper.XsrfKey, User.Identity.GetUserId());
+                    var verifiedloginInfo = Context.GetOwinContext().Authentication
+                        .GetExternalLoginInfo(IdentityHelper.XsrfKey, User.Identity.GetUserId());
                     if (verifiedloginInfo == null)
                     {
                         RedirectOnFail();
@@ -70,7 +73,6 @@ namespace ConsumerApp.Katana.Account
                     else
                     {
                         AddErrors(result);
-                        return;
                     }
                 }
                 else
@@ -78,8 +80,8 @@ namespace ConsumerApp.Katana.Account
                     email.Text = loginInfo.Email;
                 }
             }
-        }        
-        
+        }
+
         protected void LogIn_Click(object sender, EventArgs e)
         {
             CreateAndLoginUser();
@@ -91,10 +93,11 @@ namespace ConsumerApp.Katana.Account
             {
                 return;
             }
+
             var manager = Context.GetOwinContext().GetUserManager<ApplicationUserManager>();
             var signInManager = Context.GetOwinContext().GetUserManager<ApplicationSignInManager>();
-            var user = new ApplicationUser() { UserName = email.Text, Email = email.Text };
-            IdentityResult result = manager.Create(user);
+            var user = new ApplicationUser { UserName = email.Text, Email = email.Text };
+            var result = manager.Create(user);
             if (result.Succeeded)
             {
                 var loginInfo = Context.GetOwinContext().Authentication.GetExternalLoginInfo();
@@ -103,10 +106,11 @@ namespace ConsumerApp.Katana.Account
                     RedirectOnFail();
                     return;
                 }
+
                 result = manager.AddLogin(user.Id, loginInfo.Login);
                 if (result.Succeeded)
                 {
-                    signInManager.SignIn(user, isPersistent: false, rememberBrowser: false);
+                    signInManager.SignIn(user, false, false);
 
                     // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
                     // var code = manager.GenerateEmailConfirmationToken(user.Id);
@@ -116,12 +120,13 @@ namespace ConsumerApp.Katana.Account
                     return;
                 }
             }
+
             AddErrors(result);
         }
 
-        private void AddErrors(IdentityResult result) 
+        private void AddErrors(IdentityResult result)
         {
-            foreach (var error in result.Errors) 
+            foreach (var error in result.Errors)
             {
                 ModelState.AddModelError("", error);
             }

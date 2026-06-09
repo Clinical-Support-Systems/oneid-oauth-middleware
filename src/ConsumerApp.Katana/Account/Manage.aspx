@@ -1,7 +1,5 @@
 ﻿<%@ Page Title="Manage Account" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="Manage.aspx.cs" Inherits="ConsumerApp.Katana.Account.Manage" %>
 
-<%@ Register Src="~/Account/OpenAuthProviders.ascx" TagPrefix="uc" TagName="OpenAuthProviders" %>
-
 <asp:Content ContentPlaceHolderID="MainContent" runat="server">
     <h2><%: Title %>.</h2>
 
@@ -15,16 +13,17 @@
         <div class="col-md-12">
             <div class="form-horizontal">
                 <h4>Change your account settings</h4>
-                <hr />
+                <hr/>
                 <dl class="dl-horizontal">
                     <dt>Password:</dt>
                     <dd>
-                        <asp:HyperLink NavigateUrl="/Account/ManagePassword" Text="[Change]" Visible="false" ID="ChangePassword" runat="server" />
-                        <asp:HyperLink NavigateUrl="/Account/ManagePassword" Text="[Create]" Visible="false" ID="CreatePassword" runat="server" />
+                        <asp:HyperLink NavigateUrl="/Account/ManagePassword" Text="[Change]" Visible="false" ID="ChangePassword" runat="server"/>
+                        <asp:HyperLink NavigateUrl="/Account/ManagePassword" Text="[Create]" Visible="false" ID="CreatePassword" runat="server"/>
                     </dd>
                     <dt>External Logins:</dt>
-                    <dd><%: LoginsCount %>
-                        <asp:HyperLink NavigateUrl="/Account/ManageLogins" Text="[Manage]" runat="server" />
+                    <dd>
+                        <%: LoginsCount %>
+                        <asp:HyperLink NavigateUrl="/Account/ManageLogins" Text="[Manage]" runat="server"/>
 
                     </dd>
                     <%--
@@ -58,15 +57,15 @@
                             for details on setting up this ASP.NET application to support two-factor authentication.
                         </p>
                         <% if (TwoFactorEnabled)
-                          { %> 
-                        <%--
+                           { %>
+                            <%--
                         Enabled
                         <asp:LinkButton Text="[Disable]" runat="server" CommandArgument="false" OnClick="TwoFactorDisable_Click" />
                         --%>
                         <% }
-                          else
-                          { %> 
-                        <%--
+                           else
+                           { %>
+                            <%--
                         Disabled
                         <asp:LinkButton Text="[Enable]" CommandArgument="true" OnClick="TwoFactorEnable_Click" runat="server" />
                         --%>

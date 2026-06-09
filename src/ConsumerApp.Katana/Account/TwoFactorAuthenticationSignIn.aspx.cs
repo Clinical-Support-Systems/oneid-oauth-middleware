@@ -1,20 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Web;
 using System.Web.UI;
-using System.Web.UI.WebControls;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
-using ConsumerApp.Katana.Models;
 
 namespace ConsumerApp.Katana.Account
 {
-    public partial class TwoFactorAuthenticationSignIn : System.Web.UI.Page
+    public partial class TwoFactorAuthenticationSignIn : Page
     {
-        private ApplicationSignInManager signinManager;
-        private ApplicationUserManager manager;
+        private readonly ApplicationUserManager manager;
+        private readonly ApplicationSignInManager signinManager;
 
         public TwoFactorAuthenticationSignIn()
         {
@@ -24,22 +20,24 @@ namespace ConsumerApp.Katana.Account
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            var userId = signinManager.GetVerifiedUserId<ApplicationUser, string>();
+            var userId = signinManager.GetVerifiedUserId();
             if (userId == null)
             {
                 Response.Redirect("/Account/Error", true);
             }
+
             var userFactors = manager.GetValidTwoFactorProviders(userId);
             Providers.DataSource = userFactors.Select(x => x).ToList();
-            Providers.DataBind();            
+            Providers.DataBind();
         }
 
         protected void CodeSubmit_Click(object sender, EventArgs e)
         {
-            bool rememberMe = false;
+            var rememberMe = false;
             bool.TryParse(Request.QueryString["RememberMe"], out rememberMe);
-            
-            var result = signinManager.TwoFactorSignIn<ApplicationUser, string>(SelectedProvider.Value, Code.Text, isPersistent: rememberMe, rememberBrowser: RememberBrowser.Checked);
+
+            var result = signinManager.TwoFactorSignIn(SelectedProvider.Value, Code.Text, rememberMe,
+                RememberBrowser.Checked);
             switch (result)
             {
                 case SignInStatus.Success:
@@ -63,7 +61,7 @@ namespace ConsumerApp.Katana.Account
                 Response.Redirect("/Account/Error");
             }
 
-            var user = manager.FindById(signinManager.GetVerifiedUserId<ApplicationUser, string>());
+            var user = manager.FindById(signinManager.GetVerifiedUserId());
             if (user != null)
             {
                 var code = manager.GenerateTwoFactorToken(user.Id, Providers.SelectedValue);

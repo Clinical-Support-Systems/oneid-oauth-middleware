@@ -1,15 +1,18 @@
-﻿using Microsoft.AspNet.Identity;
-using Microsoft.Owin.Security;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Web;
+using System.Web.UI;
+using Microsoft.AspNet.Identity;
+using Microsoft.Owin.Security;
 
 namespace ConsumerApp.Katana.Account
 {
-    public partial class OpenAuthProviders : System.Web.UI.UserControl
+    public partial class OpenAuthProviders : UserControl
     {
+        public string ReturnUrl { get; set; }
+
         protected void Page_Load(object sender, EventArgs e)
         {
             if (IsPostBack)
@@ -19,27 +22,32 @@ namespace ConsumerApp.Katana.Account
                 {
                     return;
                 }
+
                 // Request a redirect to the external login provider
-                string redirectUrl = ResolveUrl(String.Format(CultureInfo.InvariantCulture, "~/Account/RegisterExternalLogin?{0}={1}&returnUrl={2}", IdentityHelper.ProviderNameKey, provider, ReturnUrl));
-                var properties = new AuthenticationProperties() { RedirectUri = redirectUrl };
+                var redirectUrl = ResolveUrl(string.Format(CultureInfo.InvariantCulture,
+                    "~/Account/RegisterExternalLogin?{0}={1}&returnUrl={2}", IdentityHelper.ProviderNameKey, provider,
+                    ReturnUrl));
+                var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
                 // Add xsrf verification when linking accounts
                 if (Context.User.Identity.IsAuthenticated)
                 {
                     properties.Dictionary[IdentityHelper.XsrfKey] = Context.User.Identity.GetUserId();
                 }
+
                 Context.GetOwinContext().Authentication.Challenge(properties, provider);
                 Response.StatusCode = 401;
                 HttpContext.Current.Response.Flush(); // Sends all currently buffered output to the client.
-                HttpContext.Current.Response.SuppressContent = true;  // Gets or sets a value indicating whether to send HTTP content to the client.
-                HttpContext.Current.ApplicationInstance.CompleteRequest(); // Causes ASP.NET to bypass all events and filtering in the HTTP pipeline chain of execution and directly execute the EndRequest event.
+                HttpContext.Current.Response.SuppressContent =
+                    true; // Gets or sets a value indicating whether to send HTTP content to the client.
+                HttpContext.Current.ApplicationInstance
+                    .CompleteRequest(); // Causes ASP.NET to bypass all events and filtering in the HTTP pipeline chain of execution and directly execute the EndRequest event.
             }
         }
 
-        public string ReturnUrl { get; set; }
-
         public IEnumerable<string> GetProviderNames()
         {
-            return Context.GetOwinContext().Authentication.GetExternalAuthenticationTypes().Select(t => t.AuthenticationType);
+            return Context.GetOwinContext().Authentication.GetExternalAuthenticationTypes()
+                .Select(t => t.AuthenticationType);
         }
     }
 }

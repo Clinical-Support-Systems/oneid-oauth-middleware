@@ -3,24 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.UI;
-using System.Web.UI.WebControls;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 
 namespace ConsumerApp.Katana.Account
 {
-    public partial class ManageLogins : System.Web.UI.Page
+    public partial class ManageLogins : Page
     {
-        protected string SuccessMessage
-        {
-            get;
-            private set;
-        }
-        protected bool CanRemoveExternalLogins
-        {
-            get;
-            private set;
-        }
+        protected string SuccessMessage { get; private set; }
+
+        protected bool CanRemoveExternalLogins { get; private set; }
 
         private bool HasPassword(ApplicationUserManager manager)
         {
@@ -32,8 +24,8 @@ namespace ConsumerApp.Katana.Account
             var manager = Context.GetOwinContext().GetUserManager<ApplicationUserManager>();
             CanRemoveExternalLogins = manager.GetLogins(User.Identity.GetUserId()).Count() > 1;
 
-            SuccessMessage = String.Empty;
-            successMessage.Visible = !String.IsNullOrEmpty(SuccessMessage);
+            SuccessMessage = string.Empty;
+            successMessage.Visible = !string.IsNullOrEmpty(SuccessMessage);
         }
 
         public IEnumerable<UserLoginInfo> GetLogins()
@@ -49,13 +41,14 @@ namespace ConsumerApp.Katana.Account
             var manager = Context.GetOwinContext().GetUserManager<ApplicationUserManager>();
             var signInManager = Context.GetOwinContext().Get<ApplicationSignInManager>();
             var result = manager.RemoveLogin(User.Identity.GetUserId(), new UserLoginInfo(loginProvider, providerKey));
-            string msg = String.Empty;
+            var msg = string.Empty;
             if (result.Succeeded)
             {
                 var user = manager.FindById(User.Identity.GetUserId());
-                signInManager.SignIn(user, isPersistent: false, rememberBrowser: false);
+                signInManager.SignIn(user, false, false);
                 msg = "?m=RemoveLoginSuccess";
             }
+
             Response.Redirect("~/Account/ManageLogins" + msg);
         }
     }

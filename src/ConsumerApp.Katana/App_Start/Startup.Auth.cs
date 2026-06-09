@@ -1,12 +1,12 @@
-﻿using AspNet.Security.OAuth.OneID;
+﻿using System;
+using System.Configuration;
+using AspNet.Security.OAuth.OneID;
 using ConsumerApp.Katana.Models;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Cookies;
 using Owin;
-using System;
-using System.Configuration;
 
 namespace ConsumerApp.Katana
 {
@@ -29,9 +29,10 @@ namespace ConsumerApp.Katana
                 LoginPath = new PathString("/Account/Login"),
                 Provider = new CookieAuthenticationProvider
                 {
-                    OnValidateIdentity = SecurityStampValidator.OnValidateIdentity<ApplicationUserManager, ApplicationUser>(
-                        validateInterval: TimeSpan.FromMinutes(30),
-                        regenerateIdentity: (manager, user) => user.GenerateUserIdentityAsync(manager))
+                    OnValidateIdentity =
+                        SecurityStampValidator.OnValidateIdentity<ApplicationUserManager, ApplicationUser>(
+                            TimeSpan.FromMinutes(30),
+                            (manager, user) => user.GenerateUserIdentityAsync(manager))
                 }
             });
             // Use a cookie to temporarily store information about a user logging in with a third party login provider
@@ -45,7 +46,7 @@ namespace ConsumerApp.Katana
             // This is similar to the RememberMe option when you log in.
             app.UseTwoFactorRememberBrowserCookie(DefaultAuthenticationTypes.TwoFactorRememberBrowserCookie);
 
-            app.UseOneIdAuthentication(new OneIdAuthenticationOptions()
+            app.UseOneIdAuthentication(new OneIdAuthenticationOptions
             {
                 CertificateThumbprint = ConfigurationManager.AppSettings["EHS:CertificateThumbprint"],
                 ClientId = ConfigurationManager.AppSettings["EHS:AuthClientId"],
@@ -53,7 +54,8 @@ namespace ConsumerApp.Katana
 
                 // This must be pre-registered with eHealth Ontario
                 CallbackPath = new PathString("/oneid-signin"),
-                ServiceProfileOptions = OneIdAuthenticationServiceProfiles.OLIS | OneIdAuthenticationServiceProfiles.DHDR
+                ServiceProfileOptions =
+                    OneIdAuthenticationServiceProfiles.OLIS | OneIdAuthenticationServiceProfiles.DHDR
             });
         }
     }
