@@ -2,7 +2,13 @@
 
 ## Status and objective
 
-TODO; **P0**; small effort; low change risk; correctness. Planned at `777d721`, 2026-09-07; re-scoped 2026-09-07 after plan review. No prerequisites.
+**DONE / MERGED**; **P0**; small effort; low change risk; correctness. Planned at `777d721`, 2026-09-07; re-scoped 2026-09-07 after plan review. No prerequisites.
+
+Executed 2026-09-07 by a dispatched executor in an isolated worktree, reviewed, then applied to `master` as commit **`aed06c1`** (cherry-picked; attribution trailers omitted per the owner's request). **Committed locally, not pushed** — pushing `master` triggers NuGet publication via `.github/workflows/main.yml`. The executor worktree and branch have been removed.
+
+Reviewer verification, run against real `master` rather than the executor's worktree (the worktree had branched from `d9c6493` and did not contain the task 008 merge, so its test counts were not master's): diff is exactly the one `Protect` line moved plus its blank separator; resulting order is `GenerateCorrelationId` → scope → PKCE → nonce → `Protect` → `explicitParameters`; `dotnet build -c Release` exit 0 with **0 warnings** and both `net48`/`net8.0` outputs; `dotnet test` 32 passed / 0 failed / 4 pre-existing skips.
+
+**Verification debt stands.** The Core suite does not execute `OneIdAuthenticationHandler.NetFull.cs` at all, so it proves only that nothing else broke. No automated test covers this defect. Task 007 discharges that debt — until it lands, this fix rests on code review and the build.
 
 Move a single statement in the net48 (Katana/OWIN) challenge so that the PKCE code verifier and the nonce are inside the protected state that gets sent to the provider. Nothing else.
 

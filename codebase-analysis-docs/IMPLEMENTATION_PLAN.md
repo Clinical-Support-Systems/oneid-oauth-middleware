@@ -13,7 +13,7 @@ All paths below are relative to the repository root. Each task is self-contained
 | ID | Handoff | Priority | Effort | Change risk | Prerequisites | Status |
 |---|---|---|---|---|---|---|
 | 008 | `codebase-analysis-docs/assets/plans/008-remove-seeded-signing-key.md` | **P0** | S | Low | None | **DONE / MERGED** — commit `4e09a2b` on `master`, 2026-09-07. Executed in a worktree, reviewed, then applied to master at the owner's instruction. Not pushed. |
-| 003 | `codebase-analysis-docs/assets/plans/003-katana-state.md` | **P0** | S | Low | None | TODO |
+| 003 | `codebase-analysis-docs/assets/plans/003-katana-state.md` | **P0** | S | Low | None | **DONE / MERGED** — commit `aed06c1` on `master`, 2026-09-07. Not pushed. Verified by review + dual-target build only; no automated regression until task 007. |
 | 002 | `codebase-analysis-docs/assets/plans/002-core-validation.md` | P1 | M | High | 008 | TODO |
 | 007 | `codebase-analysis-docs/assets/plans/007-netfull-test-project.md` | P1 | M | Low (test-only) | 003 | TODO |
 | 006 | `codebase-analysis-docs/assets/plans/006-integration-design-decisions.md` | P1 design gate | L | Documentation only | May run first; consume 002/003/007 evidence when available | TODO |
