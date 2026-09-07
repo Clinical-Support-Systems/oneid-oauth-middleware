@@ -430,8 +430,6 @@ namespace AspNet.Security.OAuth.OneID
 
             string scope = string.Join(" ", Options.Scope);
 
-            string state = Options.StateDataFormat!.Protect(properties);
-
             // Generate per-request PKCE verifier/challenge and persist verifier in protected state.
             var pkceCode = PkceCode.GeneratePKCECodes();
             properties.Dictionary[PkceCodeVerifierProperty] = pkceCode.CodeVerifier ?? string.Empty;
@@ -441,6 +439,8 @@ namespace AspNet.Security.OAuth.OneID
             CryptoRandom.GetBytes(nonceBytes);
             var nonce = TextEncodings.Base64Url.Encode(nonceBytes);
             properties.Dictionary[NonceProperty] = nonce;
+
+            string state = Options.StateDataFormat!.Protect(properties);
 
             var explicitParameters = new Dictionary<string, string>
                 {
