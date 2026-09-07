@@ -95,6 +95,20 @@ List all the pre-requisites the system needs to develop this project.
 - You will need a PKI certificate from Ontario Health (OH)
 - You will need login credentials from Ontario Health (OH)
 
+## Running the tests
+
+There are two test projects, because the library ships two implementations behind `net48`/`net8.0`:
+
+```powershell
+# Core (net8.0) handler - ASP.NET Core / Kestrel
+dotnet test tests/AspNet.Security.OAuth.OneID.Tests/AspNet.Security.OAuth.Providers.Tests.csproj
+
+# Framework (net48) handler - OWIN / Katana; Windows-only
+dotnet test tests/AspNet.Security.OAuth.OneID.NetFull.Tests/AspNet.Security.OAuth.OneID.NetFull.Tests.csproj
+```
+
+The `net48` project is the only execution coverage for `OneIdAuthenticationHandler.NetFull.cs` (the OWIN/Katana handler) - the Core test project resolves the library's `net8.0` assets and never runs that code path. It uses an in-memory `Microsoft.Owin.Testing.TestServer`, so it needs no live OneID credentials, certificate, or network access.
+
 ## IdentityModel Package Version Consistency
 
 Run this command:

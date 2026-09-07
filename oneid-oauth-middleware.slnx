@@ -28,4 +28,5 @@
     <Build Solution="Release|*" Project="false" />
   </Project>
   <Project Path="tests/AspNet.Security.OAuth.OneID.Tests/AspNet.Security.OAuth.Providers.Tests.csproj" />
+  <Project Path="tests/AspNet.Security.OAuth.OneID.NetFull.Tests/AspNet.Security.OAuth.OneID.NetFull.Tests.csproj" />
 </Solution>
