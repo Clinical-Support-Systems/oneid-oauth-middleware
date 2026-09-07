@@ -21,7 +21,7 @@
     <File Path="tutorial/index.md" />
   </Folder>
   <Project Path="src/AspNet.Security.OAuth.OneID/AspNet.Security.OAuth.OneID.csproj" />
-  <Project Path="src/ConsumerApp.Katana/ConsumerApp.Katana.csproj">
+  <Project Path="src/ConsumerApp.Katana/ConsumerApp.Katana.csproj" Id="9a498f43-1200-4217-8c1a-4d27cb8177d5">
     <Build Solution="Release|*" Project="false" />
   </Project>
   <Project Path="src/ConsumerApp.Kestrel/ConsumerApp.Kestrel.csproj">
