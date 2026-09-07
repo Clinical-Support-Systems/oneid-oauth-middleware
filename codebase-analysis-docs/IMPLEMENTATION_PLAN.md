@@ -15,7 +15,7 @@ All paths below are relative to the repository root. Each task is self-contained
 | 008 | `codebase-analysis-docs/assets/plans/008-remove-seeded-signing-key.md` | **P0** | S | Low | None | **DONE / MERGED** — commit `4e09a2b` on `master`, 2026-09-07. Executed in a worktree, reviewed, then applied to master at the owner's instruction. Not pushed. |
 | 003 | `codebase-analysis-docs/assets/plans/003-katana-state.md` | **P0** | S | Low | None | **DONE / MERGED** — commit `aed06c1` on `master`, 2026-09-07. Not pushed. Verified by review + dual-target build only; no automated regression until task 007. |
 | 002 | `codebase-analysis-docs/assets/plans/002-core-validation.md` | P1 | M | High | 008 | TODO |
-| 007 | `codebase-analysis-docs/assets/plans/007-netfull-test-project.md` | P1 | M | Low (test-only) | 003 | TODO |
+| 007 | `codebase-analysis-docs/assets/plans/007-netfull-test-project.md` | P1 | M | Low (test-only) | 003 | **EXECUTED / AWAITING MERGE** — commit `4dd5b5a` on branch `worktree-agent-a4f0b4e10d92f264b`, 2026-09-07. Reviewed and approved; every acceptance criterion re-verified independently by the reviewer. **Not merged to master, not pushed** — merging is the owner’s call. |
 | 006 | `codebase-analysis-docs/assets/plans/006-integration-design-decisions.md` | P1 design gate | L | Documentation only | May run first; consume 002/003/007 evidence when available | TODO |
 | 001 | `codebase-analysis-docs/assets/plans/001-test-baseline-and-ci.md` | P2 | M | Low | None; **gates nothing** | TODO |
 | 004 | `codebase-analysis-docs/assets/plans/004-options-consistency.md` | P2 | S | Medium | 008, 002, 007 | TODO |
