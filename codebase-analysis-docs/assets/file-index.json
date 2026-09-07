@@ -1,0 +1,1213 @@
+[
+  {
+    "priority": "P3",
+    "path": ".editorconfig",
+    "type": ".editorconfig",
+    "lines": 75,
+    "hash": "982ed559"
+  },
+  {
+    "priority": "P3",
+    "path": ".github/dependabot.yml",
+    "type": ".yml",
+    "lines": 7,
+    "hash": "018d6b94"
+  },
+  {
+    "priority": "P3",
+    "path": ".github/workflows/codeql-analysis.yml",
+    "type": ".yml",
+    "lines": 76,
+    "hash": "47e8a75f"
+  },
+  {
+    "priority": "P3",
+    "path": ".github/workflows/dependencies.yml",
+    "type": ".yml",
+    "lines": 54,
+    "hash": "3c77bcde"
+  },
+  {
+    "priority": "P1",
+    "path": ".github/workflows/main.yml",
+    "type": ".yml",
+    "lines": 85,
+    "hash": "f9eff168"
+  },
+  {
+    "priority": "P3",
+    "path": "AGENTS.md",
+    "type": ".md",
+    "lines": 26,
+    "hash": "e4add291"
+  },
+  {
+    "priority": "P3",
+    "path": "Directory.Build.props",
+    "type": ".props",
+    "lines": 7,
+    "hash": "8f870750"
+  },
+  {
+    "priority": "P3",
+    "path": "NuGet.Config",
+    "type": ".Config",
+    "lines": 12,
+    "hash": "4cc2696a"
+  },
+  {
+    "priority": "P1",
+    "path": "README.md",
+    "type": ".md",
+    "lines": 158,
+    "hash": "d549de64"
+  },
+  {
+    "priority": "P1",
+    "path": "global.json",
+    "type": ".json",
+    "lines": 7,
+    "hash": "1c74ba19"
+  },
+  {
+    "priority": "P3",
+    "path": "oneid-oauth-middleware.slnx",
+    "type": ".slnx",
+    "lines": 31,
+    "hash": "300c2a33"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/AspNet.Security.OAuth.OneID.csproj",
+    "type": ".csproj",
+    "lines": 140,
+    "hash": "5591573d"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/AssemblyInfo.cs",
+    "type": ".cs",
+    "lines": 5,
+    "hash": "c3ea4db9"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdAuthException.cs",
+    "type": ".cs",
+    "lines": 65,
+    "hash": "547cfe6f"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdAuthenticationBackChannelHandler.cs",
+    "type": ".cs",
+    "lines": 405,
+    "hash": "be393ace"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdAuthenticationClaimAction.cs",
+    "type": ".cs",
+    "lines": 68,
+    "hash": "23150d8d"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdAuthenticationConstants.cs",
+    "type": ".cs",
+    "lines": 239,
+    "hash": "450c7773"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdAuthenticationDefaults.cs",
+    "type": ".cs",
+    "lines": 117,
+    "hash": "481b7001"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdAuthenticationEnvironment.cs",
+    "type": ".cs",
+    "lines": 59,
+    "hash": "4b3cf7e3"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdAuthenticationEvents.cs",
+    "type": ".cs",
+    "lines": 65,
+    "hash": "7ca90e6e"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdAuthenticationException.cs",
+    "type": ".cs",
+    "lines": 60,
+    "hash": "e0e512e4"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdAuthenticationExtensions.cs",
+    "type": ".cs",
+    "lines": 127,
+    "hash": "9ee19f1a"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdAuthenticationHandler.NetCore.cs",
+    "type": ".cs",
+    "lines": 484,
+    "hash": "a6e8c9b5"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdAuthenticationHandler.NetFull.cs",
+    "type": ".cs",
+    "lines": 602,
+    "hash": "85a8630e"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdAuthenticationMiddleware.cs",
+    "type": ".cs",
+    "lines": 134,
+    "hash": "a4c8b2c6"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdAuthenticationOptions.cs",
+    "type": ".cs",
+    "lines": 548,
+    "hash": "6f7eee92"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdAuthenticationPostConfigureOptions.cs",
+    "type": ".cs",
+    "lines": 103,
+    "hash": "18e9e980"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdAuthenticationProvider.cs",
+    "type": ".cs",
+    "lines": 144,
+    "hash": "b6de438c"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdHelper.cs",
+    "type": ".cs",
+    "lines": 199,
+    "hash": "ddf51e89"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdLoggerExtensions.cs",
+    "type": ".cs",
+    "lines": 178,
+    "hash": "6446fadd"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdTokenValidator.cs",
+    "type": ".cs",
+    "lines": 182,
+    "hash": "de3d7fda"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/OneIdValidateIdTokenContext.cs",
+    "type": ".cs",
+    "lines": 71,
+    "hash": "9672760a"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/PKCECode.cs",
+    "type": ".cs",
+    "lines": 77,
+    "hash": "2bd13b62"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/Properties/Resources.Designer.cs",
+    "type": ".cs",
+    "lines": 72,
+    "hash": "ced68eb7"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/Provider/OneIdApplyRedirectContext.cs",
+    "type": ".cs",
+    "lines": 67,
+    "hash": "91c93c35"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/Provider/OneIdAuthenticatedContext.cs",
+    "type": ".cs",
+    "lines": 239,
+    "hash": "5de7cbb0"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/Provider/OneIdAuthenticatingContext.cs",
+    "type": ".cs",
+    "lines": 74,
+    "hash": "f9c4aaea"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/Provider/OneIdAuthenticationHandlerFactory.cs",
+    "type": ".cs",
+    "lines": 88,
+    "hash": "538db3b1"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/Provider/OneIdReturnEndpointContext.cs",
+    "type": ".cs",
+    "lines": 52,
+    "hash": "439a6c7d"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/Provider/OneIdTokenRequestContext.cs",
+    "type": ".cs",
+    "lines": 85,
+    "hash": "c5fdbdb2"
+  },
+  {
+    "priority": "P1",
+    "path": "src/AspNet.Security.OAuth.OneID/TokenEndpoint.cs",
+    "type": ".cs",
+    "lines": 234,
+    "hash": "0d50b413"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/About.aspx",
+    "type": ".aspx",
+    "lines": 7,
+    "hash": "8464ccc2"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/About.aspx.cs",
+    "type": ".cs",
+    "lines": 12,
+    "hash": "d18b7719"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/About.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 17,
+    "hash": "f9da550a"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/AddPhoneNumber.aspx",
+    "type": ".aspx",
+    "lines": 28,
+    "hash": "9aa8a22a"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/AddPhoneNumber.aspx.cs",
+    "type": ".cs",
+    "lines": 29,
+    "hash": "1063df7e"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/AddPhoneNumber.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 33,
+    "hash": "14fd5528"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Confirm.aspx",
+    "type": ".aspx",
+    "lines": 18,
+    "hash": "920e7c83"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Confirm.aspx.cs",
+    "type": ".cs",
+    "lines": 32,
+    "hash": "1ae6aa70"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Confirm.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 43,
+    "hash": "818f8b9a"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Forgot.aspx",
+    "type": ".aspx",
+    "lines": 39,
+    "hash": "6dd66baf"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Forgot.aspx.cs",
+    "type": ".cs",
+    "lines": 39,
+    "hash": "27678492"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Forgot.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 60,
+    "hash": "4fafd430"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Lockout.aspx",
+    "type": ".aspx",
+    "lines": 8,
+    "hash": "661048e4"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Lockout.aspx.cs",
+    "type": ".cs",
+    "lines": 12,
+    "hash": "48d2cc34"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Lockout.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 17,
+    "hash": "638689e2"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Login.aspx",
+    "type": ".aspx",
+    "lines": 65,
+    "hash": "bdc44bf3"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Login.aspx.cs",
+    "type": ".cs",
+    "lines": 59,
+    "hash": "e397d3d6"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Login.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 78,
+    "hash": "b9304141"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Manage.aspx",
+    "type": ".aspx",
+    "lines": 79,
+    "hash": "bc6c91f8"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Manage.aspx.cs",
+    "type": ".cs",
+    "lines": 119,
+    "hash": "0fa6d2fd"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Manage.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 51,
+    "hash": "a7caaa33"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/ManageLogins.aspx",
+    "type": ".aspx",
+    "lines": 42,
+    "hash": "a7c3023a"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/ManageLogins.aspx.cs",
+    "type": ".cs",
+    "lines": 55,
+    "hash": "7b6cd586"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/ManageLogins.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 24,
+    "hash": "d4d7c9ad"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/ManagePassword.aspx",
+    "type": ".aspx",
+    "lines": 93,
+    "hash": "6298b6ba"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/ManagePassword.aspx.cs",
+    "type": ".cs",
+    "lines": 91,
+    "hash": "77985df4"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/ManagePassword.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 105,
+    "hash": "4cc78ad9"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/OpenAuthProviders.ascx.cs",
+    "type": ".cs",
+    "lines": 53,
+    "hash": "ff410baa"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/OpenAuthProviders.ascx.designer.cs",
+    "type": ".cs",
+    "lines": 24,
+    "hash": "a085d67e"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Register.aspx",
+    "type": ".aspx",
+    "lines": 45,
+    "hash": "7777186f"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Register.aspx.cs",
+    "type": ".cs",
+    "lines": 35,
+    "hash": "74f4e291"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Register.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 51,
+    "hash": "c58a36a5"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/RegisterExternalLogin.aspx",
+    "type": ".aspx",
+    "lines": 33,
+    "hash": "17f6cbfa"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/RegisterExternalLogin.aspx.cs",
+    "type": ".cs",
+    "lines": 135,
+    "hash": "afea3f3b"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/RegisterExternalLogin.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 24,
+    "hash": "c482a241"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/ResetPassword.aspx",
+    "type": ".aspx",
+    "lines": 45,
+    "hash": "c7f18f79"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/ResetPassword.aspx.cs",
+    "type": ".cs",
+    "lines": 42,
+    "hash": "c228e5b3"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/ResetPassword.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 51,
+    "hash": "30f607f6"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/ResetPasswordConfirmation.aspx",
+    "type": ".aspx",
+    "lines": 8,
+    "hash": "3fac1b20"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/ResetPasswordConfirmation.aspx.cs",
+    "type": ".cs",
+    "lines": 8,
+    "hash": "047dfe63"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/ResetPasswordConfirmation.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 24,
+    "hash": "f2e791bb"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/TwoFactorAuthenticationSignIn.aspx",
+    "type": ".aspx",
+    "lines": 50,
+    "hash": "5c47316a"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/TwoFactorAuthenticationSignIn.aspx.cs",
+    "type": ".cs",
+    "lines": 75,
+    "hash": "d55ee960"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/TwoFactorAuthenticationSignIn.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 105,
+    "hash": "66bafc13"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/VerifyPhoneNumber.aspx",
+    "type": ".aspx",
+    "lines": 28,
+    "hash": "5be370d8"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/VerifyPhoneNumber.aspx.cs",
+    "type": ".cs",
+    "lines": 47,
+    "hash": "0fd06bae"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/VerifyPhoneNumber.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 42,
+    "hash": "7d16364c"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Account/Web.config",
+    "type": ".config",
+    "lines": 13,
+    "hash": "a1ce3d2b"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/App_Start/BundleConfig.cs",
+    "type": ".cs",
+    "lines": 33,
+    "hash": "cc68edee"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Katana/App_Start/IdentityConfig.cs",
+    "type": ".cs",
+    "lines": 111,
+    "hash": "ea3dfaaa"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/App_Start/RouteConfig.cs",
+    "type": ".cs",
+    "lines": 15,
+    "hash": "b7206a38"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Katana/App_Start/Startup.Auth.cs",
+    "type": ".cs",
+    "lines": 62,
+    "hash": "13dcb16f"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Bundle.config",
+    "type": ".config",
+    "lines": 8,
+    "hash": "6b5cc597"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/ConsumerApp.Katana.csproj",
+    "type": ".csproj",
+    "lines": 423,
+    "hash": "2042176f"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Contact.aspx",
+    "type": ".aspx",
+    "lines": 17,
+    "hash": "5f401dfc"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Contact.aspx.cs",
+    "type": ".cs",
+    "lines": 12,
+    "hash": "36edde6b"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Contact.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 17,
+    "hash": "d5d9ef4f"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Default.aspx",
+    "type": ".aspx",
+    "lines": 44,
+    "hash": "41bc523c"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Default.aspx.cs",
+    "type": ".cs",
+    "lines": 12,
+    "hash": "6eca1c49"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Default.aspx.designer.cs",
+    "type": ".cs",
+    "lines": 17,
+    "hash": "55f05da6"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Global.asax.cs",
+    "type": ".cs",
+    "lines": 17,
+    "hash": "cb7d8e95"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Katana/Models/IdentityModels.cs",
+    "type": ".cs",
+    "lines": 105,
+    "hash": "a9d85fd8"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Properties/AssemblyInfo.cs",
+    "type": ".cs",
+    "lines": 34,
+    "hash": "8128b906"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Properties/serviceDependencies.json",
+    "type": ".json",
+    "lines": 8,
+    "hash": "b677dff4"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Properties/serviceDependencies.local.json",
+    "type": ".json",
+    "lines": 8,
+    "hash": "779fbb2c"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Site.Master.cs",
+    "type": ".cs",
+    "lines": 77,
+    "hash": "f4ae8d7f"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Site.Master.designer.cs",
+    "type": ".cs",
+    "lines": 24,
+    "hash": "98ca8d6a"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Site.Mobile.Master.cs",
+    "type": ".cs",
+    "lines": 12,
+    "hash": "ba7fda05"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Site.Mobile.Master.designer.cs",
+    "type": ".cs",
+    "lines": 51,
+    "hash": "dfdc2d73"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Katana/Startup.cs",
+    "type": ".cs",
+    "lines": 16,
+    "hash": "038437cd"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/ViewSwitcher.ascx.cs",
+    "type": ".cs",
+    "lines": 41,
+    "hash": "83a443f5"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/ViewSwitcher.ascx.designer.cs",
+    "type": ".cs",
+    "lines": 15,
+    "hash": "55577187"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Web.Debug.config",
+    "type": ".config",
+    "lines": 30,
+    "hash": "b7868e1e"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Web.Release.config",
+    "type": ".config",
+    "lines": 31,
+    "hash": "314ec41a"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/Web.config",
+    "type": ".config",
+    "lines": 167,
+    "hash": "743eb124"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Katana/packages.config",
+    "type": ".config",
+    "lines": 34,
+    "hash": "be0aaa55"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Kestrel/Areas/Identity/IdentityHostingStartup.cs",
+    "type": ".cs",
+    "lines": 21,
+    "hash": "c8f64c88"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Kestrel/Areas/Identity/Pages/Account/Logout.cshtml",
+    "type": ".cshtml",
+    "lines": 21,
+    "hash": "f87c16a9"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Kestrel/Areas/Identity/Pages/Account/Logout.cshtml.cs",
+    "type": ".cs",
+    "lines": 84,
+    "hash": "6ce1cfb2"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Kestrel/Areas/Identity/Pages/Account/_ViewImports.cshtml",
+    "type": ".cshtml",
+    "lines": 1,
+    "hash": "fecf7f71"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Kestrel/Areas/Identity/Pages/_ValidationScriptsPartial.cshtml",
+    "type": ".cshtml",
+    "lines": 18,
+    "hash": "e8398fdd"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Kestrel/Areas/Identity/Pages/_ViewImports.cshtml",
+    "type": ".cshtml",
+    "lines": 4,
+    "hash": "ef54f91a"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Kestrel/Areas/Identity/Pages/_ViewStart.cshtml",
+    "type": ".cshtml",
+    "lines": 3,
+    "hash": "d4ed9a5a"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/ConsumerApp.Kestrel.csproj",
+    "type": ".csproj",
+    "lines": 32,
+    "hash": "910f0eb7"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Kestrel/Data/ApplicationDbContext.cs",
+    "type": ".cs",
+    "lines": 17,
+    "hash": "1639a7ba"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Kestrel/Data/Migrations/00000000000000_CreateIdentitySchema.Designer.cs",
+    "type": ".cs",
+    "lines": 277,
+    "hash": "8a38aba1"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Kestrel/Data/Migrations/00000000000000_CreateIdentitySchema.cs",
+    "type": ".cs",
+    "lines": 220,
+    "hash": "39ccc8e1"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Kestrel/Data/Migrations/ApplicationDbContextModelSnapshot.cs",
+    "type": ".cs",
+    "lines": 280,
+    "hash": "3ba77925"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/Pages/Error.cshtml",
+    "type": ".cshtml",
+    "lines": 26,
+    "hash": "bc66171b"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/Pages/Error.cshtml.cs",
+    "type": ".cs",
+    "lines": 32,
+    "hash": "5f62a430"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/Pages/Index.cshtml",
+    "type": ".cshtml",
+    "lines": 64,
+    "hash": "29719882"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/Pages/Index.cshtml.cs",
+    "type": ".cs",
+    "lines": 88,
+    "hash": "1aaf66bd"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/Pages/Privacy.cshtml",
+    "type": ".cshtml",
+    "lines": 8,
+    "hash": "a24631ba"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/Pages/Privacy.cshtml.cs",
+    "type": ".cs",
+    "lines": 24,
+    "hash": "acd4fb29"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/Pages/Shared/_CookieConsentPartial.cshtml",
+    "type": ".cshtml",
+    "lines": 25,
+    "hash": "1db6be37"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/Pages/Shared/_Layout.cshtml",
+    "type": ".cshtml",
+    "lines": 52,
+    "hash": "fce61d57"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/Pages/Shared/_LoginPartial.cshtml",
+    "type": ".cshtml",
+    "lines": 31,
+    "hash": "47ad0dca"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/Pages/Shared/_ValidationScriptsPartial.cshtml",
+    "type": ".cshtml",
+    "lines": 2,
+    "hash": "9ef82fee"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/Pages/_ViewImports.cshtml",
+    "type": ".cshtml",
+    "lines": 5,
+    "hash": "0eb23255"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/Pages/_ViewStart.cshtml",
+    "type": ".cshtml",
+    "lines": 3,
+    "hash": "47e02b4d"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Kestrel/Program.cs",
+    "type": ".cs",
+    "lines": 26,
+    "hash": "85ecad41"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/Properties/launchSettings.json",
+    "type": ".json",
+    "lines": 29,
+    "hash": "6cd11117"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/Properties/serviceDependencies.json",
+    "type": ".json",
+    "lines": 8,
+    "hash": "b677dff4"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/Properties/serviceDependencies.local.json",
+    "type": ".json",
+    "lines": 8,
+    "hash": "779fbb2c"
+  },
+  {
+    "priority": "P2",
+    "path": "src/ConsumerApp.Kestrel/Startup.cs",
+    "type": ".cs",
+    "lines": 136,
+    "hash": "f967ae51"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/Views/Shared/_ValidationScriptsPartial.cshtml",
+    "type": ".cshtml",
+    "lines": 2,
+    "hash": "574f31f5"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/appsettings.json",
+    "type": ".json",
+    "lines": 20,
+    "hash": "9e906228"
+  },
+  {
+    "priority": "P3",
+    "path": "src/ConsumerApp.Kestrel/wwwroot/lib/jquery-validation/LICENSE.md",
+    "type": ".md",
+    "lines": 22,
+    "hash": "81e1c493"
+  },
+  {
+    "priority": "P1",
+    "path": "tests/AspNet.Security.OAuth.OneID.Tests/AspNet.Security.OAuth.Providers.Tests.csproj",
+    "type": ".csproj",
+    "lines": 63,
+    "hash": "6a5efda3"
+  },
+  {
+    "priority": "P1",
+    "path": "tests/AspNet.Security.OAuth.OneID.Tests/Infrastructure/ApplicationFactory.cs",
+    "type": ".cs",
+    "lines": 144,
+    "hash": "a4b32c2e"
+  },
+  {
+    "priority": "P1",
+    "path": "tests/AspNet.Security.OAuth.OneID.Tests/Infrastructure/HttpRequestInterceptionFilter.cs",
+    "type": ".cs",
+    "lines": 27,
+    "hash": "d9b8a4ff"
+  },
+  {
+    "priority": "P1",
+    "path": "tests/AspNet.Security.OAuth.OneID.Tests/Infrastructure/LoopbackRedirectHandler.cs",
+    "type": ".cs",
+    "lines": 117,
+    "hash": "92de3106"
+  },
+  {
+    "priority": "P1",
+    "path": "tests/AspNet.Security.OAuth.OneID.Tests/Infrastructure/OAuthTests.cs",
+    "type": ".cs",
+    "lines": 336,
+    "hash": "e36676c3"
+  },
+  {
+    "priority": "P1",
+    "path": "tests/AspNet.Security.OAuth.OneID.Tests/Infrastructure/Program.cs",
+    "type": ".cs",
+    "lines": 15,
+    "hash": "4236195b"
+  },
+  {
+    "priority": "P1",
+    "path": "tests/AspNet.Security.OAuth.OneID.Tests/OneIDAuthenticationOptionsTests.cs",
+    "type": ".cs",
+    "lines": 107,
+    "hash": "bb8aeb4e"
+  },
+  {
+    "priority": "P1",
+    "path": "tests/AspNet.Security.OAuth.OneID.Tests/OneIDTests.cs",
+    "type": ".cs",
+    "lines": 49,
+    "hash": "a89ede61"
+  },
+  {
+    "priority": "P1",
+    "path": "tests/AspNet.Security.OAuth.OneID.Tests/OneIdAuthenticationBackChannelHandlerTests.cs",
+    "type": ".cs",
+    "lines": 218,
+    "hash": "942edc3f"
+  },
+  {
+    "priority": "P1",
+    "path": "tests/AspNet.Security.OAuth.OneID.Tests/OneIdAuthenticationExtensionsTests.cs",
+    "type": ".cs",
+    "lines": 121,
+    "hash": "d7f0eb15"
+  },
+  {
+    "priority": "P1",
+    "path": "tests/AspNet.Security.OAuth.OneID.Tests/OneIdAuthenticationHandlerAdditionalNetCoreTests.cs",
+    "type": ".cs",
+    "lines": 316,
+    "hash": "e779661c"
+  },
+  {
+    "priority": "P1",
+    "path": "tests/AspNet.Security.OAuth.OneID.Tests/OneIdAuthenticationHandlerNetCoreTests.cs",
+    "type": ".cs",
+    "lines": 96,
+    "hash": "36bd3e52"
+  },
+  {
+    "priority": "P1",
+    "path": "tests/AspNet.Security.OAuth.OneID.Tests/TokenTests.cs",
+    "type": ".cs",
+    "lines": 38,
+    "hash": "235db0dd"
+  },
+  {
+    "priority": "P1",
+    "path": "tests/AspNet.Security.OAuth.OneID.Tests/Usings.cs",
+    "type": ".cs",
+    "lines": 1,
+    "hash": "e8de9b91"
+  },
+  {
+    "priority": "P1",
+    "path": "tests/AspNet.Security.OAuth.OneID.Tests/bundle.json",
+    "type": ".json",
+    "lines": 42,
+    "hash": "68b9bf4f"
+  },
+  {
+    "priority": "P1",
+    "path": "tests/AspNet.Security.OAuth.OneID.Tests/xunit.runner.json",
+    "type": ".json",
+    "lines": 3,
+    "hash": "8390dc2b"
+  },
+  {
+    "priority": "P3",
+    "path": "tutorial/01_oneidauthenticationoptions_.md",
+    "type": ".md",
+    "lines": 223,
+    "hash": "6bdffbb1"
+  },
+  {
+    "priority": "P3",
+    "path": "tutorial/02_oneidauthenticationenvironment_.md",
+    "type": ".md",
+    "lines": 190,
+    "hash": "c186c641"
+  },
+  {
+    "priority": "P3",
+    "path": "tutorial/03_oneidauthenticationextensions_.md",
+    "type": ".md",
+    "lines": 201,
+    "hash": "fd36b5b3"
+  },
+  {
+    "priority": "P3",
+    "path": "tutorial/04_oneidauthenticationhandler_.md",
+    "type": ".md",
+    "lines": 257,
+    "hash": "66313cf1"
+  },
+  {
+    "priority": "P3",
+    "path": "tutorial/05_oneidauthenticationbackchannelhandler_.md",
+    "type": ".md",
+    "lines": 228,
+    "hash": "9f97f2ce"
+  },
+  {
+    "priority": "P3",
+    "path": "tutorial/06_oneidhelper_.md",
+    "type": ".md",
+    "lines": 366,
+    "hash": "dc2379dd"
+  },
+  {
+    "priority": "P3",
+    "path": "tutorial/index.md",
+    "type": ".md",
+    "lines": 52,
+    "hash": "15cad08f"
+  },
+  {
+    "priority": "P2",
+    "path": "version.json",
+    "type": ".json",
+    "lines": 26,
+    "hash": "efa553de"
+  }
+]
