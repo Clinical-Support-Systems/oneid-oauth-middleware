@@ -2,7 +2,7 @@
 
 ## Status and objective
 
-EXECUTED / AWAITING MERGE (commit `4dd5b5a`, branch `worktree-agent-a4f0b4e10d92f264b`, 2026-09-07; reviewed and approved, not merged, not pushed); P1; medium effort; low change risk (test-only); tests/DX. Planned at `777d721`, 2026-09-07; split out of task 003 during plan review. Prerequisite: **task 003** has landed (the `Protect` reorder).
+DONE / MERGED (merge commit `1ab3341` on `master`, work commit `4dd5b5a`, 2026-09-07; reviewed, merged, not pushed); P1; medium effort; low change risk (test-only); tests/DX. Planned at `777d721`, 2026-09-07; split out of task 003 during plan review. Prerequisite: **task 003** has landed (the `Protect` reorder).
 
 Create a Windows-only `net48` xUnit project that actually executes the Framework handler, and use it to lock in the challenge-state invariant that task 003 fixed. Then wire it into the solution and into task 001's validation workflow if that workflow exists yet.
 
