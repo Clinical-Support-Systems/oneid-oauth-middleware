@@ -1,0 +1,14 @@
+flowchart LR
+  U[Browser] --> H[Consumer host and cookie authentication]
+  H --> O[OneID handler]
+  C[Options and service profiles] --> O
+  O -->|authorize redirect| I[OneID]
+  I -->|code and state| O
+  O --> B[Certificate assertion backchannel]
+  B -->|token POST| I
+  O --> V[ID token validator]
+  V -->|discovery and JWKS| I
+  O -->|ticket and tokens| H
+  H --> D[(Host Identity database)]
+  H --> S[(Host session)]
+  H -. access token; host implements calls .-> A[OLIS and DHDR APIs]

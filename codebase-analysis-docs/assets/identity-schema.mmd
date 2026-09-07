@@ -1,0 +1,7 @@
+erDiagram
+  AspNetUsers ||--o{ AspNetUserClaims : owns
+  AspNetUsers ||--o{ AspNetUserLogins : links
+  AspNetUsers ||--o{ AspNetUserTokens : stores
+  AspNetUsers ||--o{ AspNetUserRoles : has
+  AspNetRoles ||--o{ AspNetUserRoles : assigned
+  AspNetRoles ||--o{ AspNetRoleClaims : owns

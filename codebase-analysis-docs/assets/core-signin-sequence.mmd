@@ -1,0 +1,18 @@
+sequenceDiagram
+  participant B as Browser
+  participant H as Host/OAuth framework
+  participant O as OneID handler
+  participant I as OneID
+  H->>O: Challenge(properties)
+  O->>O: Add nonce before base challenge/state protection
+  O-->>B: Redirect with PKCE, state, nonce, profile
+  B->>I: Login/authorization
+  I-->>B: Redirect with code and state
+  B->>H: Callback
+  H->>O: ExchangeCodeAsync
+  O->>I: Code + verifier + signed client assertion
+  I-->>O: Token JSON
+  O->>I: Discovery/JWKS through validator
+  O->>O: Validate ID token and nonce; map claims
+  O-->>H: Ticket; session/property tokens
+  H-->>B: Host external sign-in continuation
