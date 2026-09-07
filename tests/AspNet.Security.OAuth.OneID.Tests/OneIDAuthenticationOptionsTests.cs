@@ -103,5 +103,16 @@ namespace AspNet.Security.OAuth.Providers.Tests
             // Act and Assert
             Assert.Throws<ArgumentException>("CallbackPath", () => options.Validate());
         }
+
+        [Fact]
+        public static void NewOptions_DoNotSeedAnIssuerSigningKey()
+        {
+            // Arrange
+            var options = new OneIdAuthenticationOptions();
+
+            // Act and Assert
+            Assert.Null(options.TokenValidationParameters.IssuerSigningKey);
+            Assert.True(options.TokenValidationParameters.ValidateIssuerSigningKey);
+        }
     }
 }

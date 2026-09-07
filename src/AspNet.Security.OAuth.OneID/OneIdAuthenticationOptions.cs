@@ -109,7 +109,6 @@ namespace AspNet.Security.OAuth.OneID
                 ValidateLifetime = true,
 
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String("iGlWMW7KNH1FOIMRSUluC7PPCu6K9zdQTrP1I4Cl5q0=")),
 
                 NameClaimType = ClaimTypes.NameIdentifier,
                 RoleClaimType = "groups"
