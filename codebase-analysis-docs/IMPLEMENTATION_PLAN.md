@@ -14,14 +14,17 @@ All paths below are relative to the repository root. Each task is self-contained
 |---|---|---|---|---|---|---|
 | 008 | `codebase-analysis-docs/assets/plans/008-remove-seeded-signing-key.md` | **P0** | S | Low | None | **DONE / MERGED** — commit `4e09a2b` on `master`, 2026-09-07. Executed in a worktree, reviewed, then applied to master at the owner's instruction. Not pushed. |
 | 003 | `codebase-analysis-docs/assets/plans/003-katana-state.md` | **P0** | S | Low | None | **DONE / MERGED** — commit `aed06c1` on `master`, 2026-09-07. Not pushed. Verified by review + dual-target build only; no automated regression until task 007. |
-| 002 | `codebase-analysis-docs/assets/plans/002-core-validation.md` | P1 | M | High | 008 | TODO |
+| 002 | `codebase-analysis-docs/assets/plans/002-core-validation.md` | P1 | M | High | 008 | **DONE / UNCOMMITTED** — executed 2026-09-07 in the main working tree (no worktree, at the owner's instruction), reviewed and approved; changes sit uncommitted for the owner to commit. Verified by the reviewer on `a9dba7d` + working tree: Core suite 49 passed / 4 skipped / 0 failed (no new skips), net48 suite 6/6, `dotnet build -c Release` clean on both targets (0 warnings, warnings-as-errors). |
+| 009 | `codebase-analysis-docs/assets/plans/009-drop-net48-target.md` | **P1** | L | **High (public breaking change)** | 002 committed | TODO |
 | 007 | `codebase-analysis-docs/assets/plans/007-netfull-test-project.md` | P1 | M | Low (test-only) | 003 | **DONE / MERGED** — merge commit `1ab3341` on `master`, 2026-09-07 (work commit `4dd5b5a`). Executed in a worktree, reviewed, then merged at the owner’s instruction. Not pushed. Verified on master after merge: net48 6/6 on `.NETFramework,Version=v4.8`, Core 32 passed / 4 skipped, Release build clean on both targets. |
-| 006 | `codebase-analysis-docs/assets/plans/006-integration-design-decisions.md` | P1 design gate | L | Documentation only | May run first; consume 002/003/007 evidence when available | TODO |
+| 006 | `codebase-analysis-docs/assets/plans/006-integration-design-decisions.md` | P1 design gate | L | Documentation only | May run first; consume 002/003/007 evidence when available | TODO — **re-scope after 009**; its Katana discovery/issuer questions become moot, only the Core-side decisions survive. |
 | 001 | `codebase-analysis-docs/assets/plans/001-test-baseline-and-ci.md` | P2 | M | Low | None; **gates nothing** | TODO |
-| 004 | `codebase-analysis-docs/assets/plans/004-options-consistency.md` | P2 | S | Medium | 008, 002, 007 | TODO |
-| 005 | `codebase-analysis-docs/assets/plans/005-typed-refresh.md` | P2 | M | Medium | 007 | TODO |
+| 004 | `codebase-analysis-docs/assets/plans/004-options-consistency.md` | P2 | S | Medium | 008, 002, 007 | TODO — **re-scope after 009**; most of the inconsistency is dual-target divergence that 009 deletes. |
+| 005 | `codebase-analysis-docs/assets/plans/005-typed-refresh.md` | P2 | M | Medium | 007 | TODO — **re-scope after 009**; becomes the home for dropping Newtonsoft.Json, since `OneIdHelper.RefreshToken` is then its only real consumer. |
 
-Recommended sequence: **008 → 003 → 002 → 007 → 004 → 005**, with 001 and 006 running in parallel at any point. Complete 006 before releasing changes to Katana discovery/issuer handling, endpoint contracts or token-persistence behavior.
+Recommended sequence: **008 → 003 → 002 → 007 → 009 → 004 → 005**, with 001 running in parallel at any point.
+
+Task **009 removes the net48/OWIN-Katana target entirely** and is a public breaking change shipping as 2.0.0. It supersedes the old advice to complete 006 before touching Katana discovery/issuer handling — there is no Katana path after 009. Run 009 only once 002 is committed, and re-scope 004, 005 and 006 against a single-target library afterward.
 
 ### Revision note (2026-09-07, plan review)
 
@@ -90,6 +93,16 @@ Replace only the task filename when moving to the next handoff.
 | Arbitrary coverage target such as 80% | Establish honest target-specific baseline and scenario coverage first. A percentage cannot replace negative authentication tests. |
 | Dependency/package upgrades | Align only what is required for test compatibility; broad upgrades and automated dependency workflow changes need separate scope. |
 | Release-workflow SDK mismatch | `.github/workflows/main.yml` pins `DOTNET_VERSION: '8.0.401'` while `global.json` requests `9.0.305` with `latestPatch` roll-forward, which cannot cross from 8.0.x to 9.0.305. The workflow succeeds only because `windows-latest` preinstalls a 9.0.x SDK alongside the one it installs — luck, not configuration. Not fixed by any current task: editing the release workflow risks publishing packages. Task 001 records it in `BASELINE.md` and its new `validation.yml` must use `setup-dotnet`'s `global-json-file` input instead. Needs a separately scoped change. |
+
+### Decision record (2026-09-07): drop the net48 / OWIN-Katana target
+
+The owner decided to remove net48 support rather than continue maintaining it. Recorded here so it is not re-litigated or re-audited.
+
+Evidence: the Katana sign-in flow was **totally broken from `7285bbe` (2026-06-09) to `aed06c1` (2026-09-07)** — three months, in a package that publishes to NuGet on every push to `master` — with no bug report. Nine source files (1,323 lines) are wholly net48-only, and the heaviest conditional complexity in the library (`TokenEndpoint.cs` with 13 `#if !NETCORE`/`#else` pairs, `OneIdAuthenticationOptions.cs` with 13 guard sites) exists only to serve it. The library is MIT on public NuGet, so "nobody has licensed it" is not proof of zero consumers — hence the removal ships as **2.0.0** with 1.3.x left available, not as a silent TFM drop in a minor.
+
+One assumption explicitly rejected: *"dropping net48 also removes Newtonsoft.Json."* It does not. `OneIdHelper.cs:190` calls `JsonConvert.DeserializeObject<JObject>` outside any conditional, so the net8.0 build uses Newtonsoft today. Removing it is task 005's work, not 009's.
+
+Cost accepted: task 003's Katana fix and task 007's net48 test project are both discarded by 009. Sunk cost; 007 was the only executable coverage that target ever had, and it goes with the target.
 
 ## Confidence and rejected interpretations
 

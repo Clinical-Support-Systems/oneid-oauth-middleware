@@ -43,14 +43,20 @@ namespace AspNet.Security.OAuth.OneID
     {
         /// <summary>
         /// Delegate invoked when the <see cref="ValidateIdToken"/> method is invoked.
-        /// Skips validation silently if no <see cref="IOneIdTokenValidator"/> is configured to avoid NREs in unit tests.
+        /// Requires a configured <see cref="IOneIdTokenValidator"/>; a missing validator is a
+        /// configuration error rather than something that should be silently skipped.
         /// </summary>
         private Func<OneIdValidateIdTokenContext, Task> OnValidateIdToken { get; } = context =>
         {
             ArgumentNullException.ThrowIfNull(context);
-            // If no validator configured (e.g. lightweight unit test scenario), do nothing.
             var validator = context.Options.TokenValidator;
-            return validator is not null ? validator.ValidateAsync(context) : Task.CompletedTask;
+            if (validator is null)
+            {
+                throw new InvalidOperationException(
+                    $"The '{nameof(OneIdAuthenticationOptions.TokenValidator)}' option must be provided to validate OneID ID tokens.");
+            }
+
+            return validator.ValidateAsync(context);
         };
 
         /// <summary>

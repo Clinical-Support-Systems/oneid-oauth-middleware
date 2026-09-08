@@ -85,6 +85,12 @@ services.AddAuthentication().AddOneId(OneIdAuthenticationDefaults.Authentication
     });
 ```
 
+### :lock: ID token validation
+
+For the Core (`net8.0`) handler, `AddOneId` installs a default `IOneIdTokenValidator` that validates the OneID ID token's signature, issuer, audience, lifetime and nonce against the signing keys published by OneID's own discovery/JWKS endpoint - the library does not ship or trust any pre-seeded signing key, so a token can only validate against keys OneID itself currently publishes.
+
+If `OneIdAuthenticationOptions.TokenValidator` is ever `null` when a token needs to be validated (for example, a hand-built `OneIdAuthenticationOptions` instance that bypassed `AddOneId`/`PostConfigure`), the default `OneIdAuthenticationEvents.ValidateIdToken` throws an `InvalidOperationException` naming `TokenValidator` rather than silently skipping validation. To customize or replace validation, provide your own `IOneIdTokenValidator` via `options.TokenValidator`, or override `ValidateIdToken` on a custom `OneIdAuthenticationEvents` subclass - both are honored in place of the default.
+
 #  :wrench: Development
 If you want other people to contribute to this project, this is the section, make sure you always add this.
 

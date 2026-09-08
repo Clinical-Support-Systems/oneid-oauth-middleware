@@ -33,7 +33,10 @@ namespace AspNet.Security.OAuth.Providers.Tests
                 ClientId = "client",
                 ClientSecret = "secret",
                 SaveTokens = true,
-                TokenSaveOptions = OneIdAuthenticationTokenSave.IdToken | OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken
+                TokenSaveOptions = OneIdAuthenticationTokenSave.IdToken | OneIdAuthenticationTokenSave.AccessToken | OneIdAuthenticationTokenSave.RefreshToken,
+                // These tests exercise claim/ticket handling, not token validation, so a no-op
+                // validator is configured explicitly - the default event now requires one.
+                TokenValidator = new NoOpTokenValidator()
             };
             options.Backchannel = new HttpClient(new FakeBackchannelHandler());
 
@@ -184,7 +187,10 @@ namespace AspNet.Security.OAuth.Providers.Tests
                 ClientId = "client",
                 ClientSecret = "secret",
                 SaveTokens = true,
-                TokenSaveOptions = OneIdAuthenticationTokenSave.IdToken | OneIdAuthenticationTokenSave.AccessToken
+                TokenSaveOptions = OneIdAuthenticationTokenSave.IdToken | OneIdAuthenticationTokenSave.AccessToken,
+                // Ticket/token-saving is under test here, not validation, so a no-op validator is
+                // configured explicitly - the default event now requires one.
+                TokenValidator = new NoOpTokenValidator()
             };
             var handler = CreateHandler(options);
 
@@ -311,6 +317,16 @@ namespace AspNet.Security.OAuth.Providers.Tests
             WasCalled = true;
             return Task.CompletedTask;
         }
+    }
+
+    /// <summary>
+    /// A no-op <see cref="IOneIdTokenValidator"/> for tests that exercise claim extraction/ticket
+    /// creation rather than token validation itself. Real token validation behavior is covered by
+    /// <c>OneIdTokenValidatorTests</c>.
+    /// </summary>
+    internal sealed class NoOpTokenValidator : IOneIdTokenValidator
+    {
+        public Task ValidateAsync(OneIdValidateIdTokenContext context) => Task.CompletedTask;
     }
 #endif
 }
